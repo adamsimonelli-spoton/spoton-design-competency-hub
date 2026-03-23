@@ -885,12 +885,17 @@ function getProfiles() {
 function saveProfiles(profiles) {
   localStorage.setItem('dch_profiles', JSON.stringify(profiles));
 }
-function addProfile(name, role) {
+function addProfile(name, role, isManager = false) {
   const profiles = getProfiles();
-  const profile = { name, role, id: `p_${Date.now()}`, created: new Date().toISOString(), photo: null };
+  const profile = { name, role, id: `p_${Date.now()}`, created: new Date().toISOString(), photo: null, isManager };
   profiles.push(profile);
   saveProfiles(profiles);
   return profile;
+}
+function currentIsManager() {
+  const profiles = getProfiles();
+  const p = profiles.find(x => x.id === state.profile);
+  return !!(p?.isManager);
 }
 function setProfilePhoto(id, dataUrl) {
   const profiles = getProfiles();
@@ -2694,15 +2699,37 @@ function renderRoleSelect(id, selectedRole, includeBlank) {
 // ============ PROFILE MODAL ============
 function renderProfileModal() {
   const profiles = getProfiles();
+  const isFirstRun = profiles.length === 0;
   return `
-    <div class="modal-overlay" id="profile-modal" onclick="if(event.target===this)closeProfileModal()">
-      <div class="modal" style="width:400px;max-width:95vw">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div class="modal-title" style="margin-bottom:0">Switch Profile</div>
-          <button onclick="closeProfileModal()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);padding:4px">✕</button>
-        </div>
-        <div class="modal-subtitle">Select a profile to view their assessments.</div>
-        ${profiles.length > 0 ? `
+    <div class="modal-overlay" id="profile-modal" onclick="if(event.target===this && !${isFirstRun})closeProfileModal()">
+      <div class="modal" style="width:420px;max-width:95vw">
+        ${isFirstRun ? `
+          <div class="modal-title" style="margin-bottom:4px">Welcome to Competency Hub</div>
+          <div class="modal-subtitle" style="margin-bottom:20px">Create your profile to get started.</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div>
+              <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px">Your name</label>
+              <input class="modal-input" id="new-profile-name" placeholder="e.g. Jamie Chen" style="margin:0" />
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px">Role</label>
+              ${renderRoleSelect('new-profile-role', '', true)}
+            </div>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg)">
+              <input type="checkbox" id="new-profile-manager" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer" />
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text)">I'm a manager</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:1px">Enables team management, switching between profiles, and setting assessments for others</div>
+              </div>
+            </label>
+            <button class="btn btn-primary" onclick="createProfileAndStart()" style="margin-top:4px">Get Started</button>
+          </div>
+        ` : `
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div class="modal-title" style="margin-bottom:0">Switch Profile</div>
+            <button onclick="closeProfileModal()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);padding:4px">✕</button>
+          </div>
+          <div class="modal-subtitle">Select a profile to view their assessments.</div>
           <div class="profiles-list">
             ${profiles.map(p => `
               <div class="profile-option ${state.profile === p.id ? 'active' : ''}" onclick="selectProfile('${p.id}')">
@@ -2715,7 +2742,7 @@ function renderProfileModal() {
               </div>
             `).join('')}
           </div>
-        ` : `<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:24px 0">No profiles yet. Add one in Manage Team.</div>`}
+        `}
       </div>
     </div>
   `;
@@ -2764,6 +2791,10 @@ function renderTeamModal() {
           </div>
           <button class="btn btn-primary btn-sm" onclick="createProfileFromTeam()" style="white-space:nowrap;flex-shrink:0">Add Member</button>
         </div>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer">
+          <input type="checkbox" id="new-profile-manager-team" style="width:15px;height:15px;accent-color:var(--primary);cursor:pointer" />
+          <span style="font-size:12px;color:var(--text-secondary)">Manager — can switch profiles and manage team</span>
+        </label>
 
         <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:24px">
           <button class="btn btn-secondary" onclick="closeTeamModal()">Cancel</button>
@@ -2802,8 +2833,9 @@ function saveTeamRoles() {
 function createProfileFromTeam() {
   const name = document.getElementById('new-profile-name')?.value?.trim();
   const role = document.getElementById('new-profile-role')?.value?.trim();
+  const isManager = document.getElementById('new-profile-manager-team')?.checked || false;
   if (!name) { alert('Please enter a name.'); return; }
-  addProfile(name, role);
+  addProfile(name, role, isManager);
   manageTeam(); // re-render modal with new member
 }
 function deleteProfileFromTeam(id) {
@@ -4153,8 +4185,9 @@ function toggleProfileDropdown() {
 function createProfileAndStart() {
   const name = document.getElementById('new-profile-name')?.value?.trim();
   const role = document.getElementById('new-profile-role')?.value?.trim();
+  const isManager = document.getElementById('new-profile-manager')?.checked || false;
   if (!name) { alert('Please enter your name.'); return; }
-  const profile = addProfile(name, role);
+  const profile = addProfile(name, role, isManager);
   selectProfile(profile.id);
 }
 function closeProfileModal() {
@@ -4275,28 +4308,37 @@ function render() {
 
       <div class="sidebar-profile">
         <div class="profile-label">Current Profile</div>
-        <div class="profile-selector ${state.profileDropdownOpen ? 'open' : ''}" onclick="toggleProfileDropdown()">
-          ${avatarHtml(currentProfile, 36, 13)}
-          <div class="profile-name">${escHtml(currentProfile?.name || 'Select Profile')}</div>
-          <span class="chevron" style="transition:transform .2s;${state.profileDropdownOpen ? 'transform:rotate(180deg)' : ''}">▼</span>
-        </div>
-        ${state.profileDropdownOpen ? `
-          <div class="profile-dropdown">
-            ${profiles.map(p => `
-              <div class="profile-dropdown-item-wrap" style="display:flex;align-items:center;gap:4px;padding:2px 8px">
-                <button class="profile-dropdown-item ${state.profile === p.id ? 'active' : ''}" style="flex:1;padding:6px 4px" onclick="selectProfile('${p.id}')">
-                  ${avatarHtml(p, 26, 10)}
-                  <div style="flex:1;min-width:0;text-align:left">
-                    <div style="font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(p.name)}</div>
-                    <div style="font-size:11px;color:var(--text-muted)">${escHtml(p.role ? shortRole(p.role) : 'No role')}</div>
-                  </div>
-                  ${state.profile === p.id ? '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><path d="M2 7l4 4 6-6" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
-                </button>
-                <button onclick="event.stopPropagation();deleteProfile('${p.id}')" title="Remove profile" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;border-radius:4px;line-height:1;font-size:14px" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">✕</button>
-              </div>
-            `).join('')}
+        ${currentIsManager() ? `
+          <div class="profile-selector ${state.profileDropdownOpen ? 'open' : ''}" onclick="toggleProfileDropdown()">
+            ${avatarHtml(currentProfile, 36, 13)}
+            <div class="profile-name">${escHtml(currentProfile?.name || 'Select Profile')}</div>
+            <span class="chevron" style="transition:transform .2s;${state.profileDropdownOpen ? 'transform:rotate(180deg)' : ''}">▼</span>
           </div>
-        ` : ''}
+          ${state.profileDropdownOpen ? `
+            <div class="profile-dropdown">
+              ${profiles.map(p => `
+                <div class="profile-dropdown-item-wrap" style="display:flex;align-items:center;gap:4px;padding:2px 8px">
+                  <button class="profile-dropdown-item ${state.profile === p.id ? 'active' : ''}" style="flex:1;padding:6px 4px" onclick="selectProfile('${p.id}')">
+                    ${avatarHtml(p, 26, 10)}
+                    <div style="flex:1;min-width:0;text-align:left">
+                      <div style="font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(p.name)}</div>
+                      <div style="font-size:11px;color:var(--text-muted)">${escHtml(p.role ? shortRole(p.role) : 'No role')}</div>
+                    </div>
+                    ${state.profile === p.id ? '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><path d="M2 7l4 4 6-6" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        ` : `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+            ${avatarHtml(currentProfile, 36, 13)}
+            <div>
+              <div class="profile-name" style="font-size:13px;font-weight:600">${escHtml(currentProfile?.name || 'My Profile')}</div>
+              ${currentProfile?.role ? `<div style="font-size:11px;color:var(--text-muted)">${escHtml(shortRole(currentProfile.role))}</div>` : ''}
+            </div>
+          </div>
+        `}
       </div>
 
       <nav class="sidebar-nav">
@@ -4338,10 +4380,12 @@ function render() {
       </nav>
 
       <div class="sidebar-footer">
-        <button class="nav-item" onclick="manageTeam()" style="width:100%">
-          <span class="nav-icon">👥</span>
-          <span style="font-size:12.5px">Manage Team</span>
-        </button>
+        ${currentIsManager() ? `
+          <button class="nav-item" onclick="manageTeam()" style="width:100%">
+            <span class="nav-icon">👥</span>
+            <span style="font-size:12.5px">Manage Team</span>
+          </button>
+        ` : ''}
         <div class="sidebar-footer-text">
           ${getAssessedCount()} of ${SKILLS_DATA.skills.length} skills assessed
         </div>
