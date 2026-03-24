@@ -1087,7 +1087,7 @@ function renderRadarChart(size, layers) {
     const isTopBottom = Math.abs(sinA) > 0.7;
     const labelR = isTopBottom ? maxR + 16 : maxR;
     const lx = cx + labelR * cosA;
-    const ly = cy + labelR * sinA + (isTopBottom ? 0 : 11);
+    const ly = cy + labelR * sinA + (isTopBottom ? 0 : 20);
     const label = catLabels[cat] || cat;
     const pillW = Math.max(label.length * 5.5 + 14, 28);
     const pillH = 15;
@@ -1186,7 +1186,7 @@ function renderValuesRadarChart(size) {
     const isTopBottom = Math.abs(sinA) > 0.7;
     const labelR = isTopBottom ? maxR + 16 : maxR;
     const lx = cx + labelR * cosA;
-    const ly = cy + labelR * sinA + (isTopBottom ? 0 : 11);
+    const ly = cy + labelR * sinA + (isTopBottom ? 0 : 20);
     // Use first phrase only (up to first period) for compact chart label
     const chartLabel = cv.label.split('.')[0].replace(/,$/, '').trim();
     const pillW = Math.max(chartLabel.length * 5.5 + 14, 28);
