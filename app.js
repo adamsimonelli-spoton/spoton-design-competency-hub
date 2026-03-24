@@ -2800,33 +2800,48 @@ const CROSS_SKILL_ACTIVITIES = [
   },
 ];
 
-function computeQuickWins(allGapEntries) {
-  const wins = [];
-  const gapIds = new Set(allGapEntries.map(e => e.skill.id));
-
-  // Score each activity by how many of the user's actual gaps it covers
-  const scoredActivities = CROSS_SKILL_ACTIVITIES.map(a => {
-    const matchingIds = a.relatedIds.filter(id => gapIds.has(id));
+function computeQuickWins(allEntries, minScore = 2) {
+  const ids = new Set(allEntries.map(e => e.skill.id));
+  const scored = CROSS_SKILL_ACTIVITIES.map(a => {
+    const matchingIds = a.relatedIds.filter(id => ids.has(id));
     const matchingNames = matchingIds.map(id => SKILLS_DATA.skills.find(s => s.id === id)?.name).filter(Boolean);
     return { ...a, matchingIds, matchingNames, score: matchingIds.length };
-  }).filter(a => a.score >= 2).sort((a, b) => b.score - a.score);
-
-  scoredActivities.slice(0, 3).forEach(a => wins.push({ kind: 'activity', ...a }));
-
-  return wins.slice(0, 3);
+  }).filter(a => a.score >= minScore).sort((a, b) => b.score - a.score);
+  return scored.slice(0, 3).map(a => ({ kind: 'activity', ...a }));
 }
 
 function getQuickWins() {
   const assessments = getData().assessments;
-  const allGapEntries = SKILLS_DATA.skills.map(s => {
+
+  // Tier 1: skills with an actual gap (below expected level)
+  const gapEntries = SKILLS_DATA.skills.map(s => {
     const a = assessments[s.id] || {};
     const exp = getExpectedLevelForSkill(s.id);
     if (!exp || !a.managerLevel) return null;
     const gap = getLevelOrder(a.managerLevel) - getLevelOrder(exp);
-    if (gap >= 0) return null;
-    return { skill: s, actual: a.managerLevel, expected: exp, gap, assessment: a };
+    return gap < 0 ? { skill: s, actual: a.managerLevel, expected: exp, gap, assessment: a } : null;
   }).filter(Boolean);
-  return computeQuickWins(allGapEntries);
+
+  let wins = computeQuickWins(gapEntries);
+  if (wins.length) return wins;
+
+  // Tier 2: any assessed skill below Expert (room to grow even if meeting expectations)
+  const growthEntries = SKILLS_DATA.skills.map(s => {
+    const a = assessments[s.id] || {};
+    if (!a.managerLevel || a.managerLevel === 'Expert') return null;
+    return { skill: s, actual: a.managerLevel, expected: 'Expert', gap: getLevelOrder(a.managerLevel) - 4, assessment: a };
+  }).filter(Boolean);
+
+  wins = computeQuickWins(growthEntries);
+  if (wins.length) return wins;
+
+  // Tier 3: all assessed skills, lower the bar to 1 match (e.g. fully Expert profile)
+  const allAssessed = SKILLS_DATA.skills.map(s => {
+    const a = assessments[s.id] || {};
+    return a.managerLevel ? { skill: s, actual: a.managerLevel, expected: a.managerLevel, gap: 0, assessment: a } : null;
+  }).filter(Boolean);
+
+  return computeQuickWins(allAssessed, 1);
 }
 
 function renderQuickWinsSection() {
