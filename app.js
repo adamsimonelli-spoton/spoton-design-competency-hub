@@ -729,6 +729,8 @@ let state = {
   outreachToast: null,
   goalModal: null,
   goalNotesModal: null,
+  pinModal: null,
+  unlockedProfiles: [],
 };
 
 // ============ STORAGE ============
@@ -894,9 +896,9 @@ function getProfiles() {
 function saveProfiles(profiles) {
   localStorage.setItem('dch_profiles', JSON.stringify(profiles));
 }
-function addProfile(name, role, isManager = false) {
+function addProfile(name, role, isManager = false, pin) {
   const profiles = getProfiles();
-  const profile = { name, role, id: `p_${Date.now()}`, created: new Date().toISOString(), photo: null, isManager };
+  const profile = { name, role, id: `p_${Date.now()}`, created: new Date().toISOString(), photo: null, isManager, pin: pin || null };
   profiles.push(profile);
   saveProfiles(profiles);
   return profile;
@@ -3122,6 +3124,11 @@ function renderProfileModal() {
                 <div style="font-size:11px;color:var(--text-muted);margin-top:1px">Enables team management, switching between profiles, and setting assessments for others</div>
               </div>
             </label>
+            <div class="form-field">
+              <label class="form-label" style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px">PIN (optional)</label>
+              <input id="new-profile-pin" class="modal-input" type="password" inputmode="numeric" maxlength="6" placeholder="Leave blank for no PIN" style="margin:0" />
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Set a PIN to protect this profile. Others must enter it to view.</div>
+            </div>
             <button class="btn btn-primary" onclick="createProfileAndStart()" style="margin-top:4px">Get Started</button>
           </div>
         ` : `
@@ -3135,7 +3142,7 @@ function renderProfileModal() {
               <div class="profile-option ${state.profile === p.id ? 'active' : ''}" onclick="selectProfile('${p.id}')">
                 ${avatarHtml(p, 36, 13)}
                 <div style="flex:1;min-width:0">
-                  <div class="profile-option-name">${escHtml(p.name)}</div>
+                  <div class="profile-option-name">${escHtml(p.name)}${p.pin ? ' 🔒' : ''}</div>
                   <div class="profile-option-role">${escHtml(shortRole(p.role) || 'No role assigned')}</div>
                 </div>
                 ${state.profile === p.id ? '<span style="font-size:11px;color:var(--primary);font-weight:600">Active</span>' : ''}
@@ -3172,7 +3179,10 @@ function renderTeamModal() {
                 <input class="modal-input" style="margin:0;padding:4px 8px;font-size:13px;font-weight:600" id="name-edit-${p.id}" value="${escHtml(p.name)}" placeholder="Name" />
                 ${renderRoleSelect('role-select-'+p.id, p.role || '', true)}
               </div>
-              <button onclick="deleteProfileFromTeam('${p.id}')" title="Remove member" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:16px;padding:4px;flex-shrink:0;line-height:1">✕</button>
+              <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0">
+                <button onclick="deleteProfileFromTeam('${p.id}')" title="Remove member" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:16px;padding:4px;line-height:1">✕</button>
+                <button onclick="promptSetProfilePin('${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--primary);font-size:11px;font-weight:600;padding:2px 4px;white-space:nowrap">${p.pin ? '🔒 Change PIN' : 'Set PIN'}</button>
+              </div>
             </div>
           `).join('')}
           ${profiles.length === 0 ? `<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:16px 0">No team members yet.</div>` : ''}
@@ -4817,11 +4827,92 @@ function deleteProfile(id) {
   render();
 }
 function selectProfile(id) {
+  const profiles = getProfiles();
+  const profile = profiles.find(p => p.id === id);
+  if (profile && profile.pin && !state.unlockedProfiles.includes(id)) {
+    state.pinModal = { profileId: id };
+    render();
+    return;
+  }
   setCurrentProfile(id);
   state.profileDropdownOpen = false;
   state.view = 'home';
   closeProfileModal();
   render();
+}
+function renderPinModal() {
+  const profiles = getProfiles();
+  const profile = profiles.find(p => p.id === state.pinModal.profileId);
+  const profileName = profile ? escHtml(profile.name) : 'Profile';
+  return `
+    <div class="modal-overlay" id="pin-modal" onclick="if(event.target===this)closePinModal()" style="z-index:1000">
+      <div class="modal" style="width:360px;max-width:95vw;text-align:center">
+        <div class="modal-title" style="margin-bottom:4px">Enter PIN</div>
+        <div class="modal-subtitle" style="margin-bottom:20px">${profileName}</div>
+        <div style="margin-bottom:16px">
+          <input
+            id="pin-input"
+            type="password"
+            inputmode="numeric"
+            maxlength="6"
+            placeholder="••••"
+            autofocus
+            onkeydown="if(event.key==='Enter')submitPin()"
+            style="width:100%;box-sizing:border-box;font-size:24px;text-align:center;letter-spacing:0.3em;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);outline:none"
+          />
+        </div>
+        <div id="pin-error" style="display:none;color:#DC2626;font-size:13px;margin-bottom:12px;font-weight:500"></div>
+        <div style="display:flex;gap:8px;justify-content:center">
+          <button class="btn btn-secondary" onclick="closePinModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="submitPin()">Unlock</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+function closePinModal() {
+  state.pinModal = null;
+  render();
+}
+function submitPin() {
+  const input = document.getElementById('pin-input');
+  if (!input) return;
+  const val = input.value.trim();
+  const { profileId } = state.pinModal;
+  const profiles = getProfiles();
+  const profile = profiles.find(p => p.id === profileId);
+  if (!profile) return;
+
+  if (val === String(profile.pin)) {
+    state.unlockedProfiles.push(profileId);
+    state.pinModal = null;
+    setCurrentProfile(profileId);
+    state.profileDropdownOpen = false;
+    state.view = 'home';
+    closeProfileModal();
+    render();
+  } else {
+    const err = document.getElementById('pin-error');
+    if (err) { err.textContent = 'Incorrect PIN. Try again.'; err.style.display = 'block'; }
+    input.value = '';
+    input.focus();
+  }
+}
+function setProfilePin(profileId, pin) {
+  const profiles = getProfiles();
+  const p = profiles.find(x => x.id === profileId);
+  if (!p) return;
+  p.pin = pin || null;
+  localStorage.setItem('dch_profiles', JSON.stringify(profiles));
+  state.unlockedProfiles = state.unlockedProfiles.filter(id => id !== profileId);
+  render();
+}
+function promptSetProfilePin(profileId) {
+  const val = window.prompt('Enter new PIN (leave blank to remove):');
+  if (val === null) return; // cancelled
+  const trimmed = val.trim();
+  setProfilePin(profileId, trimmed || null);
+  manageTeam();
 }
 function toggleProfileDropdown() {
   state.profileDropdownOpen = !state.profileDropdownOpen;
@@ -4831,8 +4922,10 @@ function createProfileAndStart() {
   const name = document.getElementById('new-profile-name')?.value?.trim();
   const role = document.getElementById('new-profile-role')?.value?.trim();
   const isManager = document.getElementById('new-profile-manager')?.checked || false;
+  const pin = document.getElementById('new-profile-pin')?.value?.trim() || null;
   if (!name) { alert('Please enter your name.'); return; }
-  const profile = addProfile(name, role, isManager);
+  const profile = addProfile(name, role, isManager, pin);
+  if (pin) state.unlockedProfiles.push(profile.id);
   selectProfile(profile.id);
 }
 function closeProfileModal() {
@@ -4965,7 +5058,7 @@ function render() {
                   <button class="profile-dropdown-item ${state.profile === p.id ? 'active' : ''}" style="flex:1;padding:6px 4px" onclick="selectProfile('${p.id}')">
                     ${avatarHtml(p, 26, 10)}
                     <div style="flex:1;min-width:0;text-align:left">
-                      <div style="font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(p.name)}</div>
+                      <div style="font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(p.name)}${p.pin ? ' 🔒' : ''}</div>
                       <div style="font-size:11px;color:var(--text-muted)">${escHtml(p.role ? shortRole(p.role) : 'No role')}</div>
                     </div>
                     ${state.profile === p.id ? '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><path d="M2 7l4 4 6-6" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
@@ -5053,6 +5146,7 @@ function render() {
 
     ${renderNoteInputModal()}
     ${renderOutreachModal()}
+    ${state.pinModal ? renderPinModal() : ''}
 
     ${renderNoteSuccessToast()}
     ${renderOutreachToast()}
