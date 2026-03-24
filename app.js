@@ -961,6 +961,16 @@ function getAssessedCount() {
   const d = getData();
   return Object.values(d.assessments).filter(a => a.managerLevel).length;
 }
+function getDataForProfile(profileId) {
+  const raw = localStorage.getItem(`dch_data_${profileId}`);
+  const base = raw ? JSON.parse(raw) : {};
+  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], ...base };
+}
+function getExpectedLevelForSkillAndRole(skillId, role) {
+  if (!role) return null;
+  const rd = ROLES_DATA[role];
+  return rd ? (rd.skills[skillId] || null) : null;
+}
 function getLevelOrder(level) { return (LEVEL_CONFIG[level] || {}).order || 0; }
 function getExpectedLevelForSkill(skillId) {
   const profiles = getProfiles();
@@ -1539,6 +1549,202 @@ function renderNoteSuccessToast() {
         <div class="note-success-chips">${chips}</div>
       </div>
       <button class="insight-modal-close" onclick="state.noteSuccess=null;render()" style="margin-top:0">✕</button>
+    </div>
+  `;
+}
+
+// ============ MANAGER DASHBOARD ============
+function renderManagerHome() {
+  const profiles = getProfiles();
+  const totalSkills = SKILLS_DATA.skills.length;
+
+  // Build per-member stats
+  const memberStats = profiles.map(p => {
+    const d = getDataForProfile(p.id);
+    const assessments = d.assessments || {};
+    const assessed = Object.values(assessments).filter(a => a.managerLevel).length;
+    const pct = totalSkills > 0 ? Math.round((assessed / totalSkills) * 100) : 0;
+
+    // Gaps + overperforming
+    let gaps = 0, over = 0;
+    if (p.role) {
+      SKILLS_DATA.skills.forEach(s => {
+        const a = assessments[s.id];
+        if (!a?.managerLevel) return;
+        const exp = getExpectedLevelForSkillAndRole(s.id, p.role);
+        if (!exp) return;
+        const diff = getLevelOrder(a.managerLevel) - getLevelOrder(exp);
+        if (diff < 0) gaps++;
+        else if (diff > 0) over++;
+      });
+    }
+
+    // Top gap skill
+    let topGap = null;
+    if (p.role) {
+      const gapSkills = SKILLS_DATA.skills.filter(s => {
+        const a = assessments[s.id];
+        if (!a?.managerLevel) return false;
+        const exp = getExpectedLevelForSkillAndRole(s.id, p.role);
+        return exp && getLevelOrder(a.managerLevel) < getLevelOrder(exp);
+      }).sort((a, b) => {
+        const da = getLevelOrder(getExpectedLevelForSkillAndRole(a.id, p.role)) - getLevelOrder((assessments[a.id]||{}).managerLevel);
+        const db = getLevelOrder(getExpectedLevelForSkillAndRole(b.id, p.role)) - getLevelOrder((assessments[b.id]||{}).managerLevel);
+        return db - da;
+      });
+      topGap = gapSkills[0]?.name || null;
+    }
+
+    // Most recent update
+    const lastUpdated = Object.values(assessments)
+      .map(a => a.lastUpdated).filter(Boolean).sort().reverse()[0] || null;
+
+    return { p, assessed, pct, gaps, over, topGap, lastUpdated };
+  });
+
+  // Team-wide aggregated skill gaps
+  const skillGapCounts = {};
+  profiles.forEach(p => {
+    if (!p.role) return;
+    const assessments = getDataForProfile(p.id).assessments || {};
+    SKILLS_DATA.skills.forEach(s => {
+      const a = assessments[s.id];
+      if (!a?.managerLevel) return;
+      const exp = getExpectedLevelForSkillAndRole(s.id, p.role);
+      if (exp && getLevelOrder(a.managerLevel) < getLevelOrder(exp)) {
+        skillGapCounts[s.id] = (skillGapCounts[s.id] || 0) + 1;
+      }
+    });
+  });
+  const topTeamGaps = Object.entries(skillGapCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([id, count]) => ({ skill: SKILLS_DATA.skills.find(s => s.id === id), count }))
+    .filter(x => x.skill);
+
+  const totalAssessed = memberStats.reduce((s, m) => s + m.assessed, 0);
+  const totalPossible = profiles.length * totalSkills;
+  const totalGaps = memberStats.reduce((s, m) => s + m.gaps, 0);
+  const avgPct = profiles.length > 0 ? Math.round(memberStats.reduce((s, m) => s + m.pct, 0) / profiles.length) : 0;
+
+  return `
+    <div class="home-header">
+      <div class="home-header-text">
+        <h1>Team Overview</h1>
+        <p>${profiles.length} team member${profiles.length !== 1 ? 's' : ''} · ${avgPct}% assessed across the team</p>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="manageTeam()" style="align-self:center">Manage Team</button>
+    </div>
+
+    <!-- SUMMARY TILES -->
+    <div class="analysis-counts-row" style="margin-bottom:24px">
+      <div class="analysis-count-chip" style="cursor:default">
+        <span class="analysis-count-num">${profiles.length}</span>
+        <span class="analysis-count-label">team members</span>
+      </div>
+      <div class="analysis-count-chip analysis-count-gap" style="cursor:default">
+        <span class="analysis-count-num">${totalGaps}</span>
+        <span class="analysis-count-label">total skill gaps</span>
+      </div>
+      <div class="analysis-count-chip analysis-count-over" style="cursor:default">
+        <span class="analysis-count-num">${avgPct}%</span>
+        <span class="analysis-count-label">avg assessed</span>
+      </div>
+    </div>
+
+    <div class="dashboard-top-grid">
+      <!-- LEFT: member cards -->
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:12px">Team Members</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          ${memberStats.map(({ p, assessed, pct, gaps, over, topGap, lastUpdated }) => `
+            <div onclick="selectProfile('${p.id}')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;cursor:pointer;transition:border-color .15s,box-shadow .15s;display:flex;flex-direction:column;gap:10px"
+              onmouseover="this.style.borderColor='var(--primary)';this.style.boxShadow='0 0 0 3px var(--primary-light)'"
+              onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+              <div style="display:flex;align-items:center;gap:10px">
+                ${avatarHtml(p, 36, 13)}
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:700;color:var(--text)">${escHtml(p.name)}</div>
+                  <div style="font-size:11px;color:var(--text-muted)">${escHtml(shortRole(p.role) || 'No role')}</div>
+                </div>
+                <div style="text-align:right;flex-shrink:0">
+                  <div style="font-size:16px;font-weight:800;color:var(--primary);line-height:1">${pct}%</div>
+                  <div style="font-size:10px;color:var(--text-muted)">assessed</div>
+                </div>
+              </div>
+              <div style="height:5px;background:var(--border);border-radius:99px;overflow:hidden">
+                <div style="height:100%;width:${pct}%;background:var(--primary);border-radius:99px;transition:width .4s"></div>
+              </div>
+              <div style="display:flex;gap:16px">
+                ${gaps > 0 ? `<span style="font-size:11px;color:#B45309;font-weight:600">${gaps} gap${gaps !== 1 ? 's' : ''}</span>` : ''}
+                ${over > 0 ? `<span style="font-size:11px;color:#065F46;font-weight:600">${over} overperforming</span>` : ''}
+                ${topGap ? `<span style="font-size:11px;color:var(--text-muted)">Top gap: ${escHtml(topGap)}</span>` : ''}
+                ${lastUpdated ? `<span style="font-size:11px;color:var(--text-muted);margin-left:auto">Updated ${formatDate(lastUpdated)}</span>` : ''}
+              </div>
+            </div>
+          `).join('')}
+          ${profiles.length === 0 ? `<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:32px 0">No team members yet.<br><button onclick="manageTeam()" style="color:var(--primary);background:none;border:none;cursor:pointer;font-weight:600;font-size:13px;margin-top:8px">+ Add team members</button></div>` : ''}
+        </div>
+      </div>
+
+      <!-- RIGHT: team skill gaps -->
+      <div class="dashboard-stats-col">
+        <div class="analysis-card">
+          <div class="analysis-card-header">
+            <div class="analysis-card-title">Team Skill Gaps</div>
+            <div style="font-size:11px;color:var(--text-muted)">Most common gaps across team</div>
+          </div>
+          ${topTeamGaps.length === 0 ? `
+            <div class="analysis-empty">
+              <div style="font-size:28px;margin-bottom:8px">✅</div>
+              <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:4px">No gaps found</div>
+              <div style="font-size:12px;color:var(--text-muted)">Assess more skills to surface gaps</div>
+            </div>
+          ` : `
+            <div style="display:flex;flex-direction:column;gap:0">
+              ${topTeamGaps.map(({ skill, count }, i) => `
+                <div style="display:flex;align-items:center;gap:12px;padding:10px 0;${i > 0 ? 'border-top:1px solid var(--border)' : ''}">
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">${escHtml(skill.name)}</div>
+                    <div style="font-size:11px;color:var(--text-muted)">${escHtml(skill.category)}</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+                    <div style="display:flex;gap:3px">
+                      ${Array.from({length: profiles.length}).map((_, i) => `
+                        <div style="width:8px;height:8px;border-radius:50%;background:${i < count ? '#EF4444' : 'var(--border)'}"></div>
+                      `).join('')}
+                    </div>
+                    <span style="font-size:12px;font-weight:700;color:#B45309">${count}/${profiles.length}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </div>
+
+        <!-- Quick view: who needs attention -->
+        ${memberStats.some(m => m.gaps > 0) ? `
+          <div class="analysis-card" style="margin-top:16px">
+            <div class="analysis-card-header">
+              <div class="analysis-card-title">Needs Attention</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:0">
+              ${memberStats.filter(m => m.gaps > 0).sort((a,b) => b.gaps - a.gaps).map(({ p, gaps, topGap }, i, arr) => `
+                <div onclick="selectProfile('${p.id}')" style="display:flex;align-items:center;gap:10px;padding:9px 0;cursor:pointer;${i > 0 ? 'border-top:1px solid var(--border)' : ''}"
+                  onmouseover="this.querySelector('.attn-name').style.color='var(--primary)'"
+                  onmouseout="this.querySelector('.attn-name').style.color='var(--text)'">
+                  ${avatarHtml(p, 28, 10)}
+                  <div style="flex:1;min-width:0">
+                    <div class="attn-name" style="font-size:13px;font-weight:600;color:var(--text);transition:color .15s">${escHtml(p.name)}</div>
+                    ${topGap ? `<div style="font-size:11px;color:var(--text-muted)">Top gap: ${escHtml(topGap)}</div>` : ''}
+                  </div>
+                  <span style="font-size:12px;font-weight:700;color:#B45309;flex-shrink:0">${gaps} gap${gaps !== 1 ? 's' : ''}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </div>
     </div>
   `;
 }
@@ -3730,6 +3936,8 @@ function navigate(view, param) {
     state.levelTab = expLevel || a.selfLevel || 'Learner';
   } else if (view === 'home') {
     state.view = 'home';
+  } else if (view === 'my-dashboard') {
+    state.view = 'my-dashboard';
   } else if (view === 'review') {
     state.view = 'review';
     state.reviewFilter = 'all';
@@ -4232,9 +4440,11 @@ function deleteProfile(id) {
   render();
 }
 function selectProfile(id) {
+  const wasManager = currentIsManager();
   setCurrentProfile(id);
   state.profileDropdownOpen = false;
-  state.view = 'home';
+  // If a manager clicked a team member card, go to their personal dashboard
+  state.view = wasManager ? 'my-dashboard' : 'home';
   closeProfileModal();
   render();
 }
@@ -4334,7 +4544,8 @@ function closeSearchDropdown() {
 // ============ MAIN RENDER ============
 function getViewTitle() {
   switch (state.view) {
-    case 'home': return 'Dashboard';
+    case 'home': return currentIsManager() ? 'Team Overview' : 'Dashboard';
+    case 'my-dashboard': return 'My Dashboard';
     case 'skills': return 'Skills Explorer';
     case 'skill': return 'Skills';
     case 'review': return 'Skills';
@@ -4404,8 +4615,14 @@ function render() {
       <nav class="sidebar-nav">
         <button class="nav-item ${state.view === 'home' ? 'active' : ''}" onclick="navigate('home')">
           <span class="nav-icon">🏠</span>
-          <span>Dashboard</span>
+          <span>${currentIsManager() ? 'Team Overview' : 'Dashboard'}</span>
         </button>
+        ${currentIsManager() ? `
+          <button class="nav-item ${state.view === 'my-dashboard' ? 'active' : ''}" onclick="navigate('my-dashboard')">
+            <span class="nav-icon">👤</span>
+            <span>My Dashboard</span>
+          </button>
+        ` : ''}
 
         <button class="nav-item ${state.view === 'review' || state.view === 'skill' ? 'active' : ''}" onclick="navigate('review')">
           <span class="nav-icon">📋</span>
@@ -4465,7 +4682,8 @@ function render() {
         </div>
       </div>
       <div id="content">
-        ${state.view === 'home' ? renderHome() : ''}
+        ${state.view === 'home' ? (currentIsManager() ? renderManagerHome() : renderHome()) : ''}
+        ${state.view === 'my-dashboard' ? renderHome() : ''}
         ${state.view === 'skills' ? renderSkills() : ''}
         ${state.view === 'skill' ? renderSkillDetail() : ''}
         ${state.view === 'review' ? renderReview() : ''}
