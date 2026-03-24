@@ -1962,82 +1962,15 @@ function renderHome() {
       ${renderNoteInputCard()}
     </div>
 
-    <!-- SKILL SHAPE + INSIGHTS -->
-    <div class="dashboard-top-grid">
-      <div>
-        ${(() => {
-          // Goals Overview widget
-          const personalGoals = getPersonalGoals();
-          const allGoals = [
-            ...personalGoals.map(g => ({ ...g, section: 'Personal' })),
-            ...DESIGN_TEAM_GOALS.map(g => {
-              const contrib = getGoalContribution(g.id);
-              return { ...g, status: contrib.status || 'not_started', section: 'Team' };
-            })
-          ];
-          const total = allGoals.length;
-          const completed = allGoals.filter(g => g.status === 'completed').length;
-          const onTrack = allGoals.filter(g => g.status === 'on_track').length;
-          const atRisk = allGoals.filter(g => g.status === 'at_risk').length;
-          const inProgress = allGoals.filter(g => g.status === 'in_progress').length;
-          const activeGoals = allGoals.filter(g => g.status !== 'not_started' && g.status !== 'completed');
+    <!-- DASHBOARD GRID: 2/3 left + 1/3 right -->
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;align-items:start">
 
-          if (total === 0) return '';
+      <!-- LEFT COL (2/3): Insights + Charts -->
+      <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
 
-          const progressPct = total > 0 ? Math.round(((completed + onTrack * 0.7 + inProgress * 0.3) / total) * 100) : 0;
-
-          return `
-            <div class="dash-module" style="margin-bottom:16px">
-              <div class="dash-module-header">
-                <span class="section-title">Goal Progress</span>
-                <button class="section-link" onclick="navigate('goals')">View all →</button>
-              </div>
-              <div style="display:flex;gap:16px;margin-bottom:16px">
-                ${[
-                  { label: 'On Track', count: onTrack, color: '#16A34A' },
-                  { label: 'In Progress', count: inProgress, color: '#2563EB' },
-                  { label: 'At Risk', count: atRisk, color: '#EA580C' },
-                  { label: 'Completed', count: completed, color: '#7C3AED' },
-                ].map(s => `
-                  <div style="flex:1;text-align:center">
-                    <div style="font-size:22px;font-weight:800;color:${s.color};line-height:1">${s.count}</div>
-                    <div style="font-size:10px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:2px">${s.label}</div>
-                  </div>
-                `).join('')}
-              </div>
-              <div style="height:6px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:14px">
-                <div style="height:100%;width:${progressPct}%;background:linear-gradient(90deg,#6366f1,#16A34A);border-radius:99px;transition:width .4s ease"></div>
-              </div>
-              ${activeGoals.length > 0 ? `
-                <div style="display:flex;flex-direction:column;gap:6px">
-                  ${activeGoals.slice(0, 3).map(g => {
-                    const sc = GOAL_STATUS_CONFIG[g.status] || GOAL_STATUS_CONFIG['in_progress'];
-                    return `
-                      <div onclick="navigate('goals')" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
-                        <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:${sc.bg};color:${sc.color};white-space:nowrap;flex-shrink:0">${sc.label}</span>
-                        <span style="font-size:12px;color:var(--text-secondary);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(g.goal)}</span>
-                        <span style="font-size:10px;color:var(--text-muted);flex-shrink:0">${escHtml(g.section)}</span>
-                      </div>`;
-                  }).join('')}
-                  ${activeGoals.length > 3 ? `<div style="font-size:11px;color:var(--text-muted);text-align:center;padding-top:2px">+${activeGoals.length - 3} more</div>` : ''}
-                </div>
-              ` : `<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:8px 0">No active goals — <button onclick="navigate('goals')" style="background:none;border:none;color:var(--primary);font-size:12px;cursor:pointer;padding:0;font-weight:600">add one</button></div>`}
-            </div>
-          `;
-        })()}
-        <!-- Merchant Outreach grouped with Goal Progress -->
-        <div class="dash-module" style="margin-bottom:16px;padding:0;overflow:hidden">
-          ${renderOutreachWidget()}
-        </div>
-        <div class="radar-card" id="radar-card">
-          ${renderRadarCardInner()}
-        </div>
-        ${renderValuesRadarCard()}
-      </div>
-
-      <div class="dashboard-stats-col">
+        <!-- Metric tiles -->
         ${hasAssessments && currentProfile?.role ? `
-          <div class="analysis-counts-row" style="margin-bottom:16px">
+          <div class="analysis-counts-row">
             <button class="analysis-count-chip analysis-count-gap" onclick="navigate('review');setReviewFilter('gap')">
               <span class="analysis-count-num">${allGaps.length}</span>
               <span class="analysis-count-label">skill gap${allGaps.length !== 1 ? 's' : ''}</span>
@@ -2058,6 +1991,8 @@ function renderHome() {
             })()}
           </div>
         ` : ''}
+
+        <!-- Skill Insights + Growth Opportunities -->
         <div class="analysis-card">
           <div class="analysis-card-header">
             <div class="analysis-card-title">Skill Insights</div>
@@ -2078,7 +2013,6 @@ function renderHome() {
                 </div>
               </div>
             ` : ''}
-
             ${insightBullets.length > 0 ? `
               <ul class="analysis-narrative-list">
                 ${insightBullets.map(b => {
@@ -2095,7 +2029,7 @@ function renderHome() {
               </ul>
             ` : '<div style="font-size:12px;color:var(--text-muted)">No insights yet</div>'}
             ${growthAreas.length > 0 ? `
-              <div class="analysis-card-title" style="margin-top:32px;margin-bottom:8px">Growth Opportunities</div>
+              <div class="analysis-card-title" style="margin-top:24px;margin-bottom:8px">Growth Opportunities</div>
               <div class="growth-table">
                 <div class="growth-table-header">
                   <span class="growth-col-skill">Skill</span>
@@ -2124,11 +2058,13 @@ function renderHome() {
               </div>
             ` : ''}
           `}
-        <!-- Quick Wins grouped with Skill Insights -->
+        </div>
+
+        <!-- Quick Wins -->
         ${(() => {
           const wins = getQuickWins().slice(0, 3);
           return `
-            <div class="dash-module" style="margin-top:16px">
+            <div class="dash-module">
               <div class="dash-module-header">
                 <span class="section-title">Quick Wins</span>
                 <button class="section-link" onclick="navigate('review')">View all →</button>
@@ -2152,7 +2088,78 @@ function renderHome() {
             </div>
           `;
         })()}
+
+        <!-- Star charts side by side -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="radar-card" id="radar-card">
+            ${renderRadarCardInner()}
+          </div>
+          ${renderValuesRadarCard()}
+        </div>
       </div>
+
+      <!-- RIGHT RAIL (1/3): Goal Progress + Merchant Outreach -->
+      <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+        ${(() => {
+          const personalGoals = getPersonalGoals();
+          const allGoals = [
+            ...personalGoals.map(g => ({ ...g, section: 'Personal' })),
+            ...DESIGN_TEAM_GOALS.map(g => {
+              const contrib = getGoalContribution(g.id);
+              return { ...g, status: contrib.status || 'not_started', section: 'Team' };
+            })
+          ];
+          const total = allGoals.length;
+          const completed = allGoals.filter(g => g.status === 'completed').length;
+          const onTrack = allGoals.filter(g => g.status === 'on_track').length;
+          const atRisk = allGoals.filter(g => g.status === 'at_risk').length;
+          const inProgress = allGoals.filter(g => g.status === 'in_progress').length;
+          const activeGoals = allGoals.filter(g => g.status !== 'not_started' && g.status !== 'completed');
+          if (total === 0) return '';
+          const progressPct = Math.round(((completed + onTrack * 0.7 + inProgress * 0.3) / total) * 100);
+          return `
+            <div class="dash-module">
+              <div class="dash-module-header">
+                <span class="section-title">Goal Progress</span>
+                <button class="section-link" onclick="navigate('goals')">View all →</button>
+              </div>
+              <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+                ${[
+                  { label: 'On Track', count: onTrack, color: '#16A34A' },
+                  { label: 'In Progress', count: inProgress, color: '#2563EB' },
+                  { label: 'At Risk', count: atRisk, color: '#EA580C' },
+                  { label: 'Completed', count: completed, color: '#7C3AED' },
+                ].map(s => `
+                  <div style="flex:1;min-width:40px;text-align:center">
+                    <div style="font-size:20px;font-weight:800;color:${s.color};line-height:1">${s.count}</div>
+                    <div style="font-size:10px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:2px">${s.label}</div>
+                  </div>
+                `).join('')}
+              </div>
+              <div style="height:6px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:14px">
+                <div style="height:100%;width:${progressPct}%;background:linear-gradient(90deg,#6366f1,#16A34A);border-radius:99px;transition:width .4s ease"></div>
+              </div>
+              ${activeGoals.length > 0 ? `
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  ${activeGoals.slice(0, 4).map(g => {
+                    const sc = GOAL_STATUS_CONFIG[g.status] || GOAL_STATUS_CONFIG['in_progress'];
+                    return `
+                      <div onclick="navigate('goals')" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                        <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:${sc.bg};color:${sc.color};white-space:nowrap;flex-shrink:0">${sc.label}</span>
+                        <span style="font-size:12px;color:var(--text-secondary);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(g.goal)}</span>
+                      </div>`;
+                  }).join('')}
+                  ${activeGoals.length > 4 ? `<div style="font-size:11px;color:var(--text-muted);text-align:center;padding-top:2px">+${activeGoals.length - 4} more</div>` : ''}
+                </div>
+              ` : `<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:8px 0">No active goals — <button onclick="navigate('goals')" style="background:none;border:none;color:var(--primary);font-size:12px;cursor:pointer;padding:0;font-weight:600">add one</button></div>`}
+            </div>
+          `;
+        })()}
+        <div class="dash-module" style="padding:0;overflow:hidden">
+          ${renderOutreachWidget()}
+        </div>
+      </div>
+
     </div>
   `;
 }
