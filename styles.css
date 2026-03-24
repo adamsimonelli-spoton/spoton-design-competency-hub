@@ -44,9 +44,9 @@
   --red-pressed: #9A0000;
   --red-light: #FFE8E5;
   --red-light-hover: #FED4CE;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-  --shadow: 0 4px 12px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.04);
-  --shadow-lg: 0 10px 30px rgba(0,0,0,.12);
+  --shadow-sm: 0 0 16px rgba(0,0,0,.05);
+  --shadow: 0 0 24px rgba(0,0,0,.05);
+  --shadow-lg: 0 0 40px rgba(0,0,0,.05);
   --shadow-overlay: 0 8px 24px rgba(0,0,0,.14);
   --shadow-modal: 0 20px 48px rgba(0,0,0,.18);
   --radius: 10px;
@@ -385,7 +385,6 @@ body {
 }
 .radar-card {
   background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 16px;
   box-shadow: var(--shadow-sm);
@@ -490,7 +489,6 @@ body {
 /* Analysis card */
 .analysis-card {
   background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 16px;
   box-shadow: var(--shadow-sm);
@@ -892,7 +890,6 @@ body {
 }
 .dash-module {
   background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
   padding: 16px;
@@ -1160,7 +1157,6 @@ body {
 }
 .skill-card {
   background: var(--surface);
-  border: 1.5px solid var(--border);
   border-radius: var(--radius);
   padding: 0;
   cursor: pointer;
