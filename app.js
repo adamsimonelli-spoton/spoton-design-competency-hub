@@ -135,18 +135,24 @@ const DESIGN_TEAM_GOALS = [
     goal: 'Grow hospitality revenue by 25%',
     kpi: 'Each team member will connect with three merchants per quarter, to gain industry knowledge and product understanding, then document their findings in a centralized database.',
     timeFrame: 'Quarterly',
+    evidenceSources: ['outreach'],
+    evidenceSkills: [],
   },
   {
     id: 'dtg_2',
     goal: 'Grow revenue retention to 95%',
     kpi: 'Domain teams will define quarterly executive summaries of friction points, supported by quantitative data and projected success metrics, then track the implemented improvements.',
     timeFrame: 'Quarterly',
+    evidenceSources: ['skills'],
+    evidenceSkills: ['job_skills_1','job_skills_2','job_skills_4','job_skills_6','job_skills_7','job_skills_15'],
   },
   {
     id: 'dtg_3',
     goal: 'Achieve product market fit with high value express merchants',
     kpi: 'Design teams will co-create and maintain ecosystem-wide personas to support our human-centered knowledge of who we are building for.',
     timeFrame: 'Bi-Annually',
+    evidenceSources: ['outreach', 'skills'],
+    evidenceSkills: ['job_skills_1','job_skills_2','job_skills_4','job_skills_9','influence_5','influence_9'],
   },
 ];
 
@@ -3907,6 +3913,68 @@ function renderGrowthThemes() {
   `;
 }
 
+function renderDesignTeamGoals() {
+  const d = getData();
+  const od = getOutreachData();
+
+  const evidenceItem = (label, text, date, tag) => `
+    <div style="padding:10px 14px;background:var(--bg);border-radius:6px;border:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <span style="font-size:11px;font-weight:700;color:var(--text-secondary)">${escHtml(label)}</span>
+        ${tag ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--primary-light);color:var(--primary)">${escHtml(tag)}</span>` : ''}
+        ${date ? `<span style="font-size:11px;color:var(--text-muted);margin-left:auto">${formatDate(date)}</span>` : ''}
+      </div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.5">${escHtml(text)}</div>
+    </div>`;
+
+  return `
+    <div class="goals-section">
+      <div class="goals-section-header">
+        <div>
+          <div class="goals-section-title">2026 Design Team Goals</div>
+          <div class="goals-section-subtitle">Evidence from your work that contributes to shared design team objectives</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        ${DESIGN_TEAM_GOALS.map(g => {
+          const items = [];
+
+          // Outreach evidence
+          if (g.evidenceSources.includes('outreach')) {
+            (od.entries || []).forEach(e => {
+              if (e.notes) items.push({ label: e.merchant, text: e.notes, date: e.date, tag: e.type === 'hve' ? 'HVE' : 'Outreach' });
+            });
+          }
+
+          // Skill assessment evidence
+          if (g.evidenceSources.includes('skills')) {
+            g.evidenceSkills.forEach(sid => {
+              const a = d.assessments[sid];
+              if (!a?.evidence) return;
+              const skill = SKILLS_DATA.skills.find(s => s.id === sid);
+              if (skill) items.push({ label: skill.name, text: a.evidence, date: a.lastUpdated, tag: a.managerLevel || null });
+            });
+          }
+
+          return `
+            <div class="review-table-wrap" style="overflow:hidden">
+              <div style="padding:14px 20px;background:#F1F5FB;border-bottom:1px solid var(--border)">
+                <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px">${escHtml(g.goal)}</div>
+                <div style="font-size:12px;color:var(--text-muted);line-height:1.4">${escHtml(g.kpi)}</div>
+              </div>
+              <div style="padding:14px 20px">
+                ${items.length ? `
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    ${items.map(i => evidenceItem(i.label, i.text, i.date, i.tag)).join('')}
+                  </div>
+                ` : `<div style="font-size:13px;color:var(--text-muted);font-style:italic">No evidence found yet — add assessment notes or merchant outreach entries to see contributions here.</div>`}
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
 function renderGrowthThemeModal() {
   const d = getData();
   const t = (d.growthThemes || []).find(x => x.id === state.growthThemeModal);
@@ -3983,7 +4051,7 @@ function renderGoals() {
 
     ${renderGrowthThemes()}
     ${renderGoalSection('personal', 'Personal Goals', 'Goals you set for your own growth and development', personalGoals, true)}
-    ${renderGoalSection('design', '2026 Design Team Goals', 'Track how you\'re contributing to shared design team objectives', DESIGN_TEAM_GOALS, false)}
+    ${renderDesignTeamGoals()}
 
     ${state.growthThemeModal ? renderGrowthThemeModal() : ''}
     ${state.goalModal ? renderGoalModal() : ''}
