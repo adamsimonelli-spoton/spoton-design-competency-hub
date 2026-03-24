@@ -2146,7 +2146,7 @@ function renderHome() {
                 <div class="dash-quick-wins-list">
                   ${wins.map((w, i) => `
                     <div class="dash-qw-item" onclick="openQuickWinModal(${i})">
-                      <div class="dash-qw-icon">${w.icon}</div>
+
                       <div class="dash-qw-body">
                         <div class="dash-qw-title">${escHtml(w.title)}</div>
                         <div class="dash-qw-meta">${w.matchingNames.length} skill${w.matchingNames.length !== 1 ? 's' : ''} addressed</div>
