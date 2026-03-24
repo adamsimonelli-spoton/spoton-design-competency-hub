@@ -2157,65 +2157,50 @@ function renderHome() {
         ${(() => {
           const d = getData();
           const themes = d.growthThemes || [];
-          const base = typeof d.growthThemeScore === 'number' ? d.growthThemeScore : null;
-          if (!themes.length) return '';
-          return `
-            <div class="dash-module">
-              <div class="dash-module-header">
-                <span class="section-title">Growth Themes</span>
-                <button class="section-link" onclick="navigate('goals')">View all →</button>
-              </div>
-              <div style="display:flex;flex-direction:column;gap:12px">
-                ${themes.map(t => {
-                  const today = base !== null ? base.toFixed(1) : null;
-                  const best  = base !== null ? (base + 0.50).toFixed(2) : null;
-                  // bar: position of current score within 1–5 range, toward best
-                  const pctToday = base !== null ? ((base - 1) / 4) * 100 : 0;
-                  const pctBest  = base !== null ? ((base + 0.50 - 1) / 4) * 100 : 0;
-                  return `
-                    <div onclick="navigate('goals')" style="cursor:pointer" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
-                      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
-                        <span style="font-size:12px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(t.theme)}</span>
-                        ${today !== null ? `<span style="font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap">${today} → ${best}<span style="font-weight:400;color:var(--text-muted)">/5</span></span>` : ''}
-                      </div>
-                      ${base !== null ? `
-                        <div style="height:5px;background:var(--border);border-radius:99px;overflow:hidden;position:relative">
-                          <div style="height:100%;width:${pctBest.toFixed(1)}%;background:#E0E7FF;border-radius:99px"></div>
-                          <div style="position:absolute;top:0;height:100%;width:${pctToday.toFixed(1)}%;background:var(--primary);border-radius:99px"></div>
-                        </div>` : ''}
-                    </div>`;
-                }).join('')}
-              </div>
-            </div>`;
-        })()}
-        ${(() => {
           const personalGoals = getPersonalGoals();
           const statusPct = { completed: 100, on_track: 75, in_progress: 40, at_risk: 20, not_started: 0 };
+          const subHeader = (label) => `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">${label}</div>`;
           return `
             <div class="dash-module">
               <div class="dash-module-header">
-                <span class="section-title">Personal Goals</span>
+                <span class="section-title">Goals</span>
                 <button class="section-link" onclick="navigate('goals')">View all →</button>
               </div>
-              ${personalGoals.length === 0
-                ? `<div style="font-size:13px;color:var(--text-muted);padding:4px 0">No personal goals created yet.</div>`
-                : `<div style="display:flex;flex-direction:column;gap:10px">
-                    ${personalGoals.map(g => {
-                      const sc = GOAL_STATUS_CONFIG[g.status || 'not_started'] || GOAL_STATUS_CONFIG['not_started'];
-                      const pct = statusPct[g.status] ?? 0;
-                      return `
-                        <div onclick="navigate('goals')" style="cursor:pointer" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
-                          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px">
-                            <span style="font-size:12px;color:var(--text);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(g.goal)}</span>
-                            <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:${sc.bg};color:${sc.color};white-space:nowrap;flex-shrink:0">${sc.label}</span>
-                          </div>
-                          <div style="height:5px;background:var(--border);border-radius:99px;overflow:hidden">
-                            <div style="height:100%;width:${pct}%;background:${sc.color};border-radius:99px;transition:width .4s ease"></div>
-                          </div>
-                        </div>`;
-                    }).join('')}
-                  </div>`
-              }
+              <div style="display:flex;flex-direction:column;gap:16px">
+                ${themes.length ? `
+                  <div>
+                    ${subHeader('Growth Themes')}
+                    <div style="display:flex;flex-direction:column;gap:6px">
+                      ${themes.map(t => `
+                        <div onclick="navigate('goals')" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:5px 0" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+                          <svg width="12" height="12" viewBox="0 0 256 256" fill="currentColor" style="flex-shrink:0;color:var(--primary);opacity:.6"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/></svg>
+                          <span style="font-size:12px;font-weight:500;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(t.theme)}</span>
+                        </div>`).join('')}
+                    </div>
+                  </div>` : ''}
+                <div>
+                  ${subHeader('Personal Goals')}
+                  ${personalGoals.length === 0
+                    ? `<div style="font-size:13px;color:var(--text-muted)">No personal goals created yet.</div>`
+                    : `<div style="display:flex;flex-direction:column;gap:10px">
+                        ${personalGoals.map(g => {
+                          const sc = GOAL_STATUS_CONFIG[g.status || 'not_started'] || GOAL_STATUS_CONFIG['not_started'];
+                          const pct = statusPct[g.status] ?? 0;
+                          return `
+                            <div onclick="navigate('goals')" style="cursor:pointer" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+                              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px">
+                                <span style="font-size:12px;color:var(--text);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(g.goal)}</span>
+                                <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:${sc.bg};color:${sc.color};white-space:nowrap;flex-shrink:0">${sc.label}</span>
+                              </div>
+                              <div style="height:5px;background:var(--border);border-radius:99px;overflow:hidden">
+                                <div style="height:100%;width:${pct}%;background:${sc.color};border-radius:99px;transition:width .4s ease"></div>
+                              </div>
+                            </div>`;
+                        }).join('')}
+                      </div>`
+                  }
+                </div>
+              </div>
             </div>`;
         })()}
         <div class="dash-module" style="padding:0;overflow:hidden">
