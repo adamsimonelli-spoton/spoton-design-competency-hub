@@ -3871,8 +3871,8 @@ function renderGrowthThemes() {
             </div>
             <!-- body: left = stacked score tiles, right = indicators/dependencies/collaborators -->
             <div style="display:grid;grid-template-columns:1fr 280px;align-items:stretch">
-              <!-- left: today / better / best stacked -->
-              <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+              <!-- left: today / better / best horizontal -->
+              <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-content:start">
                 ${scoreCol('Today',  s0, '#F8FAFC', 'var(--text-muted)', t.today)}
                 ${scoreCol('Better', s1, '#EFF6FF', '#3B82F6',           t.better)}
                 ${scoreCol('Best',   s2, '#F0FDF4', '#16A34A',           t.best)}
