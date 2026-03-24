@@ -4560,11 +4560,9 @@ function deleteProfile(id) {
   render();
 }
 function selectProfile(id) {
-  const wasManager = currentIsManager();
   setCurrentProfile(id);
   state.profileDropdownOpen = false;
-  // If a manager clicked a team member card, go to their personal dashboard
-  state.view = wasManager ? 'my-dashboard' : 'home';
+  state.view = 'home';
   closeProfileModal();
   render();
 }
@@ -4664,8 +4662,7 @@ function closeSearchDropdown() {
 // ============ MAIN RENDER ============
 function getViewTitle() {
   switch (state.view) {
-    case 'home': return currentIsManager() ? 'Team Overview' : 'Dashboard';
-    case 'my-dashboard': return 'My Dashboard';
+    case 'home': return 'Dashboard';
     case 'skills': return 'Skills Explorer';
     case 'skill': return 'Skills';
     case 'review': return 'Skills';
@@ -4699,8 +4696,7 @@ function render() {
 
       <div class="sidebar-profile">
         <div class="profile-label">Current Profile</div>
-        ${currentIsManager() ? `
-          <div class="profile-selector ${state.profileDropdownOpen ? 'open' : ''}" onclick="toggleProfileDropdown()">
+        <div class="profile-selector ${state.profileDropdownOpen ? 'open' : ''}" onclick="toggleProfileDropdown()">
             ${avatarHtml(currentProfile, 36, 13)}
             <div class="profile-name">${escHtml(currentProfile?.name || 'Select Profile')}</div>
             <span class="chevron" style="transition:transform .2s;${state.profileDropdownOpen ? 'transform:rotate(180deg)' : ''}">▼</span>
@@ -4721,28 +4717,13 @@ function render() {
               `).join('')}
             </div>
           ` : ''}
-        ` : `
-          <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
-            ${avatarHtml(currentProfile, 36, 13)}
-            <div>
-              <div class="profile-name" style="font-size:13px;font-weight:600">${escHtml(currentProfile?.name || 'My Profile')}</div>
-              ${currentProfile?.role ? `<div style="font-size:11px;color:var(--text-muted)">${escHtml(shortRole(currentProfile.role))}</div>` : ''}
-            </div>
-          </div>
-        `}
       </div>
 
       <nav class="sidebar-nav">
         <button class="nav-item ${state.view === 'home' ? 'active' : ''}" onclick="navigate('home')">
           <span class="nav-icon">🏠</span>
-          <span>${currentIsManager() ? 'Team Overview' : 'Dashboard'}</span>
+          <span>Dashboard</span>
         </button>
-        ${currentIsManager() ? `
-          <button class="nav-item ${state.view === 'my-dashboard' ? 'active' : ''}" onclick="navigate('my-dashboard')">
-            <span class="nav-icon">👤</span>
-            <span>My Dashboard</span>
-          </button>
-        ` : ''}
 
         <button class="nav-item ${state.view === 'review' || state.view === 'skill' ? 'active' : ''}" onclick="navigate('review')">
           <span class="nav-icon">📋</span>
@@ -4777,12 +4758,10 @@ function render() {
       </nav>
 
       <div class="sidebar-footer">
-        ${currentIsManager() ? `
-          <button class="nav-item" onclick="manageTeam()" style="width:100%">
+        <button class="nav-item" onclick="manageTeam()" style="width:100%">
             <span class="nav-icon">👥</span>
             <span style="font-size:12.5px">Manage Team</span>
           </button>
-        ` : ''}
         <div class="sidebar-footer-text">
           ${getAssessedCount()} of ${SKILLS_DATA.skills.length} skills assessed
         </div>
@@ -4802,8 +4781,7 @@ function render() {
         </div>
       </div>
       <div id="content">
-        ${state.view === 'home' ? (currentIsManager() ? renderManagerHome() : renderHome()) : ''}
-        ${state.view === 'my-dashboard' ? renderHome() : ''}
+        ${state.view === 'home' ? renderHome() : ''}
         ${state.view === 'skills' ? renderSkills() : ''}
         ${state.view === 'skill' ? renderSkillDetail() : ''}
         ${state.view === 'review' ? renderReview() : ''}

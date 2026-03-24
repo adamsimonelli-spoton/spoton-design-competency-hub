@@ -66,7 +66,12 @@
         "teamwork": { "managerRating": 3, "notes": "Meets expectations for their level. Still finding their footing on the team. Shows up reliably but not yet driving collaborative initiatives independently." },
         "agility":  { "managerRating": 4, "notes": "One of Jordan's standout traits — adapts quickly, asks great questions, and has a strong growth mindset. Eager to try new approaches and learn from mistakes." },
         "humility": { "managerRating": 5, "notes": "Exceptional self-awareness for someone at this stage of their career. Actively seeks feedback, acknowledges knowledge gaps openly, and never lets ego get in the way of learning." }
-      }
+      },
+      "personalGoals": [
+        { "id": "pg_jordan_1", "goal": "Lead 2 moderated user interviews independently without manager observation by end of Q2", "kpi": "2 solo interviews completed and debriefed with the team", "timeFrame": "Q2 2026", "status": "in_progress", "notes": "First solo session scheduled for April 8. Marcus has agreed to review the discussion guide beforehand." },
+        { "id": "pg_jordan_2", "goal": "Achieve WCAG 2.1 AA compliance on all new designs by auditing each screen before handoff", "kpi": "Zero color contrast or focus-order violations flagged in dev QA for 3 consecutive sprints", "timeFrame": "Q2 2026", "status": "in_progress", "notes": "Completed the Figma accessibility plugin setup. Started checking contrast ratios in the current payments redesign." },
+        { "id": "pg_jordan_3", "goal": "Propose and shepherd at least one new UI pattern into the design system by end of Q2", "kpi": "Component proposal submitted, reviewed, and merged into the design system library", "timeFrame": "Q2 2026", "status": "not_started", "notes": "Identified a candidate: the inline validation pattern used across multiple forms. Needs to write up the proposal doc." }
+      ]
     },
     "dch_outreach_p_jordan_001": {
       "hveMerchant": "Sunrise Deli",
@@ -134,7 +139,12 @@
         "teamwork": { "managerRating": 4, "notes": "A go-to collaborator across product and engineering. Well-connected org-wide. Known as the first call when cross-team collaboration is needed." },
         "agility":  { "managerRating": 3, "notes": "Solid and dependable. Marcus executes well within established processes. Growth area is proposing change — tends to optimize existing approaches rather than challenge them." },
         "humility": { "managerRating": 3, "notes": "Demonstrates appropriate humility and shares credit fairly. Can occasionally be resistant to feedback on established patterns. Working on openness when his approaches are challenged." }
-      }
+      },
+      "personalGoals": [
+        { "id": "pg_marcus_1", "goal": "Present a design strategy recommendation directly to VP-level stakeholders during Q2 planning", "kpi": "At least one VP-level design presentation delivered with documented follow-up actions", "timeFrame": "Q2 2026", "status": "in_progress", "notes": "Scheduled to present the navigation restructure rationale to the VP of Product in April. Prepping the deck now with Elena's feedback." },
+        { "id": "pg_marcus_2", "goal": "Formalize bi-weekly mentorship cadence with Jordan Kim with a defined growth agenda", "kpi": "6 mentorship sessions completed by end of Q2 with a written growth plan for Jordan on file", "timeFrame": "Q2 2026", "status": "in_progress", "notes": "First session held March 18. Agreed on focus areas: research methods and stakeholder communication. Calendar invites sent through June." },
+        { "id": "pg_marcus_3", "goal": "Apply to speak at one design conference or industry meetup before end of Q3", "kpi": "At least one conference talk submission submitted; acceptance or rejection documented", "timeFrame": "Q2 2026", "status": "not_started", "notes": "Shortlisted Config 2026 and UX London. Topic idea: the research-to-design handoff system he built with Tyler." }
+      ]
     },
     "dch_outreach_p_marcus_001": {
       "hveMerchant": "Metro Fitness",
@@ -204,7 +214,12 @@
         "teamwork": { "managerRating": 5, "notes": "Creates sustainable bridges across the org. The critique program she built has become a model for how design and product collaborate. Elevates everyone around her." },
         "agility":  { "managerRating": 5, "notes": "Proactively drives change rather than reacting to it. Consistently proposes breakthrough approaches and brings the team along without losing buy-in." },
         "humility": { "managerRating": 4, "notes": "Elena shares credit generously and lifts others up. Rated 4 rather than 5 because at the Principal level, stepping back occasionally to let others lead is still a growth edge." }
-      }
+      },
+      "personalGoals": [
+        { "id": "pg_elena_1", "goal": "Develop and publish a team-wide AI tools policy and onboarding guide by end of Q2", "kpi": "Policy document ratified by design leadership and onboarding guide used in at least one new-hire ramp", "timeFrame": "Q2 2026", "status": "in_progress", "notes": "First draft in progress. Collecting input from Marcus and Tyler on current AI tool usage. Targeting a team review in May." },
+        { "id": "pg_elena_2", "goal": "Co-own the Q2 product roadmap with the CPO by contributing design strategy inputs to all major initiative briefs", "kpi": "Design strategy documented and signed off for 100% of Q2 roadmap initiatives before kickoff", "timeFrame": "Q2 2026", "status": "on_track", "notes": "Already embedded in 4 of 5 Q2 initiative briefs. Final brief (payments overhaul) brief session scheduled for April 2." },
+        { "id": "pg_elena_3", "goal": "Run a design maturity assessment across the full product org and publish findings with recommended roadmap", "kpi": "Assessment completed with at least 80% participation from design-adjacent stakeholders; findings deck presented to CPO", "timeFrame": "Q2 2026", "status": "not_started", "notes": "Researching existing frameworks — looking at InVision's Design Maturity Model and Nielsen Norman's scale as starting points." }
+      ]
     },
     "dch_outreach_p_elena_001": {
       "hveMerchant": "Bloom Florist",
@@ -275,7 +290,12 @@
         "teamwork": { "managerRating": 4, "notes": "Strong cross-functional connector. Embedding with more product squads this quarter. Next step is formalizing the research-design collaboration model they've been piloting." },
         "agility":  { "managerRating": 4, "notes": "Adapts research scope and methods fluidly as product strategy shifts. Handled a major study scope change in Q3 without losing momentum or team confidence." },
         "humility": { "managerRating": 5, "notes": "One of Tyler's defining qualities. Actively seeks feedback on their methods, owns mistakes openly, and creates psychological safety that makes others more willing to share." }
-      }
+      },
+      "personalGoals": [
+        { "id": "pg_tyler_1", "goal": "Present research impact metrics at the Q2 design all-hands to demonstrate the value of the research program", "kpi": "Impact metrics deck presented; at least 3 product decisions cited as research-influenced in the presentation", "timeFrame": "Q2 2026", "status": "in_progress", "notes": "Pulling together study-to-decision data from the last 4 quarters. Working with Elena to get a slot on the June all-hands agenda." },
+        { "id": "pg_tyler_2", "goal": "Establish a formal research-design collaboration model and document it as a team operating agreement", "kpi": "Collaboration model documented, reviewed by design leads, and adopted by at least 2 product squads", "timeFrame": "Q2 2026", "status": "in_progress", "notes": "Piloting the model with Marcus's squad this sprint. Weekly 30-min research sync seems to be working well — capturing the structure for the broader doc." },
+        { "id": "pg_tyler_3", "goal": "Submit a talk proposal to a UX research conference in 2026", "kpi": "At least one proposal submitted; topic approved by manager before submission", "timeFrame": "Q2 2026", "status": "not_started", "notes": "Topic ideas: AI-assisted synthesis workflow or the HVE research program design. Targeting UXPA International 2026 deadline in May." }
+      ]
     },
     "dch_outreach_p_tyler_001": {
       "hveMerchant": "Harbor Coffee",
@@ -288,7 +308,7 @@
   };
 
   // Seed version — bump this when seed data changes to force a refresh of example profiles
-  var SEED_VERSION = 10;
+  var SEED_VERSION = 11;
   var storedVersion = parseInt(localStorage.getItem('dch_seed_version') || '0', 10);
   var exampleIds = ['p_jordan_001', 'p_marcus_001', 'p_elena_001', 'p_tyler_001'];
 
