@@ -71,6 +71,29 @@
         { "id": "pg_jordan_1", "goal": "Lead 2 moderated user interviews independently without manager observation by end of Q2", "kpi": "2 solo interviews completed and debriefed with the team", "timeFrame": "Q2 2026", "status": "in_progress", "notes": "First solo session scheduled for April 8. Marcus has agreed to review the discussion guide beforehand." },
         { "id": "pg_jordan_2", "goal": "Achieve WCAG 2.1 AA compliance on all new designs by auditing each screen before handoff", "kpi": "Zero color contrast or focus-order violations flagged in dev QA for 3 consecutive sprints", "timeFrame": "Q2 2026", "status": "in_progress", "notes": "Completed the Figma accessibility plugin setup. Started checking contrast ratios in the current payments redesign." },
         { "id": "pg_jordan_3", "goal": "Propose and shepherd at least one new UI pattern into the design system by end of Q2", "kpi": "Component proposal submitted, reviewed, and merged into the design system library", "timeFrame": "Q2 2026", "status": "not_started", "notes": "Identified a candidate: the inline validation pattern used across multiple forms. Needs to write up the proposal doc." }
+      ],
+      "growthThemes": [
+        {
+          "id": "gt_jordan_1",
+          "theme": "Research Independence",
+          "today": "Participates in research sessions but relies on senior guidance for screener design, discussion guides, and synthesis. Often observes rather than leads.",
+          "better": "Independently plans and leads moderated studies end-to-end. Synthesizes findings into actionable insights and presents them to the team without coaching.",
+          "best": "Drives the research agenda for a full product area. Mentors others on methodology and contributes to raising the team's research standards."
+        },
+        {
+          "id": "gt_jordan_2",
+          "theme": "Craft & Accessibility",
+          "today": "Visual execution is strong but accessibility is applied inconsistently — contrast misses and missing focus states still appear at handoff.",
+          "better": "Accessibility is a built-in checkpoint before every handoff. Zero violations in dev QA for 3+ consecutive sprints. Proactively catches issues in design reviews.",
+          "best": "Leads accessibility culture on the team. Reviews others' work for a11y issues, contributes patterns to the design system, and sets the standard for inclusive design."
+        },
+        {
+          "id": "gt_jordan_3",
+          "theme": "Group Communication",
+          "today": "Communicates confidently in 1:1 and small group settings but tends to go quiet in larger cross-functional reviews. Frames opinions as questions rather than positions.",
+          "better": "Consistently shares a design perspective in group settings. States design rationale with confidence and invites critique rather than avoiding it.",
+          "best": "A trusted voice in cross-functional rooms. Facilitates discussions, advocates for the user when challenged, and models clear, confident communication for peers."
+        }
       ]
     },
     "dch_outreach_p_jordan_001": {
@@ -144,6 +167,29 @@
         { "id": "pg_marcus_1", "goal": "Present a design strategy recommendation directly to VP-level stakeholders during Q2 planning", "kpi": "At least one VP-level design presentation delivered with documented follow-up actions", "timeFrame": "Q2 2026", "status": "in_progress", "notes": "Scheduled to present the navigation restructure rationale to the VP of Product in April. Prepping the deck now with Elena's feedback." },
         { "id": "pg_marcus_2", "goal": "Formalize bi-weekly mentorship cadence with Jordan Kim with a defined growth agenda", "kpi": "6 mentorship sessions completed by end of Q2 with a written growth plan for Jordan on file", "timeFrame": "Q2 2026", "status": "in_progress", "notes": "First session held March 18. Agreed on focus areas: research methods and stakeholder communication. Calendar invites sent through June." },
         { "id": "pg_marcus_3", "goal": "Apply to speak at one design conference or industry meetup before end of Q3", "kpi": "At least one conference talk submission submitted; acceptance or rejection documented", "timeFrame": "Q2 2026", "status": "not_started", "notes": "Shortlisted Config 2026 and UX London. Topic idea: the research-to-design handoff system he built with Tyler." }
+      ],
+      "growthThemes": [
+        {
+          "id": "gt_marcus_1",
+          "theme": "Executive Communication",
+          "today": "Communicates design work effectively within the design team but rarely presents to VP-level or above independently. Tends to over-explain rather than leading with impact.",
+          "better": "Delivers crisp, outcome-focused presentations to VP-level stakeholders. Frames design decisions in business terms and handles pushback with confidence.",
+          "best": "A trusted design voice at the leadership table. Proactively shapes strategy conversations, presents without hand-holding, and elevates design's perceived value across the org."
+        },
+        {
+          "id": "gt_marcus_2",
+          "theme": "Systems Thinking",
+          "today": "Designs excellent individual features but doesn't consistently connect work to upstream/downstream systems or org-wide patterns. Relies on existing frameworks rather than questioning them.",
+          "better": "Regularly maps how feature designs affect broader product flows. Proposes system-level improvements and identifies when an existing pattern needs to evolve.",
+          "best": "Drives the product design system strategy. Sees the full ecosystem and proactively closes gaps between product areas, platforms, and user journeys."
+        },
+        {
+          "id": "gt_marcus_3",
+          "theme": "Mentorship & Coaching",
+          "today": "Provides helpful ad hoc feedback to junior designers but mentorship is reactive. No formal cadence or structured growth plan with mentees.",
+          "better": "Runs a consistent bi-weekly mentorship cadence with a defined agenda. Tracks growth against a written development plan and adjusts coaching based on outcomes.",
+          "best": "A sought-after mentor across the design org. Builds others' capabilities systematically and creates lasting growth that shows in the work and careers of people they've coached."
+        }
       ]
     },
     "dch_outreach_p_marcus_001": {
@@ -219,6 +265,29 @@
         { "id": "pg_elena_1", "goal": "Develop and publish a team-wide AI tools policy and onboarding guide by end of Q2", "kpi": "Policy document ratified by design leadership and onboarding guide used in at least one new-hire ramp", "timeFrame": "Q2 2026", "status": "in_progress", "notes": "First draft in progress. Collecting input from Marcus and Tyler on current AI tool usage. Targeting a team review in May." },
         { "id": "pg_elena_2", "goal": "Co-own the Q2 product roadmap with the CPO by contributing design strategy inputs to all major initiative briefs", "kpi": "Design strategy documented and signed off for 100% of Q2 roadmap initiatives before kickoff", "timeFrame": "Q2 2026", "status": "on_track", "notes": "Already embedded in 4 of 5 Q2 initiative briefs. Final brief (payments overhaul) brief session scheduled for April 2." },
         { "id": "pg_elena_3", "goal": "Run a design maturity assessment across the full product org and publish findings with recommended roadmap", "kpi": "Assessment completed with at least 80% participation from design-adjacent stakeholders; findings deck presented to CPO", "timeFrame": "Q2 2026", "status": "not_started", "notes": "Researching existing frameworks — looking at InVision's Design Maturity Model and Nielsen Norman's scale as starting points." }
+      ],
+      "growthThemes": [
+        {
+          "id": "gt_elena_1",
+          "theme": "Org-Level Design Influence",
+          "today": "Highly influential within the design team and with direct product partners. Strategic design voice is established at the team level but not yet consistently felt at the exec or board level.",
+          "better": "Regularly shapes product strategy at the CPO level. Design perspectives are sought out — not just responded to — in major roadmap and investment decisions.",
+          "best": "Design is embedded in the company's strategic language. Elena is a named voice in exec forums, and design maturity across the org has measurably improved as a result of her leadership."
+        },
+        {
+          "id": "gt_elena_2",
+          "theme": "Team & Org Development",
+          "today": "Builds strong individual relationships and coaches well 1:1. Team capacity and velocity are growing, but a formal development operating system (leveling, career ladders, growth reviews) is still ad hoc.",
+          "better": "A consistent team development cadence is in place. Growth reviews happen on a predictable schedule, skill gaps are tracked, and designers have clear visibility into what advancement looks like.",
+          "best": "The design team is a talent magnet with a reputation for accelerated growth. Elena's development system produces promotions, strong retention, and designers who raise the bar org-wide."
+        },
+        {
+          "id": "gt_elena_3",
+          "theme": "Scaling Design Process",
+          "today": "Has introduced several high-impact frameworks (scope tiers, critique programs) but adoption is uneven across the org. Some areas still operate without design process clarity.",
+          "better": "Design process frameworks are documented, adopted across all squads, and iterated on based on feedback. New designers can ramp into a clear, predictable way of working.",
+          "best": "SpotOn's design process is a competitive advantage. External practitioners reference it; internal teams ask to adopt it; and Elena is recognized as having built something replicable and scalable."
+        }
       ]
     },
     "dch_outreach_p_elena_001": {
@@ -295,6 +364,29 @@
         { "id": "pg_tyler_1", "goal": "Present research impact metrics at the Q2 design all-hands to demonstrate the value of the research program", "kpi": "Impact metrics deck presented; at least 3 product decisions cited as research-influenced in the presentation", "timeFrame": "Q2 2026", "status": "in_progress", "notes": "Pulling together study-to-decision data from the last 4 quarters. Working with Elena to get a slot on the June all-hands agenda." },
         { "id": "pg_tyler_2", "goal": "Establish a formal research-design collaboration model and document it as a team operating agreement", "kpi": "Collaboration model documented, reviewed by design leads, and adopted by at least 2 product squads", "timeFrame": "Q2 2026", "status": "in_progress", "notes": "Piloting the model with Marcus's squad this sprint. Weekly 30-min research sync seems to be working well — capturing the structure for the broader doc." },
         { "id": "pg_tyler_3", "goal": "Submit a talk proposal to a UX research conference in 2026", "kpi": "At least one proposal submitted; topic approved by manager before submission", "timeFrame": "Q2 2026", "status": "not_started", "notes": "Topic ideas: AI-assisted synthesis workflow or the HVE research program design. Targeting UXPA International 2026 deadline in May." }
+      ],
+      "growthThemes": [
+        {
+          "id": "gt_tyler_1",
+          "theme": "Research-to-Decision Impact",
+          "today": "Delivers high-quality research outputs but the path from insight to product decision is often unclear. Impact is felt but not formally tracked or attributed.",
+          "better": "Consistently links research findings to specific product decisions. Tracks and reports research influence metrics; stakeholders can name studies that changed what they built.",
+          "best": "Research is embedded in the product decision-making culture. Tyler's impact is measurable, cited in leadership reviews, and used to justify the research investment to the org."
+        },
+        {
+          "id": "gt_tyler_2",
+          "theme": "Quantitative Research Fluency",
+          "today": "Highly skilled in qualitative methods. Comfortable reading analytics but relies on data scientists or PMs to design and interpret quantitative studies.",
+          "better": "Designs and independently interprets mixed-methods studies. Knows when to pair qual with quant, can pull data from analytics dashboards, and comfortably discusses statistical significance.",
+          "best": "A fully mixed-methods researcher. Designs studies that combine qual depth with quant rigor, collaborates as a peer with data scientists, and shapes the product analytics strategy."
+        },
+        {
+          "id": "gt_tyler_3",
+          "theme": "Stakeholder Storytelling",
+          "today": "Research readouts are thorough and methodologically sound but sometimes too detailed for exec audiences. Key takeaways get buried in evidence.",
+          "better": "Delivers crisp, insight-led readouts tailored to the audience. Leads with 'so what,' uses visuals to tell the story, and leaves stakeholders with clear, actionable implications.",
+          "best": "A master research communicator. Research stories inspire urgency and clarity in leadership. Tyler's readouts are referenced long after the study ends as models for how to tell a research story."
+        }
       ]
     },
     "dch_outreach_p_tyler_001": {
@@ -308,7 +400,7 @@
   };
 
   // Seed version — bump this when seed data changes to force a refresh of example profiles
-  var SEED_VERSION = 11;
+  var SEED_VERSION = 12;
   var storedVersion = parseInt(localStorage.getItem('dch_seed_version') || '0', 10);
   var exampleIds = ['p_jordan_001', 'p_marcus_001', 'p_elena_001', 'p_tyler_001'];
 

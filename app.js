@@ -728,7 +728,7 @@ function getStorageKey() { return `dch_data_${state.profile}`; }
 function getData() {
   const raw = localStorage.getItem(getStorageKey());
   const base = raw ? JSON.parse(raw) : {};
-  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], ...base };
+  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], ...base };
 }
 function saveData(data) {
   localStorage.setItem(getStorageKey(), JSON.stringify(data));
@@ -966,7 +966,7 @@ function getAssessedCount() {
 function getDataForProfile(profileId) {
   const raw = localStorage.getItem(`dch_data_${profileId}`);
   const base = raw ? JSON.parse(raw) : {};
-  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], ...base };
+  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], ...base };
 }
 function getExpectedLevelForSkillAndRole(skillId, role) {
   if (!role) return null;
@@ -3828,6 +3828,47 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
   `;
 }
 
+function renderGrowthThemes() {
+  const d = getData();
+  const themes = d.growthThemes || [];
+  if (!themes.length) return '';
+
+  const colStyle = (bg, color) =>
+    `style="background:${bg};border-radius:8px;padding:14px 16px;flex:1;min-width:0"`;
+
+  return `
+    <div class="goals-section">
+      <div class="goals-section-header">
+        <div>
+          <div class="goals-section-title">Growth Themes</div>
+          <div class="goals-section-subtitle">Manager-assigned development focus areas with a clear picture of progress</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        ${themes.map(t => `
+          <div class="review-table-wrap" style="padding:20px 24px">
+            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">${escHtml(t.theme)}</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+              <div style="background:#F8FAFC;border-radius:8px;padding:14px 16px">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:8px">Today</div>
+                <div style="font-size:13px;color:var(--text-secondary);line-height:1.55">${escHtml(t.today)}</div>
+              </div>
+              <div style="background:#EFF6FF;border-radius:8px;padding:14px 16px">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#3B82F6;margin-bottom:8px">Better</div>
+                <div style="font-size:13px;color:var(--text-secondary);line-height:1.55">${escHtml(t.better)}</div>
+              </div>
+              <div style="background:#F0FDF4;border-radius:8px;padding:14px 16px">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#16A34A;margin-bottom:8px">Best</div>
+                <div style="font-size:13px;color:var(--text-secondary);line-height:1.55">${escHtml(t.best)}</div>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
 function renderGoals() {
   const profiles = getProfiles();
   const currentProfile = profiles.find(p => p.id === state.profile);
@@ -3841,6 +3882,7 @@ function renderGoals() {
       </div>
     </div>
 
+    ${renderGrowthThemes()}
     ${renderGoalSection('personal', 'Personal Goals', 'Goals you set for your own growth and development', personalGoals, true)}
     ${renderGoalSection('design', '2026 Design Team Goals', 'Track how you\'re contributing to shared design team objectives', DESIGN_TEAM_GOALS, false)}
 
