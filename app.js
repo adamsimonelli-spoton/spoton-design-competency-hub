@@ -3805,7 +3805,7 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
                   ${isEditable ? `<td><button class="resource-delete" onclick="deleteUserGoal('${sectionId}',${i})" title="Delete">✕</button></td>` : ''}
                 </tr>
               `;
-            }).join('')})()}
+            }).join('')}
           </tbody>
         </table></div>
       `}
