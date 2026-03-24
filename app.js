@@ -2025,6 +2025,10 @@ function renderHome() {
             </div>
           `;
         })()}
+        <!-- Merchant Outreach grouped with Goal Progress -->
+        <div class="dash-module" style="margin-bottom:16px;padding:0;overflow:hidden">
+          ${renderOutreachWidget()}
+        </div>
         <div class="radar-card" id="radar-card">
           ${renderRadarCardInner()}
         </div>
@@ -2120,49 +2124,36 @@ function renderHome() {
               </div>
             ` : ''}
           `}
-        </div>
+        <!-- Quick Wins grouped with Skill Insights -->
+        ${(() => {
+          const wins = getQuickWins().slice(0, 3);
+          return `
+            <div class="dash-module" style="margin-top:16px">
+              <div class="dash-module-header">
+                <span class="section-title">Quick Wins</span>
+                <button class="section-link" onclick="navigate('review')">View all →</button>
+              </div>
+              ${wins.length === 0 ? `
+                <div class="dash-empty-state">No quick wins yet — assess more skills to get recommendations.</div>
+              ` : `
+                <div class="dash-quick-wins-list">
+                  ${wins.map((w, i) => `
+                    <div class="dash-qw-item" onclick="openQuickWinModal(${i})">
+                      <div class="dash-qw-icon">${w.icon}</div>
+                      <div class="dash-qw-body">
+                        <div class="dash-qw-title">${escHtml(w.title)}</div>
+                        <div class="dash-qw-meta">${w.matchingNames.length} skill${w.matchingNames.length !== 1 ? 's' : ''} addressed</div>
+                      </div>
+                      <svg class="dash-qw-arrow" width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
+                    </div>
+                  `).join('')}
+                </div>
+              `}
+            </div>
+          `;
+        })()}
       </div>
     </div>
-
-    ${(() => {
-      // ── Quick wins (top 3) ───────────────────────────────────────────
-      const wins = getQuickWins().slice(0, 3);
-
-      return `
-        <div class="dash-bottom-row">
-
-          <!-- Quick wins -->
-          <div class="dash-module">
-            <div class="dash-module-header">
-              <span class="section-title">Quick Wins</span>
-              <button class="section-link" onclick="navigate('review')">View all →</button>
-            </div>
-            ${wins.length === 0 ? `
-              <div class="dash-empty-state">No quick wins yet — assess more skills to get recommendations.</div>
-            ` : `
-              <div class="dash-quick-wins-list">
-                ${wins.map((w, i) => `
-                  <div class="dash-qw-item" onclick="openQuickWinModal(${i})">
-                    <div class="dash-qw-icon">${w.icon}</div>
-                    <div class="dash-qw-body">
-                      <div class="dash-qw-title">${escHtml(w.title)}</div>
-                      <div class="dash-qw-meta">${w.matchingNames.length} skill${w.matchingNames.length !== 1 ? 's' : ''} addressed</div>
-                    </div>
-                    <svg class="dash-qw-arrow" width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
-                  </div>
-                `).join('')}
-              </div>
-            `}
-          </div>
-
-          <!-- Merchant outreach -->
-          <div class="dash-module" style="padding:0;overflow:hidden">
-            ${renderOutreachWidget()}
-          </div>
-
-        </div>
-      `;
-    })()}
   `;
 }
 
