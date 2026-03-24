@@ -1012,6 +1012,24 @@ const RADAR_LAYER_OPTIONS = [
   { id: 'expected', label: 'Expected',   color: '#F59E0B' },
 ];
 
+function showRadarTooltip(e, text) {
+  let tt = document.getElementById('radar-tooltip');
+  if (!tt) {
+    tt = document.createElement('div');
+    tt.id = 'radar-tooltip';
+    tt.style.cssText = 'position:fixed;background:#1e293b;color:#f1f5f9;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:500;pointer-events:none;z-index:9999;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25);transition:opacity .1s';
+    document.body.appendChild(tt);
+  }
+  tt.textContent = text;
+  tt.style.opacity = '1';
+  tt.style.left = (e.clientX + 14) + 'px';
+  tt.style.top = (e.clientY - 32) + 'px';
+}
+function hideRadarTooltip() {
+  const tt = document.getElementById('radar-tooltip');
+  if (tt) tt.style.opacity = '0';
+}
+
 function toggleRadarLayer(layer) {
   const layers = state.radarLayers;
   const idx = layers.indexOf(layer);
@@ -1070,11 +1088,12 @@ function renderRadarChart(size, layers) {
     return `<polygon points="${pts}" fill="${color}" fill-opacity="${fillOp}" stroke="${color}" stroke-width="${strokeW}" stroke-linejoin="round"/>`;
   }
 
-  function renderDots(scores, color, clickFn) {
+  function renderDots(scores, color, clickFn, tooltips) {
     return scores.map((s, i) => {
       const r = maxR * Math.max(s, 0.04); const p = pt(i, r);
-      const click = clickFn ? ` onclick="${clickFn(i)}" style="cursor:pointer"` : '';
-      return `<circle cx="${p.x}" cy="${p.y}" r="${clickFn ? 6 : 4}" fill="${color}" stroke="white" stroke-width="1.5"${click}/>`;
+      const click = clickFn ? ` onclick="${clickFn(i)}"` : '';
+      const tip = tooltips?.[i] ? ` onmouseenter="showRadarTooltip(event,${JSON.stringify(tooltips[i])})" onmouseleave="hideRadarTooltip()"` : '';
+      return `<circle cx="${p.x}" cy="${p.y}" r="${clickFn ? 6 : 4}" fill="${color}" stroke="white" stroke-width="1.5" style="cursor:pointer"${click}${tip}/>`;
     }).join('');
   }
 
@@ -1105,17 +1124,44 @@ function renderRadarChart(size, layers) {
   const fillOp = multi ? 0.08 : 0.13;
   const strokeW = multi ? 1.5 : 2;
 
+  const LEVEL_NAMES = ['Learner', 'Contributor', 'Independent', 'Expert'];
+  function catTooltips(levelKey, suffix) {
+    return categories.map(cat => {
+      const catSkills = SKILLS_DATA.skills.filter(s => s.category === cat);
+      const assessed = catSkills.filter(s => assessments[s.id]?.[levelKey]);
+      if (!assessed.length) return `${cat}: Not assessed`;
+      const avg = assessed.reduce((sum, s) => sum + getLevelOrder(assessments[s.id][levelKey]), 0) / assessed.length;
+      const lvl = LEVEL_NAMES[Math.round(avg) - 1] || '—';
+      return suffix ? `${cat} (${suffix}): ${lvl}` : `${cat}: ${lvl}`;
+    });
+  }
+  function expectedTooltips() {
+    return categories.map(cat => {
+      const catSkills = SKILLS_DATA.skills.filter(s => s.category === cat);
+      const withExp = catSkills.filter(s => { const e = getExpectedLevelForSkill(s.id); return e != null; });
+      if (!withExp.length) return `${cat} (Expected): —`;
+      const avg = withExp.reduce((sum, s) => sum + getLevelOrder(getExpectedLevelForSkill(s.id)), 0) / withExp.length;
+      const lvl = LEVEL_NAMES[Math.round(avg) - 1] || '—';
+      return `${cat} (Expected): ${lvl}`;
+    });
+  }
+
   let shapesHTML = '', dotsHTML = '';
   const scoreMap = {
     manager:  () => catScores('managerLevel'),
     expected: () => expectedScores(),
   };
+  const tooltipMap = {
+    manager:  () => catTooltips('managerLevel'),
+    expected: () => expectedTooltips(),
+  };
   const catClickFn = i => `navigateToSkillCategory('${escHtml(categories[i])}')`;
   renderOrder.forEach(layer => {
     const scores = scoreMap[layer]();
     const color = RADAR_COLORS[layer];
+    const tips = tooltipMap[layer]?.() || [];
     shapesHTML += renderPoly(scores, color, fillOp, strokeW);
-    dotsHTML += renderDots(scores, color, catClickFn);
+    dotsHTML += renderDots(scores, color, catClickFn, tips);
   });
 
   return `<svg viewBox="0 0 ${size} ${size}" overflow="visible" style="width:100%;height:auto;display:block">
@@ -1177,7 +1223,11 @@ function renderValuesRadarChart(size) {
   const polyHTML = `<polygon points="${pts}" fill="${color}" fill-opacity="0.12" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>`;
   const dotsHTML = scores.map((s, i) => {
     const r = maxR * Math.max(s, 0.04); const p = pt(i, r);
-    return `<circle cx="${p.x}" cy="${p.y}" r="6" fill="${color}" stroke="white" stroke-width="1.5" style="cursor:pointer" onclick="navigate('value','${CORE_VALUES_DATA[i].id}')"/>`;
+    const cv = CORE_VALUES_DATA[i];
+    const rating = getValueRating(cv.id).managerRating;
+    const levelLabels = ['', 'Developing', 'Emerging', 'Practicing', 'Exemplifying', 'Mastering'];
+    const tipText = rating ? `${cv.label.split('.')[0].trim()}: ${levelLabels[rating] || rating + '/5'}` : `${cv.label.split('.')[0].trim()}: Not rated`;
+    return `<circle cx="${p.x}" cy="${p.y}" r="6" fill="${color}" stroke="white" stroke-width="1.5" style="cursor:pointer" onclick="navigate('value','${cv.id}')" onmouseenter="showRadarTooltip(event,${JSON.stringify(tipText)})" onmouseleave="hideRadarTooltip()"/>`;
   }).join('');
 
   const labelsHTML = CORE_VALUES_DATA.map((cv, i) => {
