@@ -160,11 +160,11 @@ const CV_RATING_CONFIG = {
 };
 
 const RESOURCE_TYPES = {
-  article: { icon: '📄', label: 'Article' },
-  video:   { icon: '▶️', label: 'Video' },
-  course:  { icon: '🎓', label: 'Course' },
-  book:    { icon: '📚', label: 'Book' },
-  tool:    { icon: '🔧', label: 'Tool' },
+  article: { icon: '📄', label: 'Article', tagColor: '#1D4ED8', tagBg: '#DBEAFE' },
+  video:   { icon: '▶️', label: 'Video',   tagColor: '#DC2626', tagBg: '#FEE2E2' },
+  course:  { icon: '🎓', label: 'Course',  tagColor: '#059669', tagBg: '#D1FAE5' },
+  book:    { icon: '📚', label: 'Book',    tagColor: '#7C3AED', tagBg: '#EDE9FE' },
+  tool:    { icon: '🔧', label: 'Tool',    tagColor: '#D97706', tagBg: '#FEF3C7' },
 };
 
 // Pre-curated resources per skill ID
@@ -2536,18 +2536,17 @@ function renderResources() {
 
   const resourceItemHtml = (r, clickable = false, linkify = false) => {
     const rt = RESOURCE_TYPES[r.type] || RESOURCE_TYPES.article;
+    const hasUrl = !!(r.url);
+    const typeTag = `<span class="resource-type-tag" style="color:${rt.tagColor};background:${rt.tagBg}">${rt.label}</span>`;
+    const ctaIcon = hasUrl ? `<svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="flex-shrink:0;color:#4B5563" aria-hidden="true"><path d="M224,104a8,8,0,0,1-16,0V59.32l-82.34,82.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"/></svg>` : `<span style="width:14px;display:inline-block"></span>`;
     return `
-      <div class="resource-item${clickable && r.url ? ' resource-item-clickable' : ''}" ${clickable && r.url ? `onclick="window.open('${escHtml(r.url)}','_blank','noopener')"` : ''}>
-        <div class="resource-type-icon resource-type-${r.type}">${rt.icon}</div>
+      <div class="resource-item${hasUrl ? ' resource-item-clickable' : ''}" ${hasUrl ? `onclick="window.open('${escHtml(r.url)}','_blank','noopener')"` : ''}>
         <div class="resource-info">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
-            <div style="flex:1;min-width:0">
-              ${linkify && r.url ? `<a href="${escHtml(r.url)}" target="_blank" rel="noopener" class="resource-title">${escHtml(r.title)}${EXTERNAL_LINK_ICON}</a>` : `<span class="resource-title">${escHtml(r.title)}</span>`}
-              ${r.desc ? `<div class="resource-desc">${escHtml(r.desc)}</div>` : ''}
-            </div>
-            <span class="resource-type-badge" style="flex-shrink:0">${rt.label}</span>
-          </div>
+          <span class="resource-title">${escHtml(r.title)}</span>
+          ${r.desc ? `<div class="resource-desc">${escHtml(r.desc)}</div>` : ''}
         </div>
+        ${typeTag}
+        ${ctaIcon}
       </div>`;
   };
 
