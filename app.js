@@ -1081,13 +1081,18 @@ function renderRadarChart(size, layers) {
   const catLabels = { 'Project Management': 'Proj Mgmt' };
   const labelsHTML = categories.map((cat, i) => {
     const angle = (2 * Math.PI * i / n) - Math.PI / 2;
-    const labelR = maxR + 18;
+    const labelR = maxR;
     const lx = cx + labelR * Math.cos(angle);
     const ly = cy + labelR * Math.sin(angle);
-    const anchor = Math.cos(angle) > 0.1 ? 'start' : Math.cos(angle) < -0.1 ? 'end' : 'middle';
-    const dy = Math.sin(angle) > 0.3 ? '1em' : Math.sin(angle) < -0.3 ? '-0.3em' : '0.35em';
     const label = catLabels[cat] || cat;
-    return `<text x="${lx}" y="${ly}" text-anchor="${anchor}" dy="${dy}" fill="#4A5568" font-size="9" font-weight="600" font-family="-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif" style="cursor:pointer" onclick="navigateToSkillCategory('${escHtml(cat)}')">${label}</text>`;
+    const pillW = Math.max(label.length * 5.5 + 14, 28);
+    const pillH = 15;
+    const pillX = (lx - pillW / 2).toFixed(1);
+    const pillY = (ly - pillH / 2).toFixed(1);
+    return `<g style="cursor:pointer" onclick="navigateToSkillCategory('${escHtml(cat)}')">
+      <rect x="${pillX}" y="${pillY}" width="${pillW.toFixed(1)}" height="${pillH}" rx="7" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+      <text x="${lx.toFixed(1)}" y="${(ly + 3.5).toFixed(1)}" text-anchor="middle" fill="#334155" font-size="9" font-weight="600" font-family="-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif">${label}</text>
+    </g>`;
   }).join('');
 
   const levelLabels = ['Learner','Contributor','Independent','Expert'];
@@ -1181,14 +1186,19 @@ function renderValuesRadarChart(size) {
 
   const labelsHTML = CORE_VALUES_DATA.map((cv, i) => {
     const angle = (2 * Math.PI * i / n) - Math.PI / 2;
-    const labelR = maxR + 20;
+    const labelR = maxR;
     const lx = cx + labelR * Math.cos(angle);
     const ly = cy + labelR * Math.sin(angle);
-    const anchor = Math.cos(angle) > 0.1 ? 'start' : Math.cos(angle) < -0.1 ? 'end' : 'middle';
-    const dy = Math.sin(angle) > 0.3 ? '1em' : Math.sin(angle) < -0.3 ? '-0.3em' : '0.35em';
     // Use first phrase only (up to first period) for compact chart label
     const chartLabel = cv.label.split('.')[0].replace(/,$/, '').trim();
-    return `<text x="${lx}" y="${ly}" text-anchor="${anchor}" dy="${dy}" fill="#4A5568" font-size="9" font-weight="600" font-family="-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif" style="cursor:pointer" onclick="navigate('value','${cv.id}')">${escHtml(chartLabel)}</text>`;
+    const pillW = Math.max(chartLabel.length * 5.5 + 14, 28);
+    const pillH = 15;
+    const pillX = (lx - pillW / 2).toFixed(1);
+    const pillY = (ly - pillH / 2).toFixed(1);
+    return `<g style="cursor:pointer" onclick="navigate('value','${cv.id}')">
+      <rect x="${pillX}" y="${pillY}" width="${pillW.toFixed(1)}" height="${pillH}" rx="7" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+      <text x="${lx.toFixed(1)}" y="${(ly + 3.5).toFixed(1)}" text-anchor="middle" fill="#334155" font-size="9" font-weight="600" font-family="-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif">${escHtml(chartLabel)}</text>
+    </g>`;
   }).join('');
 
   return `<svg viewBox="0 0 ${size} ${size}" overflow="visible" style="width:100%;height:auto;display:block${!hasAny ? ';opacity:.35;filter:grayscale(1)' : ''}">
