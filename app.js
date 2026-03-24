@@ -2265,10 +2265,10 @@ function renderSkills() {
               <div class="skill-card-body">
                 <div class="skill-card-top">
                   <div class="skill-number">${escHtml(skill.category)}</div>
-                  ${mgrLevel ? `<span class="level-badge ${lc.cls}" style="font-size:10px;padding:4px 8px">${lc.emoji} ${mgrLevel}</span>` : '<span class="not-assessed">Not assessed</span>'}
+                  ${mgrLevel ? `<span class="level-badge ${lc.cls}" style="font-size:10px;padding:4px 8px">${mgrLevel}</span>` : '<span class="not-assessed">Not assessed</span>'}
                 </div>
                 <h3>${escHtml(skill.name)}</h3>
-                ${assessment?.evidence ? '<div class="skill-card-footer"><span style="font-size:10px;color:var(--green)">📝 Has notes</span></div>' : ''}
+                ${assessment?.evidence ? '<div class="skill-card-footer"><span style="font-size:10px;color:var(--green)">Has notes</span></div>' : ''}
               </div>
             </div>
           `;
