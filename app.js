@@ -1881,30 +1881,72 @@ function renderHome() {
   }
 
   // Skill-based bullets — used as fallback or to pad if no review data
-  if (insightBullets.length < 3 && assessedSkills.length >= 4 && topCat) {
-    const topCatStrong = assessedSkills
-      .filter(s => s.category === topCat.cat && ['Expert', 'Independent'].includes(assessments[s.id].managerLevel))
-      .slice(0, 2);
-    if (topCat.avg >= 3 && topCatStrong.length > 0) {
-      insightBullets.push(`Strongest in ${topCat.cat} — ${topCatStrong.map(s => s.name).join(' and ')} stand out.`);
-    } else if (topCat.avg >= 2.5) {
-      insightBullets.push(`${topCat.cat} is their most consistent area, performing solidly across the board.`);
-    } else {
-      insightBullets.push(`Still building depth overall — ${topCat.cat} shows the most progress so far.`);
-    }
-    if (allGaps.length > 0 && currentProfile?.role) {
-      const gapCats = {};
-      allGaps.forEach(s => { gapCats[s.category] = (gapCats[s.category] || 0) + 1; });
-      const [topGapCat, topGapCount] = Object.entries(gapCats).sort((a, b) => b[1] - a[1])[0];
-      if (topGapCount >= 3) {
-        insightBullets.push(`${topGapCat} is the main gap area — ${topGapCount} skills below the ${shortRole(currentProfile.role)} bar.`);
-      } else if (allGaps.length > 0) {
-        insightBullets.push(`${allGaps.length} skill${allGaps.length !== 1 ? 's' : ''} below role expectations — spread across categories rather than one weak spot.`);
+  // Fill up to at least 3 bullets with skill-based insights
+  if (assessedSkills.length >= 4 && topCat) {
+    // Bullet: top category strength
+    if (insightBullets.length < 3) {
+      const topCatStrong = assessedSkills
+        .filter(s => s.category === topCat.cat && ['Expert', 'Independent'].includes(assessments[s.id].managerLevel))
+        .slice(0, 2);
+      if (topCat.avg >= 3 && topCatStrong.length > 0) {
+        insightBullets.push(`Strongest in ${topCat.cat} — ${topCatStrong.map(s => s.name).join(' and ')} stand out.`);
+      } else if (topCat.avg >= 2.5) {
+        insightBullets.push(`${topCat.cat} is the most consistent area, performing solidly across the board.`);
+      } else {
+        insightBullets.push(`Still building depth overall — ${topCat.cat} shows the most progress so far.`);
       }
-    } else if (allOverperforming.length >= 2 && currentProfile?.role) {
-      insightBullets.push(`Exceeding the ${shortRole(currentProfile.role)} bar in ${allOverperforming.length} skills — ready for stretch assignments.`);
-    } else if (currentProfile?.role) {
-      insightBullets.push(`On track with ${shortRole(currentProfile.role)} expectations — no major gaps showing.`);
+    }
+
+    // Bullet: gap or overperforming summary
+    if (insightBullets.length < 3 && currentProfile?.role) {
+      if (allGaps.length > 0) {
+        const gapCats = {};
+        allGaps.forEach(s => { gapCats[s.category] = (gapCats[s.category] || 0) + 1; });
+        const [topGapCat, topGapCount] = Object.entries(gapCats).sort((a, b) => b[1] - a[1])[0];
+        if (topGapCount >= 3) {
+          insightBullets.push(`${topGapCat} is the main gap area — ${topGapCount} skills below the ${shortRole(currentProfile.role)} bar.`);
+        } else {
+          insightBullets.push(`${allGaps.length} skill${allGaps.length !== 1 ? 's' : ''} below role expectations — spread across categories rather than one weak spot.`);
+        }
+      } else if (allOverperforming.length >= 2) {
+        insightBullets.push(`Exceeding the ${shortRole(currentProfile.role)} bar in ${allOverperforming.length} skills — ready for stretch assignments.`);
+      } else {
+        insightBullets.push(`On track with ${shortRole(currentProfile.role)} expectations — no major gaps showing.`);
+      }
+    }
+
+    // Bullet: category breadth / weakest category
+    if (insightBullets.length < 3) {
+      const catAvgs = catProgress.map(({ cat }) => {
+        const catSkills = assessedSkills.filter(s => s.category === cat);
+        if (catSkills.length === 0) return null;
+        const avg = catSkills.reduce((sum, s) => sum + getLevelOrder(assessments[s.id].managerLevel), 0) / catSkills.length;
+        return { cat, avg };
+      }).filter(Boolean).sort((a, b) => a.avg - b.avg);
+      const weakestCat = catAvgs[0];
+      const strongestCat = catAvgs[catAvgs.length - 1];
+      if (weakestCat && strongestCat && weakestCat.cat !== topCat.cat) {
+        insightBullets.push(`Biggest growth opportunity is in ${weakestCat.cat} — this is where focused effort will have the most impact.`);
+      } else if (strongestCat) {
+        insightBullets.push(`Skills are broadly developed across all four categories — ${strongestCat.cat} leads the way.`);
+      }
+    }
+
+    // Bullet: specific high or low skill callout as final fallback
+    if (insightBullets.length < 3) {
+      const topSkill = assessedSkills
+        .filter(s => assessments[s.id].managerLevel === 'Expert')
+        .slice(0, 1)[0];
+      const lowSkill = assessedSkills
+        .filter(s => assessments[s.id].managerLevel === 'Learner')
+        .slice(0, 1)[0];
+      if (topSkill) {
+        insightBullets.push(`${topSkill.name} is a standout strength — already at Expert level.`);
+      } else if (lowSkill) {
+        insightBullets.push(`${lowSkill.name} is the earliest-stage skill — a natural focus area for development.`);
+      } else {
+        insightBullets.push(`${assessedSkills.length} of ${SKILLS_DATA.skills.length} skills assessed — keep going to sharpen the picture.`);
+      }
     }
   }
 
