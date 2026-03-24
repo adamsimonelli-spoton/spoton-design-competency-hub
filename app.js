@@ -3839,14 +3839,19 @@ function renderGrowthThemes() {
   const s1 = base !== null ? (base + 0.25).toFixed(2) : null;
   const s2 = base !== null ? (base + 0.50).toFixed(2) : null;
 
-  const scoreCol = (label, score, bg, color, text) => `
+  const scoreCol = (label, score, bg, color, items) => {
+    const list = Array.isArray(items) ? items : (items ? [items] : []);
+    return `
     <div style="background:${bg};border-radius:8px;padding:14px 16px">
-      <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:10px">
         ${score !== null ? `<span style="font-size:16px;font-weight:800;color:${color};line-height:1">${score}</span><span style="font-size:10px;font-weight:600;color:${color};opacity:.6">/5</span>` : ''}
         <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${color}${score !== null ? ';margin-left:2px' : ''}">${label}</span>
       </div>
-      <div style="font-size:13px;color:var(--text-secondary);line-height:1.55">${escHtml(text || '')}</div>
+      <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px">
+        ${list.map(i => `<li style="position:relative;padding-left:13px;font-size:13px;color:var(--text-secondary);line-height:1.5"><span style="position:absolute;left:1px;top:8px;width:5px;height:5px;border-radius:50%;background:${color};opacity:.5"></span>${escHtml(i)}</li>`).join('')}
+      </ul>
     </div>`;
+  };
 
   const bullets = (items) => (items || []).map(i =>
     `<li style="position:relative;padding-left:14px;font-size:13px;color:var(--text-secondary);line-height:1.55;margin-bottom:4px"><span style="position:absolute;left:2px;top:8px;width:5px;height:5px;border-radius:50%;background:var(--text-muted)"></span>${escHtml(i)}</li>`

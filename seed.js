@@ -77,9 +77,9 @@
         {
           "id": "gt_jordan_1",
           "theme": "Research Independence",
-          "today": "Participates in research sessions but relies on senior guidance for screener design, discussion guides, and synthesis. Often observes rather than leads.",
-          "better": "Independently plans and leads moderated studies end-to-end. Synthesizes findings into actionable insights and presents them to the team without coaching.",
-          "best": "Drives the research agenda for a full product area. Mentors others on methodology and contributes to raising the team's research standards.",
+          "today": ["Participates in research sessions but relies on senior guidance", "Needs support on screener design, discussion guides, and synthesis", "Often observes rather than leads"],
+          "better": ["Independently plans and leads moderated studies end-to-end", "Synthesizes findings into actionable insights without coaching", "Presents findings to the team independently"],
+          "best": ["Drives the research agenda for a full product area", "Mentors others on research methodology", "Contributes to raising the team's research standards"],
           "indicators": ["Solo study completion rate", "Synthesis doc quality", "Insight-to-decision traceability"],
           "dependencies": ["Participant recruitment access", "Dovetail license", "Manager availability for review sign-off"],
           "collaborators": ["Tyler Chen (UX Research)", "Design Manager", "PM"]
@@ -87,9 +87,9 @@
         {
           "id": "gt_jordan_2",
           "theme": "Craft & Accessibility",
-          "today": "Visual execution is strong but accessibility is applied inconsistently — contrast misses and missing focus states still appear at handoff.",
-          "better": "Accessibility is a built-in checkpoint before every handoff. Zero violations in dev QA for 3+ consecutive sprints. Proactively catches issues in design reviews.",
-          "best": "Leads accessibility culture on the team. Reviews others' work for a11y issues, contributes patterns to the design system, and sets the standard for inclusive design.",
+          "today": ["Visual execution is strong but accessibility is applied inconsistently", "Contrast misses and missing focus states still appear at handoff"],
+          "better": ["Accessibility is a built-in checkpoint before every handoff", "Zero violations in dev QA for 3+ consecutive sprints", "Proactively catches a11y issues in design reviews"],
+          "best": ["Leads accessibility culture on the team", "Reviews others' work for a11y issues and contributes patterns to the design system", "Sets the standard for inclusive design"],
           "indicators": ["A11y violations in dev QA", "Design system contribution count", "Component reuse rate"],
           "dependencies": ["Figma accessibility plugin", "Engineering QA process", "Design system maturity"],
           "collaborators": ["Marcus Webb", "Engineering", "Design system team"]
@@ -97,9 +97,9 @@
         {
           "id": "gt_jordan_3",
           "theme": "Group Communication",
-          "today": "Communicates confidently in 1:1 and small group settings but tends to go quiet in larger cross-functional reviews. Frames opinions as questions rather than positions.",
-          "better": "Consistently shares a design perspective in group settings. States design rationale with confidence and invites critique rather than avoiding it.",
-          "best": "A trusted voice in cross-functional rooms. Facilitates discussions, advocates for the user when challenged, and models clear, confident communication for peers.",
+          "today": ["Communicates confidently in 1:1 and small group settings", "Tends to go quiet in larger cross-functional reviews", "Frames opinions as questions rather than positions"],
+          "better": ["Consistently shares a design perspective in group settings", "States design rationale with confidence", "Invites critique rather than avoiding it"],
+          "best": ["A trusted voice in cross-functional rooms", "Facilitates discussions and advocates for the user when challenged", "Models clear, confident communication for peers"],
           "indicators": ["Critique participation rate", "Cross-functional presentation count", "Peer feedback quality"],
           "dependencies": ["Team psychological safety", "Meeting cadence and structure"],
           "collaborators": ["Design team", "PM", "Cross-functional partners"]
@@ -183,9 +183,9 @@
         {
           "id": "gt_marcus_1",
           "theme": "Executive Communication",
-          "today": "Communicates design work effectively within the design team but rarely presents to VP-level or above independently. Tends to over-explain rather than leading with impact.",
-          "better": "Delivers crisp, outcome-focused presentations to VP-level stakeholders. Frames design decisions in business terms and handles pushback with confidence.",
-          "best": "A trusted design voice at the leadership table. Proactively shapes strategy conversations and elevates design's perceived value across the org.",
+          "today": ["Effective communicator within the design team", "Rarely presents to VP-level or above independently", "Tends to over-explain rather than leading with impact"],
+          "better": ["Delivers crisp, outcome-focused presentations to VP-level stakeholders", "Frames design decisions in business terms", "Handles pushback with confidence"],
+          "best": ["A trusted design voice at the leadership table", "Proactively shapes strategy conversations", "Elevates design's perceived value across the org"],
           "indicators": ["VP-level presentation count", "Post-presentation follow-up action rate", "Design influence on roadmap decisions"],
           "dependencies": ["Access to leadership forums", "Elena's sponsorship", "CPO/VP availability"],
           "collaborators": ["Elena Santos", "VP of Product", "CPO", "PMM"]
@@ -193,9 +193,9 @@
         {
           "id": "gt_marcus_2",
           "theme": "Systems Thinking",
-          "today": "Designs excellent individual features but doesn't consistently connect work to upstream/downstream systems or org-wide patterns. Relies on existing frameworks rather than questioning them.",
-          "better": "Regularly maps how feature designs affect broader product flows. Proposes system-level improvements and identifies when an existing pattern needs to evolve.",
-          "best": "Drives the product design system strategy. Sees the full ecosystem and proactively closes gaps between product areas, platforms, and user journeys.",
+          "today": ["Designs excellent individual features", "Doesn't consistently connect work to upstream/downstream systems", "Relies on existing frameworks rather than questioning them"],
+          "better": ["Regularly maps how feature designs affect broader product flows", "Proposes system-level improvements", "Identifies when an existing pattern needs to evolve"],
+          "best": ["Drives the product design system strategy", "Sees the full ecosystem and proactively closes gaps", "Connects product areas, platforms, and user journeys"],
           "indicators": ["Cross-product patterns documented", "Design system contributions", "Pattern reuse rate across squads"],
           "dependencies": ["Design system maturity", "Cross-squad visibility", "PM alignment on system investment"],
           "collaborators": ["Design system team", "Engineering", "Tyler Chen", "Other product designers"]
@@ -203,9 +203,9 @@
         {
           "id": "gt_marcus_3",
           "theme": "Mentorship & Coaching",
-          "today": "Provides helpful ad hoc feedback to junior designers but mentorship is reactive. No formal cadence or structured growth plan with mentees.",
-          "better": "Runs a consistent bi-weekly mentorship cadence with a defined agenda. Tracks growth against a written development plan and adjusts coaching based on outcomes.",
-          "best": "A sought-after mentor across the design org. Builds others' capabilities systematically and creates lasting growth that shows in the work and careers of people they've coached.",
+          "today": ["Provides helpful ad hoc feedback to junior designers", "Mentorship is reactive rather than proactive", "No formal cadence or structured growth plan with mentees"],
+          "better": ["Runs a consistent bi-weekly mentorship cadence with a defined agenda", "Tracks growth against a written development plan", "Adjusts coaching based on outcomes"],
+          "best": ["A sought-after mentor across the design org", "Builds others' capabilities systematically", "Creates lasting growth visible in the work and careers of those they've coached"],
           "indicators": ["Mentorship session consistency", "Mentee skill growth trajectory", "Written growth plan on file"],
           "dependencies": ["Protected time for mentorship", "Mentee engagement and availability"],
           "collaborators": ["Jordan Kim", "Elena Santos", "HRBP"]
@@ -291,9 +291,9 @@
         {
           "id": "gt_elena_1",
           "theme": "Org-Level Design Influence",
-          "today": "Highly influential within the design team and with direct product partners. Strategic design voice is established at the team level but not yet consistently felt at the exec level.",
-          "better": "Regularly shapes product strategy at the CPO level. Design perspectives are sought out — not just responded to — in major roadmap and investment decisions.",
-          "best": "Design is embedded in the company's strategic language. Elena is a named voice in exec forums and design maturity across the org has measurably improved.",
+          "today": ["Highly influential within the design team and with direct product partners", "Strategic design voice is established at the team level", "Not yet consistently felt at the exec level"],
+          "better": ["Regularly shapes product strategy at the CPO level", "Design perspectives are sought out — not just responded to — in major decisions", "Embedded in roadmap and investment conversations"],
+          "best": ["Design is embedded in the company's strategic language", "Elena is a named voice in exec forums", "Design maturity across the org has measurably improved"],
           "indicators": ["Design-first initiative count", "Roadmap decisions citing design input", "CPO forum participation rate"],
           "dependencies": ["CPO sponsorship", "Company strategy stability", "Cross-functional trust in design"],
           "collaborators": ["CPO", "Product VPs", "HRBP", "ELT"]
@@ -301,9 +301,9 @@
         {
           "id": "gt_elena_2",
           "theme": "Team & Org Development",
-          "today": "Builds strong individual relationships and coaches well 1:1. Team capacity is growing, but a formal development operating system is still ad hoc.",
-          "better": "A consistent team development cadence is in place. Growth reviews happen on schedule, skill gaps are tracked, and designers have clear visibility into advancement.",
-          "best": "The design team is a talent magnet. Elena's development system produces promotions, strong retention, and designers who raise the bar org-wide.",
+          "today": ["Builds strong individual relationships and coaches well 1:1", "Team capacity is growing", "A formal development operating system is still ad hoc"],
+          "better": ["A consistent team development cadence is in place", "Growth reviews happen on schedule and skill gaps are tracked", "Designers have clear visibility into advancement"],
+          "best": ["The design team is a talent magnet", "Elena's development system produces promotions and strong retention", "Designers who came up through the system raise the bar org-wide"],
           "indicators": ["Team retention rate", "Promotion velocity", "Design team health survey scores"],
           "dependencies": ["Headcount investment", "Compensation alignment", "Leadership support"],
           "collaborators": ["HRBP", "ELT", "Design leads", "Recruiting"]
@@ -311,9 +311,9 @@
         {
           "id": "gt_elena_3",
           "theme": "Scaling Design Process",
-          "today": "Has introduced several high-impact frameworks but adoption is uneven. Some areas still operate without design process clarity.",
-          "better": "Design process frameworks are documented, adopted across all squads, and iterated on based on feedback. New designers ramp into a clear, predictable way of working.",
-          "best": "SpotOn's design process is a competitive advantage. External practitioners reference it and Elena is recognized for having built something replicable and scalable.",
+          "today": ["Has introduced several high-impact frameworks", "Adoption is uneven across teams", "Some areas still operate without design process clarity"],
+          "better": ["Design process frameworks are documented and adopted across all squads", "Frameworks are iterated on based on feedback", "New designers ramp into a clear, predictable way of working"],
+          "best": ["SpotOn's design process is a competitive advantage", "External practitioners reference it", "Elena is recognized for having built something replicable and scalable"],
           "indicators": ["Squad process adoption rate", "Time-to-ramp for new designers", "Process doc usage analytics"],
           "dependencies": ["Engineering and PM buy-in", "Tool stability (Figma, Jira)", "Leadership prioritization"],
           "collaborators": ["Engineering leads", "PM", "Design team", "Ops"]
@@ -400,9 +400,9 @@
         {
           "id": "gt_tyler_1",
           "theme": "Research-to-Decision Impact",
-          "today": "Delivers high-quality research outputs but the path from insight to product decision is often unclear. Impact is felt but not formally tracked or attributed.",
-          "better": "Consistently links research findings to specific product decisions. Tracks influence metrics; stakeholders can name studies that changed what they built.",
-          "best": "Research is embedded in the product decision-making culture. Tyler's impact is measurable, cited in leadership reviews, and used to justify the research investment.",
+          "today": ["Delivers high-quality research outputs", "The path from insight to product decision is often unclear", "Impact is felt but not formally tracked or attributed"],
+          "better": ["Consistently links research findings to specific product decisions", "Tracks influence metrics", "Stakeholders can name studies that changed what they built"],
+          "best": ["Research is embedded in the product decision-making culture", "Tyler's impact is measurable and cited in leadership reviews", "Research findings are used to justify the research investment"],
           "indicators": ["Research-influenced decision count", "Study citation rate in roadmap reviews", "Insight-to-action turnaround time"],
           "dependencies": ["PM trust in research", "Data infrastructure access", "Study timeline feasibility"],
           "collaborators": ["Elena Santos", "PM", "Data Analytics", "Product leads"]
@@ -410,9 +410,9 @@
         {
           "id": "gt_tyler_2",
           "theme": "Quantitative Research Fluency",
-          "today": "Highly skilled in qualitative methods. Comfortable reading analytics but relies on data scientists or PMs to design and interpret quantitative studies.",
-          "better": "Designs and independently interprets mixed-methods studies. Knows when to pair qual with quant and comfortably discusses statistical significance.",
-          "best": "A fully mixed-methods researcher. Designs studies combining qual depth with quant rigor and shapes the product analytics strategy.",
+          "today": ["Highly skilled in qualitative methods", "Comfortable reading analytics", "Relies on data scientists or PMs to design and interpret quantitative studies"],
+          "better": ["Designs and independently interprets mixed-methods studies", "Knows when to pair qual with quant", "Comfortably discusses statistical significance"],
+          "best": ["A fully mixed-methods researcher", "Designs studies combining qual depth with quant rigor", "Shapes the product analytics strategy"],
           "indicators": ["Mixed-method study count", "Analytics self-serve usage", "Statistical confidence in reports"],
           "dependencies": ["Data infrastructure access", "Analytics team partnership", "Tool availability"],
           "collaborators": ["Data Analytics", "Engineering", "PM", "Elena Santos"]
@@ -420,9 +420,9 @@
         {
           "id": "gt_tyler_3",
           "theme": "Stakeholder Storytelling",
-          "today": "Research readouts are thorough but sometimes too detailed for exec audiences. Key takeaways get buried in evidence.",
-          "better": "Delivers crisp, insight-led readouts tailored to the audience. Leads with 'so what' and leaves stakeholders with clear, actionable implications.",
-          "best": "A master research communicator. Research stories inspire urgency and clarity in leadership and are referenced as models long after the study ends.",
+          "today": ["Research readouts are thorough but sometimes too detailed for exec audiences", "Key takeaways get buried in evidence"],
+          "better": ["Delivers crisp, insight-led readouts tailored to the audience", "Leads with 'so what'", "Leaves stakeholders with clear, actionable implications"],
+          "best": ["A master research communicator", "Research stories inspire urgency and clarity in leadership", "Readouts are referenced as models long after the study ends"],
           "indicators": ["Exec readout feedback scores", "Action rate on insights", "Research deck reuse across teams"],
           "dependencies": ["Executive accessibility", "Meeting slots for research readouts"],
           "collaborators": ["Elena Santos", "CPO/VPs", "PM", "Design team"]
@@ -440,7 +440,7 @@
   };
 
   // Seed version — bump this when seed data changes to force a refresh of example profiles
-  var SEED_VERSION = 15;
+  var SEED_VERSION = 16;
   var storedVersion = parseInt(localStorage.getItem('dch_seed_version') || '0', 10);
   var exampleIds = ['p_jordan_001', 'p_marcus_001', 'p_elena_001', 'p_tyler_001'];
 
