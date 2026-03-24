@@ -1992,7 +1992,7 @@ function renderHome() {
           </div>
         ` : ''}
 
-        <!-- Skill Insights + Growth Opportunities -->
+        <!-- Skill Insights -->
         <div class="analysis-card">
           <div class="analysis-card-header">
             <div class="analysis-card-title">Skill Insights</div>
@@ -2028,37 +2028,43 @@ function renderHome() {
                 }).join('')}
               </ul>
             ` : '<div style="font-size:12px;color:var(--text-muted)">No insights yet</div>'}
-            ${growthAreas.length > 0 ? `
-              <div class="analysis-card-title" style="margin-top:24px;margin-bottom:8px">Growth Opportunities</div>
-              <div class="growth-table">
-                <div class="growth-table-header">
-                  <span class="growth-col-skill">Skill</span>
-                  <span class="growth-col-level">Current</span>
-                  <span class="growth-col-gap">Gap</span>
-                </div>
-                ${growthAreas.map(s => {
-                  const lc = LEVEL_CONFIG[assessments[s.id].managerLevel];
-                  const exp = getExpectedLevelForSkill(s.id);
-                  const mgrOrder = getLevelOrder(assessments[s.id].managerLevel);
-                  const expOrder = exp ? getLevelOrder(exp) : mgrOrder;
-                  const isGap = mgrOrder < expOrder;
-                  const isOver = mgrOrder > expOrder;
-                  const gapDiff = isGap ? expOrder - mgrOrder : isOver ? mgrOrder - expOrder : 0;
-                  const gapHtml = isGap
-                    ? `<span class="review-gap-badge review-gap-under-${Math.min(gapDiff,3)}">−${gapDiff}</span>`
-                    : isOver
-                    ? `<span class="review-gap-badge review-gap-over-${Math.min(gapDiff,3)}">+${gapDiff}</span>`
-                    : `<span style="color:var(--text-muted);font-size:12px">—</span>`;
-                  return `<div class="growth-table-row" onclick="navigate('skill','${s.id}')">
-                    <span class="growth-col-skill">${escHtml(s.name)}</span>
-                    <span class="growth-col-level"><span class="level-badge ${lc.cls}">${lc.emoji} ${assessments[s.id].managerLevel}</span></span>
-                    <span class="growth-col-gap">${gapHtml}</span>
-                  </div>`;
-                }).join('')}
-              </div>
-            ` : ''}
           `}
         </div>
+
+        <!-- Growth Opportunities -->
+        ${growthAreas.length > 0 ? `
+          <div class="analysis-card">
+            <div class="analysis-card-header">
+              <div class="analysis-card-title">Growth Opportunities</div>
+            </div>
+            <div class="growth-table">
+              <div class="growth-table-header">
+                <span class="growth-col-skill">Skill</span>
+                <span class="growth-col-level">Current</span>
+                <span class="growth-col-gap">Gap</span>
+              </div>
+              ${growthAreas.map(s => {
+                const lc = LEVEL_CONFIG[assessments[s.id].managerLevel];
+                const exp = getExpectedLevelForSkill(s.id);
+                const mgrOrder = getLevelOrder(assessments[s.id].managerLevel);
+                const expOrder = exp ? getLevelOrder(exp) : mgrOrder;
+                const isGap = mgrOrder < expOrder;
+                const isOver = mgrOrder > expOrder;
+                const gapDiff = isGap ? expOrder - mgrOrder : isOver ? mgrOrder - expOrder : 0;
+                const gapHtml = isGap
+                  ? `<span class="review-gap-badge review-gap-under-${Math.min(gapDiff,3)}">−${gapDiff}</span>`
+                  : isOver
+                  ? `<span class="review-gap-badge review-gap-over-${Math.min(gapDiff,3)}">+${gapDiff}</span>`
+                  : `<span style="color:var(--text-muted);font-size:12px">—</span>`;
+                return `<div class="growth-table-row" onclick="navigate('skill','${s.id}')">
+                  <span class="growth-col-skill">${escHtml(s.name)}</span>
+                  <span class="growth-col-level"><span class="level-badge ${lc.cls}">${lc.emoji} ${assessments[s.id].managerLevel}</span></span>
+                  <span class="growth-col-gap">${gapHtml}</span>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>
+        ` : ''}
 
         <!-- Star charts side by side -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
