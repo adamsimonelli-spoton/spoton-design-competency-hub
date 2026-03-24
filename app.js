@@ -1099,12 +1099,6 @@ function renderRadarChart(size, layers) {
     </g>`;
   }).join('');
 
-  const levelLabels = ['Learner','Contributor','Independent','Expert'];
-  const levelLabelHTML = [0.25,0.5,0.75,1.0].map((lvl,i) => {
-    const p = pt(0, maxR * lvl);
-    return `<text x="${p.x + 5}" y="${p.y}" fill="#4A5568" font-size="8" font-family="-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif">${levelLabels[i]}</text>`;
-  }).join('');
-
   // Build shapes — render in back-to-front order: expected, manager, self
   const renderOrder = ['expected', 'manager', 'self'].filter(l => layers.includes(l));
   const multi = renderOrder.length > 1;
@@ -1125,7 +1119,7 @@ function renderRadarChart(size, layers) {
   });
 
   return `<svg viewBox="0 0 ${size} ${size}" overflow="visible" style="width:100%;height:auto;display:block">
-    ${gridHTML}${axesHTML}${shapesHTML}${dotsHTML}${labelsHTML}${levelLabelHTML}
+    ${gridHTML}${axesHTML}${shapesHTML}${dotsHTML}${labelsHTML}
   </svg>`;
 }
 
