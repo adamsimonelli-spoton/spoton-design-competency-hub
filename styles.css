@@ -673,7 +673,7 @@ body {
   flex-shrink: 0;
 }
 .quick-win-card {
-  background: #edf1f8;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 16px;
@@ -958,7 +958,7 @@ body {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: #edf1f8;
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   cursor: pointer;
