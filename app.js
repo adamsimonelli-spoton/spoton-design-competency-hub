@@ -2172,7 +2172,8 @@ function renderHome() {
                     ${subHeader('Growth Themes')}
                     <div style="display:flex;flex-direction:column;gap:6px">
                       ${themes.map(t => `
-                        <div onclick="navigate('goals')" style="cursor:pointer;padding:5px 0" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+                        <div onclick="navigate('goals')" style="cursor:pointer;display:flex;align-items:baseline;gap:7px;padding:3px 0" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+                          <span style="font-size:16px;line-height:1;color:var(--text-muted);flex-shrink:0">•</span>
                           <span style="font-size:12px;font-weight:500;color:var(--text)">${escHtml(t.theme)}</span>
                         </div>`).join('')}
                     </div>
