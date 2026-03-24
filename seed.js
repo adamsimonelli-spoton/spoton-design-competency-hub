@@ -1,12 +1,12 @@
 (function () {
   var seed = {
     "dch_profiles": [
-      { "name": "Jordan Kim",      "role": "Product Designer",           "id": "p_jordan_001",    "created": "2026-01-10T09:00:00.000Z" },
-      { "name": "Marcus Webb",     "role": "Senior Product Designer",    "id": "p_marcus_001",    "created": "2025-09-15T09:00:00.000Z" },
-      { "name": "Elena Santos",    "role": "Principal Product Designer",  "id": "p_elena_001",     "created": "2025-06-01T09:00:00.000Z" },
-      { "name": "Tyler Chen",      "role": "UX Researcher",              "id": "p_tyler_001",     "created": "2025-11-03T09:00:00.000Z" }
+      { "name": "Jordan Kim",      "role": "Product Designer",           "id": "p_jordan_001",    "created": "2026-01-10T09:00:00.000Z", "isManager": false },
+      { "name": "Marcus Webb",     "role": "Senior Product Designer",    "id": "p_marcus_001",    "created": "2025-09-15T09:00:00.000Z", "isManager": false },
+      { "name": "Elena Santos",    "role": "Principal Product Designer",  "id": "p_elena_001",     "created": "2025-06-01T09:00:00.000Z", "isManager": true },
+      { "name": "Tyler Chen",      "role": "UX Researcher",              "id": "p_tyler_001",     "created": "2025-11-03T09:00:00.000Z", "isManager": false }
     ],
-    "dch_current_profile": "p_jordan_001",
+    "dch_current_profile": "p_elena_001",
 
     // ── JORDAN KIM — Product Designer (early career, ~2 years) ────────────────
     "dch_data_p_jordan_001": {
@@ -288,7 +288,7 @@
   };
 
   // Seed version — bump this when seed data changes to force a refresh of example profiles
-  var SEED_VERSION = 9;
+  var SEED_VERSION = 10;
   var storedVersion = parseInt(localStorage.getItem('dch_seed_version') || '0', 10);
   var exampleIds = ['p_jordan_001', 'p_marcus_001', 'p_elena_001', 'p_tyler_001'];
 
