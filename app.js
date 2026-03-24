@@ -2091,7 +2091,7 @@ function renderHome() {
               </ul>
             ` : '<div style="font-size:12px;color:var(--text-muted)">No insights yet</div>'}
             ${growthAreas.length > 0 ? `
-              <div class="analysis-two-col-label" style="margin-top:32px">Growth Opportunities</div>
+              <div class="analysis-card-title" style="margin-top:32px;margin-bottom:8px">Growth Opportunities</div>
               <div class="growth-table">
                 <div class="growth-table-header">
                   <span class="growth-col-skill">Skill</span>
