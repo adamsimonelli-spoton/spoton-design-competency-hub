@@ -2172,9 +2172,8 @@ function renderHome() {
                     ${subHeader('Growth Themes')}
                     <div style="display:flex;flex-direction:column;gap:6px">
                       ${themes.map(t => `
-                        <div onclick="navigate('goals')" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:5px 0" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
-                          <svg width="12" height="12" viewBox="0 0 256 256" fill="currentColor" style="flex-shrink:0;color:var(--primary);opacity:.6"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/></svg>
-                          <span style="font-size:12px;font-weight:500;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(t.theme)}</span>
+                        <div onclick="navigate('goals')" style="cursor:pointer;padding:5px 0" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+                          <span style="font-size:12px;font-weight:500;color:var(--text)">${escHtml(t.theme)}</span>
                         </div>`).join('')}
                     </div>
                   </div>` : ''}
