@@ -943,6 +943,7 @@ function escHtml(str) {
   if (!str) return '';
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
+const EXTERNAL_LINK_ICON = `<svg width="11" height="11" viewBox="0 0 256 256" fill="currentColor" style="flex-shrink:0;opacity:.55;margin-left:4px;vertical-align:middle;position:relative;top:-1px" aria-hidden="true"><path d="M224,104a8,8,0,0,1-16,0V59.32l-82.34,82.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"/></svg>`;
 function getAntiPatternForLevel(skill, level) {
   if (!skill?.anti_patterns) return null;
   const levels = ['Learner','Contributor','Independent','Expert'];
@@ -2541,7 +2542,7 @@ function renderResources() {
         <div class="resource-info">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
             <div style="flex:1;min-width:0">
-              ${linkify && r.url ? `<a href="${escHtml(r.url)}" target="_blank" rel="noopener" class="resource-title">${escHtml(r.title)}</a>` : `<span class="resource-title">${escHtml(r.title)}</span>`}
+              ${linkify && r.url ? `<a href="${escHtml(r.url)}" target="_blank" rel="noopener" class="resource-title">${escHtml(r.title)}${EXTERNAL_LINK_ICON}</a>` : `<span class="resource-title">${escHtml(r.title)}</span>`}
               ${r.desc ? `<div class="resource-desc">${escHtml(r.desc)}</div>` : ''}
             </div>
             <span class="resource-type-badge" style="flex-shrink:0">${rt.label}</span>
@@ -4871,7 +4872,7 @@ function render() {
                   ${w.resources.map(r => `
                     <a href="${escHtml(r.url)}" target="_blank" rel="noopener" class="insight-resource-item">
                       <div class="insight-resource-text">
-                        <span class="insight-resource-title">${escHtml(r.title)}</span>
+                        <span class="insight-resource-title">${escHtml(r.title)}${EXTERNAL_LINK_ICON}</span>
                         ${r.author ? `<span class="insight-resource-author">${escHtml(r.author)}</span>` : ''}
                       </div>
                       <span class="insight-resource-type">${escHtml(r.type)}</span>
