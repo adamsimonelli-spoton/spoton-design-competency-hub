@@ -2265,10 +2265,10 @@ function renderSkills() {
               <div class="skill-card-body">
                 <div class="skill-card-top">
                   <div class="skill-number">${escHtml(skill.category)}</div>
-                  ${mgrLevel ? `<span class="level-badge ${lc.cls}" style="font-size:10px;padding:4px 8px">${mgrLevel}</span>` : '<span class="not-assessed">Not assessed</span>'}
+                  ${mgrLevel ? `<span class="level-badge ${lc.cls}" style="font-size:10px;padding:4px 8px">${lc.emoji} ${mgrLevel}</span>` : '<span class="not-assessed">Not assessed</span>'}
                 </div>
                 <h3>${escHtml(skill.name)}</h3>
-                ${assessment?.evidence ? '<div class="skill-card-footer"><span style="font-size:10px;color:var(--green)">Has notes</span></div>' : ''}
+                ${assessment?.evidence ? '<div class="skill-card-footer"><span style="font-size:10px;color:var(--green)">📝 Has notes</span></div>' : ''}
               </div>
             </div>
           `;
@@ -2601,7 +2601,6 @@ function renderResources() {
       return `
         <div class="review-category-section">
           <div class="review-cat-header">
-            <span style="font-size:18px">${cc.icon || '📌'}</span>
             <span class="review-cat-title">${escHtml(cat)}</span>
           </div>
           <div style="display:flex;flex-direction:column;gap:12px">
@@ -2835,7 +2834,7 @@ function renderQuickWinsSection() {
   return `
     <div style="margin-bottom:24px">
       <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
-        <span style="font-size:15px;font-weight:700;color:var(--text)">⚡ Quick Wins</span>
+        <span style="font-size:15px;font-weight:700;color:var(--text)">Quick Wins</span>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px">
         ${quickWins.map((w, i) => renderQuickWinCard(w, i)).join('')}
@@ -2851,7 +2850,6 @@ function renderQuickWinCard(w, idx) {
 
   return `
     <div class="quick-win-card" onclick="openQuickWinModal(${idx})">
-      <div style="width:36px;height:36px;border-radius:10px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${w.icon}</div>
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
           ${typeLabel}
@@ -2969,7 +2967,6 @@ function renderReview() {
       return `
         <div class="review-category-section">
           <div class="review-cat-header">
-            <span style="font-size:18px">${cc.icon || '📌'}</span>
             <span class="review-cat-title">${escHtml(cat)}</span>
             <span class="review-cat-stats">${assessedInCat}/${catSkills.length} assessed</span>
           </div>
