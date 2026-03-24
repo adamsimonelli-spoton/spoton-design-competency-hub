@@ -646,7 +646,6 @@ body {
   grid-template-columns: 1fr 110px 80px;
   gap: 16px;
   padding: 8px 16px;
-  background: var(--bg);
   border-bottom: 1px solid var(--border);
   font-size: 10px;
   font-weight: 700;
