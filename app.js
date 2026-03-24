@@ -1858,7 +1858,13 @@ function renderHome() {
   const growthAreas = (currentProfile?.role
     ? allGaps
     : assessedSkills.filter(s => assessments[s.id].managerLevel === 'Learner')
-  ).slice(0, 5);
+  ).slice().sort((a, b) => {
+    const gapOf = s => {
+      const exp = getExpectedLevelForSkill(s.id);
+      return exp ? Math.max(getLevelOrder(exp) - getLevelOrder(assessments[s.id].managerLevel), 0) : 0;
+    };
+    return gapOf(b) - gapOf(a);
+  }).slice(0, 5);
 
   // Category averages for persona + narrative
   const _catScores = {}, _catCounts = {};
