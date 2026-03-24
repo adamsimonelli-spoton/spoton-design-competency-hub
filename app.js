@@ -1115,7 +1115,7 @@ function renderRadarChart(size, layers) {
     dotsHTML += renderDots(scores, color, catClickFn);
   });
 
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" overflow="visible">
+  return `<svg viewBox="0 0 ${size} ${size}" overflow="visible" style="width:100%;height:auto;display:block">
     ${gridHTML}${axesHTML}${shapesHTML}${dotsHTML}${labelsHTML}${levelLabelHTML}
   </svg>`;
 }
@@ -1126,14 +1126,17 @@ function renderRadarCardInner() {
   return `
     <div class="radar-card-header">
       <div class="radar-card-title">Skills</div>
-      <div class="radar-toggle">
-        ${RADAR_LAYER_OPTIONS.map(opt => {
-          const active = layers.includes(opt.id);
-          const style = active
-            ? `background:${opt.color};color:white;border-color:${opt.color};`
-            : `--btn-hover-color:${opt.color};`;
-          return `<button class="radar-toggle-btn${active ? ' active' : ''}" style="${style}" onclick="toggleRadarLayer('${opt.id}')">${escHtml(opt.label)}</button>`;
-        }).join('')}
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="radar-toggle">
+          ${RADAR_LAYER_OPTIONS.map(opt => {
+            const active = layers.includes(opt.id);
+            const style = active
+              ? `background:${opt.color};color:white;border-color:${opt.color};`
+              : `--btn-hover-color:${opt.color};`;
+            return `<button class="radar-toggle-btn${active ? ' active' : ''}" style="${style}" onclick="toggleRadarLayer('${opt.id}')">${escHtml(opt.label)}</button>`;
+          }).join('')}
+        </div>
+        <button class="section-link" onclick="navigate('review')">View all →</button>
       </div>
     </div>
     ${!hasAssessments ? '<div class="radar-card-subtitle" style="margin-bottom:8px">Complete assessments to see your skill shape</div>' : ''}
@@ -1188,7 +1191,7 @@ function renderValuesRadarChart(size) {
     return `<text x="${lx}" y="${ly}" text-anchor="${anchor}" dy="${dy}" fill="#4A5568" font-size="9" font-weight="600" font-family="-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif" style="cursor:pointer" onclick="navigate('value','${cv.id}')">${escHtml(chartLabel)}</text>`;
   }).join('');
 
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" overflow="visible" ${!hasAny ? 'style="opacity:.35;filter:grayscale(1)"' : ''}>
+  return `<svg viewBox="0 0 ${size} ${size}" overflow="visible" style="width:100%;height:auto;display:block${!hasAny ? ';opacity:.35;filter:grayscale(1)' : ''}">
     ${gridHTML}${axesHTML}${polyHTML}${dotsHTML}${labelsHTML}
   </svg>`;
 }
@@ -1196,10 +1199,10 @@ function renderValuesRadarChart(size) {
 function renderValuesRadarCard() {
   const rated = CORE_VALUES_DATA.filter(cv => getValueRating(cv.id).managerRating);
   return `
-    <div class="radar-card" style="margin-top:16px">
+    <div class="radar-card">
       <div class="radar-card-header">
         <div class="radar-card-title">Core Values</div>
-        <button class="radar-toggle-btn" style="font-size:11px;padding:4px 8px" onclick="navigate('values')">View all →</button>
+        <button class="section-link" onclick="navigate('values')">View all →</button>
       </div>
       ${rated.length === 0 ? '<div class="radar-card-subtitle" style="margin-bottom:8px">Rate your core values to see your shape</div>' : ''}
       <div class="radar-chart-wrap" style="${rated.length === 0 ? 'opacity:.35;filter:grayscale(1)' : ''}">
