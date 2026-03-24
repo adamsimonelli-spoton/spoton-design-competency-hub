@@ -2072,57 +2072,48 @@ function renderHome() {
       <!-- RIGHT RAIL (1/3): Goal Progress + Merchant Outreach -->
       <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
         ${(() => {
+          const statusPct = { completed: 100, on_track: 75, in_progress: 40, at_risk: 20, not_started: 0 };
           const personalGoals = getPersonalGoals();
-          const allGoals = [
-            ...personalGoals.map(g => ({ ...g, section: 'Personal' })),
-            ...DESIGN_TEAM_GOALS.map(g => {
-              const contrib = getGoalContribution(g.id);
-              return { ...g, status: contrib.status || 'not_started', section: 'Team' };
-            })
-          ];
-          const total = allGoals.length;
-          const completed = allGoals.filter(g => g.status === 'completed').length;
-          const onTrack = allGoals.filter(g => g.status === 'on_track').length;
-          const atRisk = allGoals.filter(g => g.status === 'at_risk').length;
-          const inProgress = allGoals.filter(g => g.status === 'in_progress').length;
-          const activeGoals = allGoals.filter(g => g.status !== 'not_started' && g.status !== 'completed');
-          if (total === 0) return '';
-          const progressPct = Math.round(((completed + onTrack * 0.7 + inProgress * 0.3) / total) * 100);
+          const teamGoals = DESIGN_TEAM_GOALS.map(g => {
+            const contrib = getGoalContribution(g.id);
+            return { ...g, status: contrib.status || 'not_started' };
+          });
+          if (personalGoals.length === 0 && teamGoals.length === 0) return '';
+
+          const renderGoalRow = (g) => {
+            const sc = GOAL_STATUS_CONFIG[g.status] || GOAL_STATUS_CONFIG['not_started'];
+            const pct = statusPct[g.status] ?? 0;
+            return `
+              <div onclick="navigate('goals')" style="cursor:pointer;padding:8px 0;border-bottom:1px solid var(--border)" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px">
+                  <span style="font-size:12px;color:var(--text);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(g.goal)}</span>
+                  <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:${sc.bg};color:${sc.color};white-space:nowrap;flex-shrink:0">${sc.label}</span>
+                </div>
+                <div style="height:5px;background:var(--border);border-radius:99px;overflow:hidden">
+                  <div style="height:100%;width:${pct}%;background:${sc.color};border-radius:99px;transition:width .4s ease"></div>
+                </div>
+              </div>`;
+          };
+
+          const renderGroup = (label, goals) => {
+            if (goals.length === 0) return '';
+            return `
+              <div style="margin-bottom:4px">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:2px">${label}</div>
+                ${goals.map(renderGoalRow).join('')}
+              </div>`;
+          };
+
           return `
             <div class="dash-module">
               <div class="dash-module-header">
                 <span class="section-title">Goal Progress</span>
                 <button class="section-link" onclick="navigate('goals')">View all →</button>
               </div>
-              <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-                ${[
-                  { label: 'On Track', count: onTrack, color: '#16A34A' },
-                  { label: 'In Progress', count: inProgress, color: '#2563EB' },
-                  { label: 'At Risk', count: atRisk, color: '#EA580C' },
-                  { label: 'Completed', count: completed, color: '#7C3AED' },
-                ].map(s => `
-                  <div style="flex:1;min-width:40px;text-align:center">
-                    <div style="font-size:20px;font-weight:800;color:${s.color};line-height:1">${s.count}</div>
-                    <div style="font-size:10px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:2px">${s.label}</div>
-                  </div>
-                `).join('')}
+              <div style="display:flex;flex-direction:column;gap:12px">
+                ${renderGroup('Personal', personalGoals)}
+                ${renderGroup('Team', teamGoals)}
               </div>
-              <div style="height:6px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:14px">
-                <div style="height:100%;width:${progressPct}%;background:linear-gradient(90deg,#6366f1,#16A34A);border-radius:99px;transition:width .4s ease"></div>
-              </div>
-              ${activeGoals.length > 0 ? `
-                <div style="display:flex;flex-direction:column;gap:6px">
-                  ${activeGoals.slice(0, 4).map(g => {
-                    const sc = GOAL_STATUS_CONFIG[g.status] || GOAL_STATUS_CONFIG['in_progress'];
-                    return `
-                      <div onclick="navigate('goals')" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
-                        <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:${sc.bg};color:${sc.color};white-space:nowrap;flex-shrink:0">${sc.label}</span>
-                        <span style="font-size:12px;color:var(--text-secondary);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(g.goal)}</span>
-                      </div>`;
-                  }).join('')}
-                  ${activeGoals.length > 4 ? `<div style="font-size:11px;color:var(--text-muted);text-align:center;padding-top:2px">+${activeGoals.length - 4} more</div>` : ''}
-                </div>
-              ` : `<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:8px 0">No active goals — <button onclick="navigate('goals')" style="background:none;border:none;color:var(--primary);font-size:12px;cursor:pointer;padding:0;font-weight:600">add one</button></div>`}
             </div>
           `;
         })()}
