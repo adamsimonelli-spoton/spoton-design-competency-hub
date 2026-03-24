@@ -2170,6 +2170,10 @@ body {
 }
 .review-table-wrap {
   overflow-x: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+  background: var(--surface);
 }
 .review-cat-header {
   display: flex;
@@ -2191,9 +2195,6 @@ body {
 .review-table {
   width: 100%;
   background: var(--surface);
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
   border-collapse: separate;
   border-spacing: 0;
 }
