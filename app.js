@@ -2166,9 +2166,9 @@ function renderHome() {
                 <span class="section-title">Goals</span>
                 <button class="section-link" onclick="navigate('goals')">View all →</button>
               </div>
-              <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;flex-direction:column;gap:0">
                 ${themes.length ? `
-                  <div>
+                  <div style="padding-bottom:14px">
                     ${subHeader('Growth Themes')}
                     <div style="display:flex;flex-direction:column;gap:6px">
                       ${themes.map(t => `
@@ -2178,7 +2178,7 @@ function renderHome() {
                         </div>`).join('')}
                     </div>
                   </div>` : ''}
-                <div>
+                <div style="${themes.length ? 'border-top:1px solid var(--border);padding-top:14px' : ''}">
                   ${subHeader('Personal Goals')}
                   ${personalGoals.length === 0
                     ? `<div style="font-size:13px;color:var(--text-muted)">No personal goals created yet.</div>`
