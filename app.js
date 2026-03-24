@@ -707,6 +707,7 @@ let state = {
   addResourceOpen: false,
   cvAddResourceOpen: false,
   eoyTextTab: 'self',
+  tableSort: {},
   radarLayers: ['manager', 'expected'],
   quickWinModal: null,
   noteText: '',
@@ -2973,17 +2974,23 @@ function renderReview() {
           <div class="review-table-wrap"><table class="review-table">
             <thead>
               <tr>
-                <th>Skill</th>
-                <th>Assessment</th>
-                <th>Expected</th>
-                <th>Gap</th>
+                <th style="cursor:pointer;user-select:none" onclick="setTableSort('review','name')">Skill${sortIndicator('review','name')}</th>
+                <th style="cursor:pointer;user-select:none" onclick="setTableSort('review','assessment')">Assessment${sortIndicator('review','assessment')}</th>
+                <th style="cursor:pointer;user-select:none" onclick="setTableSort('review','expected')">Expected${sortIndicator('review','expected')}</th>
+                <th style="cursor:pointer;user-select:none" onclick="setTableSort('review','gap')">Gap${sortIndicator('review','gap')}</th>
                 <th>Evidence &amp; Examples</th>
                 <th>Notes</th>
-                <th>Updated</th>
+                <th style="cursor:pointer;user-select:none" onclick="setTableSort('review','updated')">Updated${sortIndicator('review','updated')}</th>
               </tr>
             </thead>
             <tbody>
-              ${catSkills.map(skill => {
+              ${applySortToRows(catSkills, 'review', {
+                name:       s => s.name,
+                assessment: s => getLevelOrder(d.assessments[s.id]?.managerLevel) || 0,
+                expected:   s => getLevelOrder(getExpectedLevelForSkill(s.id)) || 0,
+                gap:        s => { const m = getLevelOrder(d.assessments[s.id]?.managerLevel), e = getLevelOrder(getExpectedLevelForSkill(s.id)); return (e && m) ? m - e : 0; },
+                updated:    s => d.assessments[s.id]?.lastUpdated || '',
+              }).map(skill => {
                 const a = d.assessments[skill.id] || {};
                 const expectedLevel = getExpectedLevelForSkill(skill.id);
                 const expLc = expectedLevel ? LEVEL_CONFIG[expectedLevel] : null;
@@ -3528,14 +3535,18 @@ function renderCoreValues() {
       <div class="review-table-wrap"><table class="review-table cv-table">
         <thead>
           <tr>
-            <th>Core Value</th>
-            <th>Rating</th>
+            <th style="cursor:pointer;user-select:none" onclick="setTableSort('cv','name')">Core Value${sortIndicator('cv','name')}</th>
+            <th style="cursor:pointer;user-select:none" onclick="setTableSort('cv','rating')">Rating${sortIndicator('cv','rating')}</th>
             <th>Notes</th>
-            <th>Updated</th>
+            <th style="cursor:pointer;user-select:none" onclick="setTableSort('cv','updated')">Updated${sortIndicator('cv','updated')}</th>
           </tr>
         </thead>
         <tbody>
-          ${CORE_VALUES_DATA.map(cv => {
+          ${applySortToRows(CORE_VALUES_DATA, 'cv', {
+            name:    cv => cv.label,
+            rating:  cv => getValueRating(cv.id).managerRating || 0,
+            updated: cv => getValueRating(cv.id).lastUpdated || '',
+          }).map(cv => {
             const v = getValueRating(cv.id);
             const rc = v.managerRating ? CV_RATING_CONFIG[v.managerRating] : null;
             return `
@@ -3755,16 +3766,23 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
         <div class="review-table-wrap"><table class="review-table goals-table">
           <thead>
             <tr>
-              <th>Goal</th>
+              <th style="cursor:pointer;user-select:none" onclick="setTableSort('goals-${sectionId}','goal')">Goal${sortIndicator('goals-'+sectionId,'goal')}</th>
               <th>KPI / How I'll Contribute</th>
-              <th>Time Frame</th>
-              <th>Status</th>
+              <th style="cursor:pointer;user-select:none" onclick="setTableSort('goals-${sectionId}','timeFrame')">Time Frame${sortIndicator('goals-'+sectionId,'timeFrame')}</th>
+              <th style="cursor:pointer;user-select:none" onclick="setTableSort('goals-${sectionId}','status')">Status${sortIndicator('goals-'+sectionId,'status')}</th>
               <th>Notes</th>
               ${isEditable ? '<th></th>' : ''}
             </tr>
           </thead>
           <tbody>
-            ${goals.map((g, i) => {
+            ${(() => {
+              const statusOrder = { completed: 0, on_track: 1, in_progress: 2, at_risk: 3, not_started: 4 };
+              return applySortToRows(goals.map((g,i) => ({...g, _i: i})), 'goals-'+sectionId, {
+                goal:      g => g.goal,
+                timeFrame: g => g.timeFrame || '',
+                status:    g => { const contrib = isEditable ? null : getGoalContribution(g.id); const st = isEditable ? (g.status||'not_started') : (contrib.status||'not_started'); return statusOrder[st] ?? 9; },
+              });
+            })().map((g) => { const i = g._i;
               const contrib = isEditable ? null : getGoalContribution(g.id);
               const status = isEditable ? (g.status || 'not_started') : (contrib.status || 'not_started');
               const notes  = isEditable ? (g.notes || '') : (contrib.notes || '');
@@ -3787,7 +3805,7 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
                   ${isEditable ? `<td><button class="resource-delete" onclick="deleteUserGoal('${sectionId}',${i})" title="Delete">✕</button></td>` : ''}
                 </tr>
               `;
-            }).join('')}
+            }).join('')})()}
           </tbody>
         </table></div>
       `}
@@ -5021,6 +5039,35 @@ function renderEOYReview() {
 }
 
 function setEoyTextTab(tab) { state.eoyTextTab = tab; render(); }
+
+function setTableSort(tableId, field) {
+  const cur = state.tableSort[tableId] || { field: null, dir: 'asc' };
+  state.tableSort[tableId] = {
+    field,
+    dir: cur.field === field && cur.dir === 'asc' ? 'desc' : 'asc',
+  };
+  render();
+}
+function sortIndicator(tableId, field) {
+  const s = state.tableSort[tableId];
+  if (!s || s.field !== field) return `<svg width="10" height="12" viewBox="0 0 10 12" fill="none" style="margin-left:4px;opacity:.25;vertical-align:middle"><path d="M5 1v10M2 4l3-3 3 3M2 8l3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  return s.dir === 'asc'
+    ? `<svg width="10" height="12" viewBox="0 0 10 12" fill="none" style="margin-left:4px;vertical-align:middle;color:var(--primary)"><path d="M5 11V1M2 4l3-3 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+    : `<svg width="10" height="12" viewBox="0 0 10 12" fill="none" style="margin-left:4px;vertical-align:middle;color:var(--primary)"><path d="M5 1v10M2 8l3 3 3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function applySortToRows(rows, tableId, getters) {
+  const s = state.tableSort[tableId];
+  if (!s || !s.field || !getters[s.field]) return rows;
+  const get = getters[s.field];
+  return [...rows].sort((a, b) => {
+    const av = get(a), bv = get(b);
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    const cmp = typeof av === 'string' ? av.localeCompare(bv, undefined, { sensitivity: 'base' }) : av - bv;
+    return s.dir === 'asc' ? cmp : -cmp;
+  });
+}
 
 // ============ INIT ============
 function init() {
