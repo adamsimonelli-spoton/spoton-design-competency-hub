@@ -4983,19 +4983,37 @@ function renderEOYReview() {
         `).join('')}
       </div>
 
-      <div style="display:flex;gap:8px;margin-bottom:16px">
-        <button onclick="setEoyTextTab('self')" style="padding:8px 16px;border-radius:20px;border:1.5px solid ${tab === 'self' ? 'var(--primary)' : 'var(--border)'};background:${tab === 'self' ? 'var(--primary-light)' : 'none'};color:${tab === 'self' ? 'var(--primary)' : 'var(--text-secondary)'};font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Self</button>
-        <button onclick="setEoyTextTab('manager')" style="padding:8px 16px;border-radius:20px;border:1.5px solid ${tab === 'manager' ? '#7C3AED' : 'var(--border)'};background:${tab === 'manager' ? '#F5F3FF' : 'none'};color:${tab === 'manager' ? '#7C3AED' : 'var(--text-secondary)'};font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Manager (Nicole)</button>
+      <!-- Recognition & Accomplishments: side-by-side -->
+      <div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:16px;overflow:hidden">
+        <div style="padding:16px 24px;border-bottom:1px solid var(--border)">
+          <div style="font-size:14px;font-weight:700;color:var(--text)">Recognition &amp; Accomplishments</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr">
+          <div style="padding:20px 24px;border-right:1px solid var(--border)">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);margin-bottom:14px">Self</div>
+            ${renderItems(review.self.accomplishments)}
+          </div>
+          <div style="padding:20px 24px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:14px">Nicole</div>
+            ${renderItems(review.manager.accomplishments)}
+          </div>
+        </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:32px">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow-sm)">
-          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:16px">🏆 Recognition & Accomplishments</div>
-          ${renderItems(tabData.accomplishments)}
+      <!-- Areas for Development: side-by-side -->
+      <div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:32px;overflow:hidden">
+        <div style="padding:16px 24px;border-bottom:1px solid var(--border)">
+          <div style="font-size:14px;font-weight:700;color:var(--text)">Areas for Development</div>
         </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow-sm)">
-          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:16px">📈 Areas for Development</div>
-          ${renderItems(tabData.improvements)}
+        <div style="display:grid;grid-template-columns:1fr 1fr">
+          <div style="padding:20px 24px;border-right:1px solid var(--border)">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);margin-bottom:14px">Self</div>
+            ${renderItems(review.self.improvements)}
+          </div>
+          <div style="padding:20px 24px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:14px">Nicole</div>
+            ${renderItems(review.manager.improvements)}
+          </div>
         </div>
       </div>
     </div>
