@@ -2093,7 +2093,7 @@ function renderHome() {
             const sc = GOAL_STATUS_CONFIG[g.status] || GOAL_STATUS_CONFIG['not_started'];
             const pct = statusPct[g.status] ?? 0;
             return `
-              <div onclick="navigate('goals')" style="cursor:pointer;padding:8px 0;border-bottom:1px solid var(--border)" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+              <div onclick="navigate('goals')" style="cursor:pointer;padding:6px 0" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px">
                   <span style="font-size:12px;color:var(--text);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(g.goal)}</span>
                   <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:${sc.bg};color:${sc.color};white-space:nowrap;flex-shrink:0">${sc.label}</span>
@@ -2105,11 +2105,12 @@ function renderHome() {
           };
 
           const renderGroup = (label, goals) => {
-            if (goals.length === 0) return '';
             return `
               <div style="margin-bottom:4px">
                 <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:2px">${label}</div>
-                ${goals.map(renderGoalRow).join('')}
+                ${goals.length === 0
+                  ? `<div style="font-size:12px;color:var(--text-muted);padding:4px 0">None created</div>`
+                  : goals.map(renderGoalRow).join('')}
               </div>`;
           };
 
