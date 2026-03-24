@@ -1214,7 +1214,7 @@ function renderValuesRadarCard() {
       </div>
       ${rated.length === 0 ? '<div class="radar-card-subtitle" style="margin-bottom:8px">Rate your core values to see your shape</div>' : ''}
       <div class="radar-chart-wrap" style="${rated.length === 0 ? 'opacity:.35;filter:grayscale(1)' : ''}">
-        ${renderValuesRadarChart(240)}
+        ${renderValuesRadarChart(290)}
       </div>
     </div>
   `;
