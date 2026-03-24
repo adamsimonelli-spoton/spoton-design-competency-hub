@@ -708,6 +708,7 @@ let state = {
   cvAddResourceOpen: false,
   eoyTextTab: 'self',
   tableSort: {},
+  growthThemeModal: null,
   radarLayers: ['manager', 'expected'],
   quickWinModal: null,
   noteText: '',
@@ -3871,8 +3872,9 @@ function renderGrowthThemes() {
         ${themes.map(t => `
           <div class="review-table-wrap" style="overflow:hidden">
             <!-- theme header -->
-            <div style="padding:14px 20px;background:#F1F5FB;border-bottom:1px solid var(--border)">
+            <div style="padding:12px 20px;background:#F1F5FB;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
               <div style="font-size:14px;font-weight:700;color:var(--text)">${escHtml(t.theme)}</div>
+              <button onclick="openGrowthThemeModal('${escHtml(t.id)}')" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer;line-height:1.4" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background='none'">Edit</button>
             </div>
             <!-- body: left = stacked score tiles, right = indicators/dependencies/collaborators -->
             <div style="display:grid;grid-template-columns:1fr 280px;align-items:stretch">
@@ -3905,6 +3907,67 @@ function renderGrowthThemes() {
   `;
 }
 
+function renderGrowthThemeModal() {
+  const d = getData();
+  const t = (d.growthThemes || []).find(x => x.id === state.growthThemeModal);
+  if (!t) return '';
+  const toText = v => (Array.isArray(v) ? v : v ? [v] : []).join('\n');
+  const field = (id, label, val, rows = 3) => `
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:6px">${label}</label>
+      <textarea id="gtm-${id}" rows="${rows}" style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:13px;font-family:inherit;border:1px solid var(--border);border-radius:6px;resize:vertical;line-height:1.5;color:var(--text);background:var(--surface)">${escHtml(toText(val))}</textarea>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:3px">One item per line</div>
+    </div>`;
+  return `
+    <div class="modal-overlay" onclick="if(event.target===this)closeGrowthThemeModal()" style="z-index:1000">
+      <div class="modal-box" onclick="event.stopPropagation()" style="max-width:600px;max-height:90vh;overflow-y:auto">
+        <div class="insight-modal-header">
+          <div class="insight-modal-title">Edit Theme</div>
+          <button class="insight-modal-close" onclick="closeGrowthThemeModal()">✕</button>
+        </div>
+        <div style="padding:20px 24px">
+          <div style="margin-bottom:14px">
+            <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:6px">Theme Name</label>
+            <input id="gtm-theme" type="text" value="${escHtml(t.theme)}" style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:13px;font-family:inherit;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--surface)"/>
+          </div>
+          <div style="border-top:1px solid var(--border);margin:16px 0 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary)">Growth Trajectory</div>
+          ${field('today',   'Today',  t.today,  3)}
+          ${field('better',  'Better', t.better, 3)}
+          ${field('best',    'Best',   t.best,   3)}
+          <div style="border-top:1px solid var(--border);margin:16px 0 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary)">Supporting Context</div>
+          ${field('indicators',   'Indicators',   t.indicators,   3)}
+          ${field('dependencies', 'Dependencies', t.dependencies, 3)}
+          ${field('collaborators','Collaborators', t.collaborators,2)}
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+            <button onclick="closeGrowthThemeModal()" class="btn btn-secondary">Cancel</button>
+            <button onclick="saveGrowthTheme('${escHtml(t.id)}')" class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function openGrowthThemeModal(id) { state.growthThemeModal = id; render(); }
+function closeGrowthThemeModal() { state.growthThemeModal = null; render(); }
+function saveGrowthTheme(id) {
+  const parse = elId => document.getElementById(elId)?.value.split('\n').map(s => s.trim()).filter(Boolean) || [];
+  const d = getData();
+  const idx = (d.growthThemes || []).findIndex(x => x.id === id);
+  if (idx === -1) return;
+  d.growthThemes[idx] = {
+    ...d.growthThemes[idx],
+    theme:         document.getElementById('gtm-theme')?.value.trim() || d.growthThemes[idx].theme,
+    today:         parse('gtm-today'),
+    better:        parse('gtm-better'),
+    best:          parse('gtm-best'),
+    indicators:    parse('gtm-indicators'),
+    dependencies:  parse('gtm-dependencies'),
+    collaborators: parse('gtm-collaborators'),
+  };
+  saveData(d);
+  closeGrowthThemeModal();
+}
+
 function renderGoals() {
   const profiles = getProfiles();
   const currentProfile = profiles.find(p => p.id === state.profile);
@@ -3922,6 +3985,7 @@ function renderGoals() {
     ${renderGoalSection('personal', 'Personal Goals', 'Goals you set for your own growth and development', personalGoals, true)}
     ${renderGoalSection('design', '2026 Design Team Goals', 'Track how you\'re contributing to shared design team objectives', DESIGN_TEAM_GOALS, false)}
 
+    ${state.growthThemeModal ? renderGrowthThemeModal() : ''}
     ${state.goalModal ? renderGoalModal() : ''}
     ${state.goalNotesModal ? renderGoalNotesModal() : ''}
   `;
