@@ -715,6 +715,7 @@ let state = {
   eoyTextTab: 'self',
   tableSort: {},
   growthThemeModal: null,
+  designGoalModal: null,
   radarLayers: ['manager', 'expected'],
   quickWinModal: null,
   noteText: '',
@@ -3913,20 +3914,27 @@ function renderGrowthThemes() {
   `;
 }
 
-function renderDesignTeamGoals() {
+function getDesignGoalEvidence(g) {
   const d = getData();
   const od = getOutreachData();
+  const items = [];
+  if (g.evidenceSources.includes('outreach')) {
+    (od.entries || []).forEach(e => {
+      if (e.notes) items.push({ label: e.merchant, text: e.notes, date: e.date, tag: e.type === 'hve' ? 'HVE' : 'Outreach' });
+    });
+  }
+  if (g.evidenceSources.includes('skills')) {
+    g.evidenceSkills.forEach(sid => {
+      const a = d.assessments[sid];
+      if (!a?.evidence) return;
+      const skill = SKILLS_DATA.skills.find(s => s.id === sid);
+      if (skill) items.push({ label: skill.name, text: a.evidence, date: a.lastUpdated, tag: a.managerLevel || null });
+    });
+  }
+  return items;
+}
 
-  const evidenceItem = (label, text, date, tag) => `
-    <div style="padding:10px 14px;background:var(--bg);border-radius:6px;border:1px solid var(--border)">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-        <span style="font-size:11px;font-weight:700;color:var(--text-secondary)">${escHtml(label)}</span>
-        ${tag ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--primary-light);color:var(--primary)">${escHtml(tag)}</span>` : ''}
-        ${date ? `<span style="font-size:11px;color:var(--text-muted);margin-left:auto">${formatDate(date)}</span>` : ''}
-      </div>
-      <div style="font-size:13px;color:var(--text-secondary);line-height:1.5">${escHtml(text)}</div>
-    </div>`;
-
+function renderDesignTeamGoals() {
   return `
     <div class="goals-section">
       <div class="goals-section-header">
@@ -3935,42 +3943,62 @@ function renderDesignTeamGoals() {
           <div class="goals-section-subtitle">Evidence from your work that contributes to shared design team objectives</div>
         </div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:12px">
-        ${DESIGN_TEAM_GOALS.map(g => {
-          const items = [];
-
-          // Outreach evidence
-          if (g.evidenceSources.includes('outreach')) {
-            (od.entries || []).forEach(e => {
-              if (e.notes) items.push({ label: e.merchant, text: e.notes, date: e.date, tag: e.type === 'hve' ? 'HVE' : 'Outreach' });
-            });
-          }
-
-          // Skill assessment evidence
-          if (g.evidenceSources.includes('skills')) {
-            g.evidenceSkills.forEach(sid => {
-              const a = d.assessments[sid];
-              if (!a?.evidence) return;
-              const skill = SKILLS_DATA.skills.find(s => s.id === sid);
-              if (skill) items.push({ label: skill.name, text: a.evidence, date: a.lastUpdated, tag: a.managerLevel || null });
-            });
-          }
-
+      <div class="review-table-wrap" style="overflow:hidden">
+        <div style="display:grid;grid-template-columns:1fr 120px 40px;padding:8px 16px;background:var(--bg);border-bottom:2px solid var(--border)">
+          <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Goal</span>
+          <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Evidence</span>
+          <span></span>
+        </div>
+        ${DESIGN_TEAM_GOALS.map((g, i) => {
+          const items = getDesignGoalEvidence(g);
+          const count = items.length;
           return `
-            <div class="review-table-wrap" style="overflow:hidden">
-              <div style="padding:14px 20px;background:#F1F5FB;border-bottom:1px solid var(--border)">
-                <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px">${escHtml(g.goal)}</div>
-                <div style="font-size:12px;color:var(--text-muted);line-height:1.4">${escHtml(g.kpi)}</div>
+            <div style="display:grid;grid-template-columns:1fr 120px 40px;align-items:center;padding:14px 16px;${i > 0 ? 'border-top:1px solid var(--border)' : ''}">
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(g.goal)}</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${escHtml(g.kpi)}</div>
               </div>
-              <div style="padding:14px 20px">
-                ${items.length ? `
-                  <div style="display:flex;flex-direction:column;gap:8px">
-                    ${items.map(i => evidenceItem(i.label, i.text, i.date, i.tag)).join('')}
-                  </div>
-                ` : `<div style="font-size:13px;color:var(--text-muted);font-style:italic">No evidence found yet — add assessment notes or merchant outreach entries to see contributions here.</div>`}
+              <div>
+                ${count > 0
+                  ? `<span style="font-size:13px;font-weight:600;color:var(--primary)">${count} piece${count !== 1 ? 's' : ''}</span>`
+                  : `<span style="font-size:12px;color:var(--text-muted);font-style:italic">None yet</span>`}
+              </div>
+              <div>
+                ${count > 0 ? `<button onclick="openDesignGoalModal('${g.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;line-height:1;padding:4px" title="View evidence">›</button>` : ''}
               </div>
             </div>`;
         }).join('')}
+      </div>
+      ${state.designGoalModal ? renderDesignGoalModal() : ''}
+    </div>`;
+}
+
+function renderDesignGoalModal() {
+  const g = DESIGN_TEAM_GOALS.find(x => x.id === state.designGoalModal);
+  if (!g) return '';
+  const items = getDesignGoalEvidence(g);
+  return `
+    <div class="modal-overlay" onclick="if(event.target===this)closeDesignGoalModal()">
+      <div class="modal-box" onclick="event.stopPropagation()" style="max-width:560px;max-height:85vh;overflow-y:auto">
+        <div class="insight-modal-header">
+          <div>
+            <div class="insight-modal-title">${escHtml(g.goal)}</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${items.length} piece${items.length !== 1 ? 's' : ''} of evidence</div>
+          </div>
+          <button class="insight-modal-close" onclick="closeDesignGoalModal()">✕</button>
+        </div>
+        <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+          ${items.map(item => `
+            <div style="padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <span style="font-size:12px;font-weight:700;color:var(--text)">${escHtml(item.label)}</span>
+                ${item.tag ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--primary-light);color:var(--primary)">${escHtml(item.tag)}</span>` : ''}
+                ${item.date ? `<span style="font-size:11px;color:var(--text-muted);margin-left:auto">${formatDate(item.date)}</span>` : ''}
+              </div>
+              <div style="font-size:13px;color:var(--text-secondary);line-height:1.5">${escHtml(item.text)}</div>
+            </div>
+          `).join('')}
+        </div>
       </div>
     </div>`;
 }
@@ -4017,6 +4045,8 @@ function renderGrowthThemeModal() {
 
 function openGrowthThemeModal(id) { state.growthThemeModal = id; render(); }
 function closeGrowthThemeModal() { state.growthThemeModal = null; render(); }
+function openDesignGoalModal(id) { state.designGoalModal = id; render(); }
+function closeDesignGoalModal() { state.designGoalModal = null; render(); }
 function saveGrowthTheme(id) {
   const parse = elId => document.getElementById(elId)?.value.split('\n').map(s => s.trim()).filter(Boolean) || [];
   const d = getData();
