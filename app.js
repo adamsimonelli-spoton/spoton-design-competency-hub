@@ -1135,22 +1135,20 @@ function renderRadarCardInner() {
   return `
     <div class="radar-card-header">
       <div class="radar-card-title">Skills</div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <div class="radar-toggle">
-          ${RADAR_LAYER_OPTIONS.map(opt => {
-            const active = layers.includes(opt.id);
-            const style = active
-              ? `background:${opt.color};color:white;border-color:${opt.color};`
-              : `--btn-hover-color:${opt.color};`;
-            return `<button class="radar-toggle-btn${active ? ' active' : ''}" style="${style}" onclick="toggleRadarLayer('${opt.id}')">${escHtml(opt.label)}</button>`;
-          }).join('')}
-        </div>
-        <button class="section-link" onclick="navigate('review')">View all →</button>
-      </div>
+      <button class="section-link" onclick="navigate('review')">View all →</button>
     </div>
     ${!hasAssessments ? '<div class="radar-card-subtitle" style="margin-bottom:8px">Complete assessments to see your skill shape</div>' : ''}
     <div class="radar-chart-wrap" style="${!hasAssessments ? 'opacity:.35;filter:grayscale(1)' : ''}">
       ${renderRadarChart(290, layers)}
+    </div>
+    <div class="radar-toggle" style="justify-content:center;margin-top:10px">
+      ${RADAR_LAYER_OPTIONS.map(opt => {
+        const active = layers.includes(opt.id);
+        const style = active
+          ? `background:${opt.color};color:white;border-color:${opt.color};`
+          : `--btn-hover-color:${opt.color};`;
+        return `<button class="radar-toggle-btn${active ? ' active' : ''}" style="${style}" onclick="toggleRadarLayer('${opt.id}')">${escHtml(opt.label)}</button>`;
+      }).join('')}
     </div>
   `;
 }
