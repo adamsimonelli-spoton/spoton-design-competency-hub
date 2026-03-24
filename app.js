@@ -1081,9 +1081,13 @@ function renderRadarChart(size, layers) {
   const catLabels = { 'Project Management': 'Proj Mgmt' };
   const labelsHTML = categories.map((cat, i) => {
     const angle = (2 * Math.PI * i / n) - Math.PI / 2;
-    const labelR = maxR;
-    const lx = cx + labelR * Math.cos(angle);
-    const ly = cy + labelR * Math.sin(angle);
+    const sinA = Math.sin(angle), cosA = Math.cos(angle);
+    // Top/bottom: push pill further out along the axis so it clears the chart ring
+    // Left/right: keep on the ring but shift pill down to clear the horizontal axis line
+    const isTopBottom = Math.abs(sinA) > 0.7;
+    const labelR = isTopBottom ? maxR + 16 : maxR;
+    const lx = cx + labelR * cosA;
+    const ly = cy + labelR * sinA + (isTopBottom ? 0 : 11);
     const label = catLabels[cat] || cat;
     const pillW = Math.max(label.length * 5.5 + 14, 28);
     const pillH = 15;
@@ -1186,9 +1190,11 @@ function renderValuesRadarChart(size) {
 
   const labelsHTML = CORE_VALUES_DATA.map((cv, i) => {
     const angle = (2 * Math.PI * i / n) - Math.PI / 2;
-    const labelR = maxR;
-    const lx = cx + labelR * Math.cos(angle);
-    const ly = cy + labelR * Math.sin(angle);
+    const sinA = Math.sin(angle), cosA = Math.cos(angle);
+    const isTopBottom = Math.abs(sinA) > 0.7;
+    const labelR = isTopBottom ? maxR + 16 : maxR;
+    const lx = cx + labelR * cosA;
+    const ly = cy + labelR * sinA + (isTopBottom ? 0 : 11);
     // Use first phrase only (up to first period) for compact chart label
     const chartLabel = cv.label.split('.')[0].replace(/,$/, '').trim();
     const pillW = Math.max(chartLabel.length * 5.5 + 14, 28);
