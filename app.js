@@ -1795,7 +1795,7 @@ function renderHome() {
               <span class="analysis-count-label">overperforming</span>
             </button>
             ${(() => {
-              const er = isAdamProfile ? EOY_REVIEWS['2025'] : null;
+              const er = EOY_REVIEWS['2025'];
               if (!er) return '';
               const vals = Object.values(er.manager.ratings);
               const avg = (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
