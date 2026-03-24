@@ -72,6 +72,7 @@
         { "id": "pg_jordan_2", "goal": "Achieve WCAG 2.1 AA compliance on all new designs by auditing each screen before handoff", "kpi": "Zero color contrast or focus-order violations flagged in dev QA for 3 consecutive sprints", "timeFrame": "Q2 2026", "status": "in_progress", "notes": "Completed the Figma accessibility plugin setup. Started checking contrast ratios in the current payments redesign." },
         { "id": "pg_jordan_3", "goal": "Propose and shepherd at least one new UI pattern into the design system by end of Q2", "kpi": "Component proposal submitted, reviewed, and merged into the design system library", "timeFrame": "Q2 2026", "status": "not_started", "notes": "Identified a candidate: the inline validation pattern used across multiple forms. Needs to write up the proposal doc." }
       ],
+      "growthThemeScore": 3.2,
       "growthThemes": [
         {
           "id": "gt_jordan_1",
@@ -168,6 +169,7 @@
         { "id": "pg_marcus_2", "goal": "Formalize bi-weekly mentorship cadence with Jordan Kim with a defined growth agenda", "kpi": "6 mentorship sessions completed by end of Q2 with a written growth plan for Jordan on file", "timeFrame": "Q2 2026", "status": "in_progress", "notes": "First session held March 18. Agreed on focus areas: research methods and stakeholder communication. Calendar invites sent through June." },
         { "id": "pg_marcus_3", "goal": "Apply to speak at one design conference or industry meetup before end of Q3", "kpi": "At least one conference talk submission submitted; acceptance or rejection documented", "timeFrame": "Q2 2026", "status": "not_started", "notes": "Shortlisted Config 2026 and UX London. Topic idea: the research-to-design handoff system he built with Tyler." }
       ],
+      "growthThemeScore": 3.5,
       "growthThemes": [
         {
           "id": "gt_marcus_1",
@@ -266,6 +268,7 @@
         { "id": "pg_elena_2", "goal": "Co-own the Q2 product roadmap with the CPO by contributing design strategy inputs to all major initiative briefs", "kpi": "Design strategy documented and signed off for 100% of Q2 roadmap initiatives before kickoff", "timeFrame": "Q2 2026", "status": "on_track", "notes": "Already embedded in 4 of 5 Q2 initiative briefs. Final brief (payments overhaul) brief session scheduled for April 2." },
         { "id": "pg_elena_3", "goal": "Run a design maturity assessment across the full product org and publish findings with recommended roadmap", "kpi": "Assessment completed with at least 80% participation from design-adjacent stakeholders; findings deck presented to CPO", "timeFrame": "Q2 2026", "status": "not_started", "notes": "Researching existing frameworks — looking at InVision's Design Maturity Model and Nielsen Norman's scale as starting points." }
       ],
+      "growthThemeScore": 3.6,
       "growthThemes": [
         {
           "id": "gt_elena_1",
@@ -365,6 +368,7 @@
         { "id": "pg_tyler_2", "goal": "Establish a formal research-design collaboration model and document it as a team operating agreement", "kpi": "Collaboration model documented, reviewed by design leads, and adopted by at least 2 product squads", "timeFrame": "Q2 2026", "status": "in_progress", "notes": "Piloting the model with Marcus's squad this sprint. Weekly 30-min research sync seems to be working well — capturing the structure for the broader doc." },
         { "id": "pg_tyler_3", "goal": "Submit a talk proposal to a UX research conference in 2026", "kpi": "At least one proposal submitted; topic approved by manager before submission", "timeFrame": "Q2 2026", "status": "not_started", "notes": "Topic ideas: AI-assisted synthesis workflow or the HVE research program design. Targeting UXPA International 2026 deadline in May." }
       ],
+      "growthThemeScore": 3.8,
       "growthThemes": [
         {
           "id": "gt_tyler_1",
@@ -400,7 +404,7 @@
   };
 
   // Seed version — bump this when seed data changes to force a refresh of example profiles
-  var SEED_VERSION = 12;
+  var SEED_VERSION = 13;
   var storedVersion = parseInt(localStorage.getItem('dch_seed_version') || '0', 10);
   var exampleIds = ['p_jordan_001', 'p_marcus_001', 'p_elena_001', 'p_tyler_001'];
 

@@ -3833,15 +3833,27 @@ function renderGrowthThemes() {
   const themes = d.growthThemes || [];
   if (!themes.length) return '';
 
-  const colStyle = (bg, color) =>
-    `style="background:${bg};border-radius:8px;padding:14px 16px;flex:1;min-width:0"`;
+  const base = typeof d.growthThemeScore === 'number' ? d.growthThemeScore : null;
+  const fmt = n => n % 1 === 0 ? n.toFixed(1) : (Math.round(n * 100) / 100).toString();
+  const s0 = base !== null ? fmt(base) : null;
+  const s1 = base !== null ? fmt(base + 0.25) : null;
+  const s2 = base !== null ? fmt(base + 0.50) : null;
+
+  const col = (label, score, bg, color, text) => `
+    <div style="background:${bg};border-radius:8px;padding:14px 16px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        ${score !== null ? `<span style="font-size:16px;font-weight:800;color:${color};line-height:1">${score}</span><span style="font-size:10px;font-weight:600;color:${color};opacity:.6">/5</span>` : ''}
+        <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${color}${score !== null ? ';margin-left:2px' : ''}">${label}</span>
+      </div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.55">${escHtml(text)}</div>
+    </div>`;
 
   return `
     <div class="goals-section">
       <div class="goals-section-header">
         <div>
           <div class="goals-section-title">Growth Themes</div>
-          <div class="goals-section-subtitle">Manager-assigned development focus areas with a clear picture of progress</div>
+          <div class="goals-section-subtitle">Manager-assigned focus areas — where you are today and what growth looks like</div>
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:12px">
@@ -3849,18 +3861,9 @@ function renderGrowthThemes() {
           <div class="review-table-wrap" style="padding:20px 24px">
             <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">${escHtml(t.theme)}</div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-              <div style="background:#F8FAFC;border-radius:8px;padding:14px 16px">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:8px">Today</div>
-                <div style="font-size:13px;color:var(--text-secondary);line-height:1.55">${escHtml(t.today)}</div>
-              </div>
-              <div style="background:#EFF6FF;border-radius:8px;padding:14px 16px">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#3B82F6;margin-bottom:8px">Better</div>
-                <div style="font-size:13px;color:var(--text-secondary);line-height:1.55">${escHtml(t.better)}</div>
-              </div>
-              <div style="background:#F0FDF4;border-radius:8px;padding:14px 16px">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#16A34A;margin-bottom:8px">Best</div>
-                <div style="font-size:13px;color:var(--text-secondary);line-height:1.55">${escHtml(t.best)}</div>
-              </div>
+              ${col('Today',  s0, '#F8FAFC', 'var(--text-muted)', t.today)}
+              ${col('Better', s1, '#EFF6FF', '#3B82F6',           t.better)}
+              ${col('Best',   s2, '#F0FDF4', '#16A34A',           t.best)}
             </div>
           </div>
         `).join('')}
