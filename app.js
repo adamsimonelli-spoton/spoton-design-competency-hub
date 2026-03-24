@@ -3833,43 +3833,62 @@ function renderGrowthThemes() {
   const themes = d.growthThemes || [];
   if (!themes.length) return '';
 
+  const base = typeof d.growthThemeScore === 'number' ? d.growthThemeScore : null;
+  const fmt = n => (Math.round(n * 100) / 100).toFixed(2).replace(/\.?0+$/, '') + (Number.isInteger(n) ? '.0' : '');
+  const s0 = base !== null ? base.toFixed(1) : null;
+  const s1 = base !== null ? (base + 0.25).toFixed(2) : null;
+  const s2 = base !== null ? (base + 0.50).toFixed(2) : null;
+
+  const scoreCol = (label, score, bg, color, text) => `
+    <div style="background:${bg};border-radius:8px;padding:14px 16px">
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px">
+        ${score !== null ? `<span style="font-size:16px;font-weight:800;color:${color};line-height:1">${score}</span><span style="font-size:10px;font-weight:600;color:${color};opacity:.6">/5</span>` : ''}
+        <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${color}${score !== null ? ';margin-left:2px' : ''}">${label}</span>
+      </div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.55">${escHtml(text || '')}</div>
+    </div>`;
+
   const bullets = (items) => (items || []).map(i =>
-    `<li style="position:relative;padding-left:14px;font-size:13px;color:var(--text-secondary);line-height:1.55;margin-bottom:4px">
-      <span style="position:absolute;left:2px;top:8px;width:5px;height:5px;border-radius:50%;background:var(--text-muted)"></span>${escHtml(i)}
-    </li>`
+    `<li style="position:relative;padding-left:14px;font-size:13px;color:var(--text-secondary);line-height:1.55;margin-bottom:4px"><span style="position:absolute;left:2px;top:8px;width:5px;height:5px;border-radius:50%;background:var(--text-muted)"></span>${escHtml(i)}</li>`
   ).join('');
 
-  const COL_HEADER = `font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:10px`;
+  const CH = `font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:10px`;
 
   return `
     <div class="goals-section">
       <div class="goals-section-header">
         <div>
           <div class="goals-section-title">Growth Themes</div>
-          <div class="goals-section-subtitle">Manager-assigned focus areas with indicators, dependencies, and key collaborators</div>
+          <div class="goals-section-subtitle">Manager-assigned focus areas with a growth trajectory and supporting context</div>
         </div>
       </div>
-      <div class="review-table-wrap" style="overflow:hidden">
-        <!-- header row -->
-        <div style="display:grid;grid-template-columns:200px 1fr 1fr 1fr;padding:10px 20px;background:var(--bg);border-bottom:2px solid var(--border)">
-          <div></div>
-          <div style="${COL_HEADER}">Indicators</div>
-          <div style="${COL_HEADER}">Dependencies</div>
-          <div style="${COL_HEADER}">Collaborators</div>
-        </div>
-        ${themes.map((t, i) => `
-          <div style="display:grid;grid-template-columns:200px 1fr 1fr 1fr;${i > 0 ? 'border-top:1px solid var(--border)' : ''}">
-            <div style="padding:18px 20px;background:#F1F5FB">
-              <div style="font-size:14px;font-weight:700;color:var(--text);line-height:1.35">${escHtml(t.theme)}</div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        ${themes.map(t => `
+          <div class="review-table-wrap" style="overflow:hidden">
+            <!-- theme header -->
+            <div style="padding:14px 20px;background:#F1F5FB;border-bottom:1px solid var(--border)">
+              <div style="font-size:14px;font-weight:700;color:var(--text)">${escHtml(t.theme)}</div>
             </div>
-            <div style="padding:18px 20px;border-left:1px solid var(--border)">
-              <ul style="margin:0;padding:0;list-style:none">${bullets(t.indicators)}</ul>
+            <!-- today / better / best -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)">
+              ${scoreCol('Today',  s0, '#F8FAFC', 'var(--text-muted)', t.today)}
+              ${scoreCol('Better', s1, '#EFF6FF', '#3B82F6',           t.better)}
+              ${scoreCol('Best',   s2, '#F0FDF4', '#16A34A',           t.best)}
             </div>
-            <div style="padding:18px 20px;border-left:1px solid var(--border)">
-              <ul style="margin:0;padding:0;list-style:none">${bullets(t.dependencies)}</ul>
-            </div>
-            <div style="padding:18px 20px;border-left:1px solid var(--border)">
-              <ul style="margin:0;padding:0;list-style:none">${bullets(t.collaborators)}</ul>
+            <!-- indicators / dependencies / collaborators -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr">
+              <div style="padding:14px 20px">
+                <div style="${CH}">Indicators</div>
+                <ul style="margin:0;padding:0;list-style:none">${bullets(t.indicators)}</ul>
+              </div>
+              <div style="padding:14px 20px;border-left:1px solid var(--border)">
+                <div style="${CH}">Dependencies</div>
+                <ul style="margin:0;padding:0;list-style:none">${bullets(t.dependencies)}</ul>
+              </div>
+              <div style="padding:14px 20px;border-left:1px solid var(--border)">
+                <div style="${CH}">Collaborators</div>
+                <ul style="margin:0;padding:0;list-style:none">${bullets(t.collaborators)}</ul>
+              </div>
             </div>
           </div>
         `).join('')}
