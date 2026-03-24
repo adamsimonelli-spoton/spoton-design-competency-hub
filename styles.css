@@ -673,7 +673,7 @@ body {
   flex-shrink: 0;
 }
 .quick-win-card {
-  background: var(--bg);
+  background: #f5f7fb;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 16px;
