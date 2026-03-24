@@ -3869,25 +3869,28 @@ function renderGrowthThemes() {
             <div style="padding:14px 20px;background:#F1F5FB;border-bottom:1px solid var(--border)">
               <div style="font-size:14px;font-weight:700;color:var(--text)">${escHtml(t.theme)}</div>
             </div>
-            <!-- today / better / best -->
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)">
-              ${scoreCol('Today',  s0, '#F8FAFC', 'var(--text-muted)', t.today)}
-              ${scoreCol('Better', s1, '#EFF6FF', '#3B82F6',           t.better)}
-              ${scoreCol('Best',   s2, '#F0FDF4', '#16A34A',           t.best)}
-            </div>
-            <!-- indicators / dependencies / collaborators -->
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr">
-              <div style="padding:14px 20px">
-                <div style="${CH}">Indicators</div>
-                <ul style="margin:0;padding:0;list-style:none">${bullets(t.indicators)}</ul>
+            <!-- body: left = stacked score tiles, right = indicators/dependencies/collaborators -->
+            <div style="display:grid;grid-template-columns:1fr 280px;align-items:stretch">
+              <!-- left: today / better / best stacked -->
+              <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+                ${scoreCol('Today',  s0, '#F8FAFC', 'var(--text-muted)', t.today)}
+                ${scoreCol('Better', s1, '#EFF6FF', '#3B82F6',           t.better)}
+                ${scoreCol('Best',   s2, '#F0FDF4', '#16A34A',           t.best)}
               </div>
-              <div style="padding:14px 20px;border-left:1px solid var(--border)">
-                <div style="${CH}">Dependencies</div>
-                <ul style="margin:0;padding:0;list-style:none">${bullets(t.dependencies)}</ul>
-              </div>
-              <div style="padding:14px 20px;border-left:1px solid var(--border)">
-                <div style="${CH}">Collaborators</div>
-                <ul style="margin:0;padding:0;list-style:none">${bullets(t.collaborators)}</ul>
+              <!-- right: indicators / dependencies / collaborators -->
+              <div style="border-left:1px solid var(--border);padding:16px 20px;display:flex;flex-direction:column;gap:16px">
+                <div>
+                  <div style="${CH}">Indicators</div>
+                  <ul style="margin:0;padding:0;list-style:none">${bullets(t.indicators)}</ul>
+                </div>
+                <div>
+                  <div style="${CH}">Dependencies</div>
+                  <ul style="margin:0;padding:0;list-style:none">${bullets(t.dependencies)}</ul>
+                </div>
+                <div>
+                  <div style="${CH}">Collaborators</div>
+                  <ul style="margin:0;padding:0;list-style:none">${bullets(t.collaborators)}</ul>
+                </div>
               </div>
             </div>
           </div>
