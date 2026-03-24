@@ -674,8 +674,8 @@ body {
 }
 .quick-win-card {
   background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
   padding: 16px;
   display: flex;
   gap: 12px;
@@ -980,7 +980,6 @@ body {
 }
 .stat-card {
   background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 16px;
   box-shadow: var(--shadow-sm);
@@ -1036,7 +1035,6 @@ body {
 }
 .category-card {
   background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 16px;
   cursor: pointer;
@@ -1090,7 +1088,6 @@ body {
 
 .role-expectations-card {
   background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 16px;
   margin-bottom: 24px;
@@ -1606,7 +1603,6 @@ body {
 
 .anti-patterns-card {
   background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
   margin-bottom: 16px;
@@ -3013,8 +3009,8 @@ body {
 }
 .outreach-tile {
   background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
   padding: 16px;
 }
 .outreach-tile-value {
@@ -3051,8 +3047,8 @@ body {
 .outreach-list { display: flex; flex-direction: column; gap: 8px; }
 .outreach-card {
   background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 .outreach-table {
@@ -3185,8 +3181,8 @@ body {
 }
 .cv-card {
   background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
   padding: 24px;
 }
 .cv-card-header {
