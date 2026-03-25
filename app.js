@@ -717,6 +717,8 @@ let state = {
   growthThemeModal: null,
   growthThemeLevelModal: null,
   designGoalModal: null,
+  designGoalAddMode: null,   // 'manual' | 'ai' | null
+  designGoalSuggestions: [],  // suggested items from AI scan
   radarLayers: ['manager', 'expected'],
   quickWinModal: null,
   noteText: '',
@@ -739,7 +741,7 @@ function getStorageKey() { return `dch_data_${state.profile}`; }
 function getData() {
   const raw = localStorage.getItem(getStorageKey());
   const base = raw ? JSON.parse(raw) : {};
-  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], ...base };
+  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], designGoalEvidence: {}, ...base };
 }
 function saveData(data) {
   localStorage.setItem(getStorageKey(), JSON.stringify(data));
@@ -977,7 +979,7 @@ function getAssessedCount() {
 function getDataForProfile(profileId) {
   const raw = localStorage.getItem(`dch_data_${profileId}`);
   const base = raw ? JSON.parse(raw) : {};
-  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], ...base };
+  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], designGoalEvidence: {}, ...base };
 }
 function getExpectedLevelForSkillAndRole(skillId, role) {
   if (!role) return null;
@@ -3946,6 +3948,11 @@ function getDesignGoalEvidence(g) {
       if (skill) items.push({ label: skill.name, text: a.evidence, date: a.lastUpdated, tag: a.managerLevel || null });
     });
   }
+  // Add manually saved evidence
+  const d2 = getData();
+  (d2.designGoalEvidence?.[g.id] || []).forEach(e => {
+    items.push({ label: e.label, text: e.text, date: e.date, tag: e.source === 'ai_confirmed' ? 'AI Found' : 'Manual' });
+  });
   return items;
 }
 
@@ -3982,32 +3989,198 @@ function renderDesignTeamGoals() {
     </div>`;
 }
 
+function saveDesignGoalEvidence(goalId, text, label) {
+  if (!text.trim()) return;
+  const d = getData();
+  if (!d.designGoalEvidence) d.designGoalEvidence = {};
+  if (!d.designGoalEvidence[goalId]) d.designGoalEvidence[goalId] = [];
+  d.designGoalEvidence[goalId].push({
+    id: 'dge_' + Date.now(),
+    text: text.trim(),
+    label: label || 'Manual',
+    date: new Date().toISOString().split('T')[0],
+    source: 'manual'
+  });
+  saveData(d);
+  state.designGoalAddMode = null;
+  render();
+}
+
+function deleteDesignGoalEvidence(goalId, evidenceId) {
+  const d = getData();
+  if (!d.designGoalEvidence?.[goalId]) return;
+  d.designGoalEvidence[goalId] = d.designGoalEvidence[goalId].filter(e => e.id !== evidenceId);
+  saveData(d);
+  render();
+}
+
+function confirmDesignGoalSuggestion(goalId, idx) {
+  const item = state.designGoalSuggestions[idx];
+  if (!item) return;
+  const d = getData();
+  if (!d.designGoalEvidence) d.designGoalEvidence = {};
+  if (!d.designGoalEvidence[goalId]) d.designGoalEvidence[goalId] = [];
+  d.designGoalEvidence[goalId].push({
+    id: 'dge_' + Date.now() + '_' + idx,
+    text: item.text,
+    label: item.label,
+    date: item.date || new Date().toISOString().split('T')[0],
+    source: 'ai_confirmed'
+  });
+  state.designGoalSuggestions.splice(idx, 1);
+  saveData(d);
+  render();
+}
+
+function dismissDesignGoalSuggestion(idx) {
+  state.designGoalSuggestions.splice(idx, 1);
+  if (state.designGoalSuggestions.length === 0) state.designGoalAddMode = null;
+  render();
+}
+
+function findDesignGoalEvidence(goalId) {
+  const g = DESIGN_TEAM_GOALS.find(x => x.id === goalId);
+  if (!g) return;
+  const d = getData();
+  const od = getOutreachData();
+
+  // Build keyword list from goal + kpi text
+  const stopWords = new Set(['the','a','an','and','or','to','of','in','for','with','on','at','from','that','this','as','is','are','was','were','be','have','has','had','by','how','what','when','where','who','will','we','our','your','their','its','it','not','but','so','if','then','do','did','can','may','more','each','all','per','one','two','three','about','into','through','team','design','product']);
+  const keywords = [...(g.goal + ' ' + (g.kpi || '')).toLowerCase().matchAll(/\b[a-z]{4,}\b/g)]
+    .map(m => m[0])
+    .filter(w => !stopWords.has(w));
+
+  const score = (text) => {
+    if (!text) return 0;
+    const lower = text.toLowerCase();
+    return keywords.reduce((n, kw) => n + (lower.includes(kw) ? 1 : 0), 0);
+  };
+
+  const suggestions = [];
+  const alreadyAdded = new Set((d.designGoalEvidence?.[goalId] || []).map(e => e.text));
+
+  // Already auto-found items — these are already shown, skip them
+  // Scan assessment evidence not already in auto-found
+  const autoFoundTexts = new Set(getDesignGoalEvidence(g).map(i => i.text));
+
+  // Scan ALL assessment evidence
+  Object.entries(d.assessments || {}).forEach(([skillId, a]) => {
+    if (a.evidence && !autoFoundTexts.has(a.evidence) && !alreadyAdded.has(a.evidence)) {
+      const s = score(a.evidence) + score(a.goals);
+      if (s > 0) {
+        const skill = SKILLS_DATA.skills.find(x => x.id === skillId);
+        suggestions.push({ text: a.evidence, label: skill?.name || skillId, date: a.lastUpdated?.split('T')[0], score: s, source: 'assessment' });
+      }
+    }
+    if (a.goals && !autoFoundTexts.has(a.goals) && !alreadyAdded.has(a.goals) && score(a.goals) > 0) {
+      const skill = SKILLS_DATA.skills.find(x => x.id === skillId);
+      suggestions.push({ text: a.goals, label: (skill?.name || skillId) + ' (goal)', date: a.lastUpdated?.split('T')[0], score: score(a.goals), source: 'goal_note' });
+    }
+  });
+
+  // Scan personal goals notes
+  (d.personalGoals || []).forEach(g2 => {
+    if (g2.notes && !autoFoundTexts.has(g2.notes) && !alreadyAdded.has(g2.notes) && score(g2.notes + ' ' + g2.goal) > 0) {
+      suggestions.push({ text: g2.notes, label: g2.goal, date: null, score: score(g2.notes + ' ' + g2.goal), source: 'personal_goal' });
+    }
+  });
+
+  // Scan outreach entries not already surfaced
+  (od.entries || []).forEach(e => {
+    if (e.notes && !autoFoundTexts.has(e.notes) && !alreadyAdded.has(e.notes) && score(e.notes) > 0) {
+      suggestions.push({ text: e.notes, label: e.merchant, date: e.date, score: score(e.notes), source: 'outreach' });
+    }
+  });
+
+  // Sort by score desc, limit to 10
+  suggestions.sort((a, b) => b.score - a.score);
+  state.designGoalSuggestions = suggestions.slice(0, 10);
+  state.designGoalAddMode = 'ai';
+  render();
+}
+
 function renderDesignGoalModal() {
   const g = DESIGN_TEAM_GOALS.find(x => x.id === state.designGoalModal);
   if (!g) return '';
   const items = getDesignGoalEvidence(g);
+  const d = getData();
+  const manualItems = d.designGoalEvidence?.[g.id] || [];
+
+  const evidenceCard = (item, opts = {}) => `
+    <div style="padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border);position:relative">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:12px;font-weight:700;color:var(--text)">${escHtml(item.label)}</span>
+        ${item.tag ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--primary-light);color:var(--primary)">${escHtml(item.tag)}</span>` : ''}
+        ${item.date ? `<span style="font-size:11px;color:var(--text-muted);margin-left:auto">${formatDate(item.date)}</span>` : ''}
+        ${opts.deleteId ? `<button onclick="deleteDesignGoalEvidence('${g.id}','${opts.deleteId}')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:14px;padding:0 4px;line-height:1;margin-left:${item.date ? '8px' : 'auto'}" title="Remove">✕</button>` : ''}
+      </div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.5">${escHtml(item.text)}</div>
+    </div>`;
+
+  const suggestionCard = (item, idx) => `
+    <div style="padding:12px 14px;background:#FFFBEB;border-radius:8px;border:1px solid #FDE68A">
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px">
+        <span style="font-size:12px;font-weight:700;color:var(--text);flex:1">${escHtml(item.label)}</span>
+        <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#FEF3C7;color:#92400E;white-space:nowrap">AI Suggested</span>
+        ${item.date ? `<span style="font-size:11px;color:var(--text-muted);white-space:nowrap">${formatDate(item.date)}</span>` : ''}
+      </div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px">${escHtml(item.text)}</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="confirmDesignGoalSuggestion('${g.id}',${idx})" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer">Add to Evidence</button>
+        <button onclick="dismissDesignGoalSuggestion(${idx})" style="background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">Dismiss</button>
+      </div>
+    </div>`;
+
   return `
     <div class="modal-overlay" onclick="if(event.target===this)closeDesignGoalModal()">
-      <div class="modal-box" onclick="event.stopPropagation()" style="max-width:560px;max-height:85vh;overflow-y:auto">
+      <div class="modal-box" onclick="event.stopPropagation()" style="max-width:580px;max-height:88vh;overflow-y:auto">
         <div style="position:relative;padding:20px 24px 16px;border-bottom:1px solid var(--border)">
           <div class="insight-modal-title">${escHtml(g.goal)}</div>
           ${g.kpi ? `<div style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-top:8px">${escHtml(g.kpi)}</div>` : ''}
           <button class="insight-modal-close" onclick="closeDesignGoalModal()" style="position:absolute;top:16px;right:16px">✕</button>
         </div>
-        <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Evidence</div>
-          ${items.length === 0
-            ? `<div style="font-size:13px;color:var(--text-muted);font-style:italic;padding:8px 0">No evidence found yet. As you add assessment notes and outreach activity, relevant pieces will appear here.</div>`
-            : items.map(item => `
-            <div style="padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                <span style="font-size:12px;font-weight:700;color:var(--text)">${escHtml(item.label)}</span>
-                ${item.tag ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--primary-light);color:var(--primary)">${escHtml(item.tag)}</span>` : ''}
-                ${item.date ? `<span style="font-size:11px;color:var(--text-muted);margin-left:auto">${formatDate(item.date)}</span>` : ''}
-              </div>
-              <div style="font-size:13px;color:var(--text-secondary);line-height:1.5">${escHtml(item.text)}</div>
+        <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+          <!-- Evidence header row -->
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Evidence</span>
+            <div style="display:flex;gap:8px">
+              <button onclick="state.designGoalAddMode = state.designGoalAddMode === 'manual' ? null : 'manual'; render()" style="font-size:12px;font-weight:600;color:var(--primary);background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer">+ Add</button>
+              <button onclick="findDesignGoalEvidence('${g.id}')" style="font-size:12px;font-weight:600;color:#92400E;background:#FEF3C7;border:none;border-radius:6px;padding:4px 10px;cursor:pointer">✦ Find with AI</button>
             </div>
-          `).join('')}
+          </div>
+
+          <!-- Manual add form -->
+          ${state.designGoalAddMode === 'manual' ? `
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">Add Evidence</div>
+              <input id="dge-label" class="form-input" placeholder="Source / label (e.g. Merchant visit, Research session)" style="margin-bottom:8px" />
+              <textarea id="dge-text" class="form-input" rows="3" placeholder="Describe the evidence…" style="resize:vertical"></textarea>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button onclick="saveDesignGoalEvidence('${g.id}', document.getElementById('dge-text').value, document.getElementById('dge-label').value)" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">Save</button>
+                <button onclick="state.designGoalAddMode=null;render()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">Cancel</button>
+              </div>
+            </div>` : ''}
+
+          <!-- AI suggestions -->
+          ${state.designGoalAddMode === 'ai' ? `
+            <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:12px 14px;margin-bottom:4px">
+              <div style="font-size:12px;font-weight:600;color:#92400E;margin-bottom:4px">✦ AI found ${state.designGoalSuggestions.length} potential match${state.designGoalSuggestions.length !== 1 ? 'es' : ''} from your data</div>
+              <div style="font-size:12px;color:#78350F">Review and add anything that's relevant to this goal.</div>
+            </div>
+            ${state.designGoalSuggestions.length === 0
+              ? `<div style="font-size:13px;color:var(--text-muted);font-style:italic">All suggestions have been reviewed.</div>`
+              : state.designGoalSuggestions.map((s, i) => suggestionCard(s, i)).join('')}
+            <button onclick="state.designGoalAddMode=null;render()" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:0">Done reviewing</button>
+          ` : ''}
+
+          <!-- Evidence items -->
+          ${items.length === 0 && state.designGoalAddMode !== 'ai'
+            ? `<div style="font-size:13px;color:var(--text-muted);font-style:italic;padding:4px 0">No evidence yet. Add manually or use AI to find relevant items from your assessments and notes.</div>`
+            : items.filter(item => item.source !== 'manual' || true).map(item => {
+                // find the matching manual entry to get its id for deletion
+                const manualMatch = (d.designGoalEvidence?.[g.id] || []).find(e => e.text === item.text);
+                return evidenceCard(item, manualMatch ? { deleteId: manualMatch.id } : {});
+              }).join('')}
         </div>
       </div>
     </div>`;
