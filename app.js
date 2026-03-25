@@ -4224,7 +4224,6 @@ function renderGrowthThemes() {
       <div class="goals-section-header">
         <div>
           <div class="goals-section-title">Growth Themes</div>
-          <div class="goals-section-subtitle">Manager-assigned focus areas with a growth trajectory</div>
         </div>
       </div>
       <div class="review-table-wrap" style="overflow:hidden">
@@ -4424,7 +4423,6 @@ function renderDesignTeamGoals() {
       <div class="goals-section-header">
         <div>
           <div class="goals-section-title">2026 Design Team Goals</div>
-          <div class="goals-section-subtitle">Evidence from your work that contributes to shared design team objectives</div>
         </div>
       </div>
       <div class="review-table-wrap" style="overflow:hidden">
@@ -4871,12 +4869,11 @@ function renderGoals() {
     <div class="review-header">
       <div>
         <h1>${escHtml(currentProfile?.name || 'Designer')}${currentProfile?.role ? ` <span style="font-size:13px;font-weight:600;color:var(--primary);background:var(--primary-light);border:1px solid rgba(99,102,241,.2);border-radius:20px;padding:4px 8px;vertical-align:middle;position:relative;top:-2px;margin-left:16px">${escHtml(shortRole(currentProfile.role))}</span>` : ''}</h1>
-        <p>Track your contributions to personal, design team, and product goals</p>
       </div>
     </div>
 
     ${renderGrowthThemes()}
-    ${renderGoalSection('personal', 'Personal Goals', 'Goals you set for your own growth and development', personalGoals, true)}
+    ${renderGoalSection('personal', 'Personal Goals', '', personalGoals, true)}
     ${renderDesignTeamGoals()}
 
     ${state.growthThemeModal ? renderGrowthThemeModal() : ''}
