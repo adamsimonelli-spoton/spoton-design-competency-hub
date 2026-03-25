@@ -4047,7 +4047,7 @@ function renderGrowthThemeDetail() {
     const list = Array.isArray(items) ? items : (items ? [items] : []);
     const hw = Array.isArray(howTo) ? howTo : [];
     return `
-      <div style="background:${bg};border-radius:8px;padding:14px 16px;display:flex;flex-direction:column">
+      <div style="background:${bg};border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;box-shadow:var(--shadow-sm)">
         <div style="display:flex;align-items:center;gap:5px;margin-bottom:10px">
           ${score !== null ? `<span style="font-size:16px;font-weight:800;color:${color};line-height:1">${score}</span><span style="font-size:10px;font-weight:600;color:${color};opacity:.6">/5</span>` : ''}
           <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${color}${score !== null ? ';margin-left:2px' : ''}">${label}</span>
@@ -4117,7 +4117,7 @@ function renderGrowthThemeDetail() {
 
       <!-- Today / Better / Best -->
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
-        ${scoreCol('Today',  s0, '#F8FAFC', 'var(--text-muted)', t.today,  t.todayHowTo)}
+        ${scoreCol('Today',  s0, '#FFFFFF', 'var(--text-muted)', t.today,  t.todayHowTo)}
         ${scoreCol('Better', s1, '#EFF6FF', '#3B82F6',           t.better, t.betterHowTo)}
         ${scoreCol('Best',   s2, '#F0FDF4', '#16A34A',           t.best,   t.bestHowTo)}
       </div>
@@ -5794,7 +5794,7 @@ function getViewTitle() {
     case 'goals': return 'Goals';
     case 'personal-goal': return 'Goals';
     case 'design-goal':   return 'Goals';
-    case 'growth-theme':  return 'Goals';
+    case 'growth-theme':  return 'Growth Themes';
     case 'eoy': return 'Performance Review';
     case 'outreach': return 'Merchant Outreach';
     default: return 'Design Competency Hub';
