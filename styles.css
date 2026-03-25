@@ -3343,13 +3343,11 @@ body {
 .personal-goals-table th:nth-child(2),
 .personal-goals-table td:nth-child(2) { white-space: nowrap; width: 100px; }
 .personal-goals-table th:nth-child(3),
-.personal-goals-table td:nth-child(3) { white-space: nowrap; width: 140px; }
+.personal-goals-table td:nth-child(3) { white-space: nowrap; width: 160px; }
 .personal-goals-table th:nth-child(4),
-.personal-goals-table td:nth-child(4) { width: 220px; overflow: hidden; }
+.personal-goals-table td:nth-child(4) { width: 36px; padding: 0 8px; text-align: center; }
 .personal-goals-table th:nth-child(5),
-.personal-goals-table td:nth-child(5) { width: 36px; padding: 0 8px; text-align: center; }
-.personal-goals-table th:nth-child(6),
-.personal-goals-table td:nth-child(6) { width: 32px; padding-right: 12px; text-align: right; }
+.personal-goals-table td:nth-child(5) { width: 32px; padding-right: 12px; text-align: right; }
 .personal-goals-table .review-level-select { min-width: 0; width: 100%; }
 .goals-table th:nth-child(2),
 .goals-table td:nth-child(2) { white-space: normal; min-width: 240px; }

@@ -3812,7 +3812,7 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
               ${sectionId !== 'personal' ? '<th>KPI / How I\'ll Contribute</th>' : ''}
               <th style="cursor:pointer;user-select:none" onclick="setTableSort('goals-${sectionId}','timeFrame')">Time Frame${sortIndicator('goals-'+sectionId,'timeFrame')}</th>
               <th style="cursor:pointer;user-select:none" onclick="setTableSort('goals-${sectionId}','status')">Status${sortIndicator('goals-'+sectionId,'status')}</th>
-              <th>Notes</th>
+              ${sectionId !== 'personal' ? '<th>Notes</th>' : ''}
               ${isEditable ? '<th></th>' : ''}
               ${sectionId === 'personal' ? '<th style="width:32px;min-width:32px;max-width:32px"></th>' : ''}
             </tr>
@@ -3840,11 +3840,12 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
                       ${Object.entries(GOAL_STATUS_CONFIG).map(([k,v]) => `<option value="${k}" ${status===k?'selected':''}>${v.label}</option>`).join('')}
                     </select>
                   </td>
+                  ${sectionId !== 'personal' ? `
                   <td onclick="${sectionId === 'personal' ? 'event.stopPropagation()' : ''}">
                     <button class="review-notes-btn" onclick="openGoalNotesModal('${sectionId}','${g.id}',${i})">
                       ${notes ? `<span class="review-notes-preview-text">${escHtml(notes)}</span><span class="review-notes-expand">↗</span>` : '<span class="review-notes-placeholder">Add notes…</span>'}
                     </button>
-                  </td>
+                  </td>` : ''}
                   ${isEditable ? `<td onclick="event.stopPropagation()"><button class="resource-delete" onclick="deleteUserGoal('${sectionId}',${i})" title="Delete">✕</button></td>` : ''}
                   ${sectionId === 'personal' ? `<td style="width:32px;padding-right:12px;text-align:right"><svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="color:var(--text-muted);display:block;margin-left:auto"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg></td>` : ''}
                 </tr>
@@ -4127,19 +4128,19 @@ function renderGrowthThemeDetail() {
         ${base !== null ? `<div style="font-size:13px;color:var(--text-muted)">Score range: ${s0} → ${s2}/5</div>` : ''}
       </div>
 
-      <!-- Today / Better / Best + right panel -->
+      <!-- Today / Better / Best -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
+        ${scoreCol('Today',  s0, '#F8FAFC', 'var(--text-muted)', t.today,  t.todayHowTo)}
+        ${scoreCol('Better', s1, '#EFF6FF', '#3B82F6',           t.better, t.betterHowTo)}
+        ${scoreCol('Best',   s2, '#F0FDF4', '#16A34A',           t.best,   t.bestHowTo)}
+      </div>
+
+      <!-- Indicators / Dependencies / Collaborators -->
       <div class="review-table-wrap" style="overflow:hidden;margin-bottom:24px">
-        <div style="display:grid;grid-template-columns:1fr 260px;align-items:stretch">
-          <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-content:start">
-            ${scoreCol('Today',  s0, '#F8FAFC', 'var(--text-muted)', t.today,  t.todayHowTo)}
-            ${scoreCol('Better', s1, '#EFF6FF', '#3B82F6',           t.better, t.betterHowTo)}
-            ${scoreCol('Best',   s2, '#F0FDF4', '#16A34A',           t.best,   t.bestHowTo)}
-          </div>
-          <div style="border-left:1px solid var(--border);padding:16px 20px;display:flex;flex-direction:column;gap:16px">
-            <div><div style="${CH}">Indicators</div><ul style="margin:0;padding:0;list-style:none">${bullets(t.indicators)}</ul></div>
-            <div><div style="${CH}">Dependencies</div><ul style="margin:0;padding:0;list-style:none">${bullets(t.dependencies)}</ul></div>
-            <div><div style="${CH}">Collaborators</div><ul style="margin:0;padding:0;list-style:none">${bullets(t.collaborators)}</ul></div>
-          </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;padding:16px 20px;gap:24px">
+          <div><div style="${CH}">Indicators</div><ul style="margin:0;padding:0;list-style:none">${bullets(t.indicators)}</ul></div>
+          <div><div style="${CH}">Dependencies</div><ul style="margin:0;padding:0;list-style:none">${bullets(t.dependencies)}</ul></div>
+          <div><div style="${CH}">Collaborators</div><ul style="margin:0;padding:0;list-style:none">${bullets(t.collaborators)}</ul></div>
         </div>
       </div>
 
