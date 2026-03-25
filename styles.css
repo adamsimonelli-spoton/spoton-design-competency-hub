@@ -3360,11 +3360,13 @@ body {
 .goals-table th:nth-child(6),
 .goals-table td:nth-child(6) { width: 40px; min-width: 40px; max-width: 40px; }
 .goals-goal-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text);
   line-height: 1.4;
+  transition: color .12s;
 }
+tr:hover .goals-goal-name { color: var(--primary); }
 .goals-kpi-cell {
   font-size: 14px;
   color: var(--text-secondary);
