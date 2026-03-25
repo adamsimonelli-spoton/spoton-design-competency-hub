@@ -3959,27 +3959,21 @@ function renderDesignTeamGoals() {
         </div>
       </div>
       <div class="review-table-wrap" style="overflow:hidden">
-        <div style="display:grid;grid-template-columns:1fr 120px 40px;padding:8px 16px;background:var(--bg);border-bottom:2px solid var(--border)">
+        <div style="display:grid;grid-template-columns:1fr 130px;padding:8px 16px;background:var(--bg);border-bottom:2px solid var(--border)">
           <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Goal</span>
           <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Evidence</span>
-          <span></span>
         </div>
         ${DESIGN_TEAM_GOALS.map((g, i) => {
           const items = getDesignGoalEvidence(g);
           const count = items.length;
           return `
-            <div style="display:grid;grid-template-columns:1fr 120px 40px;align-items:center;padding:14px 16px;${i > 0 ? 'border-top:1px solid var(--border)' : ''}">
-              <div>
-                <div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(g.goal)}</div>
-                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${escHtml(g.kpi)}</div>
-              </div>
-              <div>
+            <div onclick="openDesignGoalModal('${g.id}')" style="display:grid;grid-template-columns:1fr 130px;align-items:center;padding:14px 16px;cursor:pointer;transition:background .12s;${i > 0 ? 'border-top:1px solid var(--border)' : ''}" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background=''">
+              <div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(g.goal)}</div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
                 ${count > 0
                   ? `<span style="font-size:13px;font-weight:600;color:var(--primary)">${count} piece${count !== 1 ? 's' : ''}</span>`
                   : `<span style="font-size:12px;color:var(--text-muted);font-style:italic">None yet</span>`}
-              </div>
-              <div>
-                ${count > 0 ? `<button onclick="openDesignGoalModal('${g.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;line-height:1;padding:4px" title="View evidence">›</button>` : ''}
+                <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="color:var(--text-muted);flex-shrink:0"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
               </div>
             </div>`;
         }).join('')}
@@ -3995,15 +3989,16 @@ function renderDesignGoalModal() {
   return `
     <div class="modal-overlay" onclick="if(event.target===this)closeDesignGoalModal()">
       <div class="modal-box" onclick="event.stopPropagation()" style="max-width:560px;max-height:85vh;overflow-y:auto">
-        <div class="insight-modal-header">
-          <div>
-            <div class="insight-modal-title">${escHtml(g.goal)}</div>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${items.length} piece${items.length !== 1 ? 's' : ''} of evidence</div>
-          </div>
-          <button class="insight-modal-close" onclick="closeDesignGoalModal()">✕</button>
+        <div style="position:relative;padding:20px 24px 16px;border-bottom:1px solid var(--border)">
+          <div class="insight-modal-title">${escHtml(g.goal)}</div>
+          ${g.kpi ? `<div style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-top:8px">${escHtml(g.kpi)}</div>` : ''}
+          <div style="margin-top:8px;font-size:12px;color:var(--text-muted)">${items.length} piece${items.length !== 1 ? 's' : ''} of evidence</div>
+          <button class="insight-modal-close" onclick="closeDesignGoalModal()" style="position:absolute;top:16px;right:16px">✕</button>
         </div>
         <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px">
-          ${items.map(item => `
+          ${items.length === 0
+            ? `<div style="font-size:13px;color:var(--text-muted);font-style:italic;padding:8px 0">No evidence found yet. As you add assessment notes and outreach activity, relevant pieces will appear here.</div>`
+            : items.map(item => `
             <div style="padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                 <span style="font-size:12px;font-weight:700;color:var(--text)">${escHtml(item.label)}</span>
