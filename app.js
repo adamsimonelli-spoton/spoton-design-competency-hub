@@ -736,6 +736,7 @@ let state = {
   pinModal: null,
   unlockedProfiles: [],
   personalGoalId: null,
+  designGoalId: null,
 };
 
 // ============ STORAGE ============
@@ -4249,6 +4250,144 @@ function getDesignGoalEvidence(g) {
   return items;
 }
 
+function navigateToDesignGoal(goalId) {
+  state.designGoalId = goalId;
+  state.view = 'design-goal';
+  state.designGoalAddMode = null;
+  state.designGoalSuggestions = [];
+  render();
+  window.scrollTo(0, 0);
+}
+
+function renderDesignGoalDetail() {
+  const g = DESIGN_TEAM_GOALS.find(x => x.id === state.designGoalId);
+  if (!g) return '<div style="padding:32px">Goal not found.</div>';
+
+  const gIdx = DESIGN_TEAM_GOALS.findIndex(x => x.id === state.designGoalId);
+  const prevGoal = DESIGN_TEAM_GOALS[(gIdx - 1 + DESIGN_TEAM_GOALS.length) % DESIGN_TEAM_GOALS.length];
+  const nextGoal = DESIGN_TEAM_GOALS[(gIdx + 1) % DESIGN_TEAM_GOALS.length];
+
+  const d = getData();
+  const contrib = getGoalContribution(g.id);
+  const sc = GOAL_STATUS_CONFIG[contrib.status || 'not_started'];
+  const allItems = getDesignGoalEvidence(g);
+  const manualItems = d.designGoalEvidence?.[g.id] || [];
+
+  const evidenceCard = (item, deleteId) => `
+    <div style="padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:12px;font-weight:700;color:var(--text)">${escHtml(item.label)}</span>
+        ${item.tag ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--primary-light);color:var(--primary)">${escHtml(item.tag)}</span>` : ''}
+        ${item.date ? `<span style="font-size:11px;color:var(--text-muted);margin-left:auto">${formatDate(item.date)}</span>` : ''}
+        ${deleteId ? `<button onclick="deleteDesignGoalEvidence('${g.id}','${deleteId}')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:14px;padding:0 4px;line-height:1;margin-left:${item.date ? '8px' : 'auto'}" title="Remove">✕</button>` : ''}
+      </div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.5">${escHtml(item.text)}</div>
+    </div>`;
+
+  const suggestionCard = (item, i) => item.noMatch
+    ? `<div style="padding:12px 14px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);font-size:13px;color:var(--text-muted)">${escHtml(item.text)}</div>`
+    : `
+    <div style="padding:12px 14px;background:#FFFBEB;border-radius:8px;border:1px solid #FDE68A">
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px">
+        <span style="font-size:12px;font-weight:700;color:var(--text);flex:1">${escHtml(item.label)}</span>
+        <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#FEF3C7;color:#92400E;white-space:nowrap">AI Suggested</span>
+        ${item.date ? `<span style="font-size:11px;color:var(--text-muted);white-space:nowrap">${formatDate(item.date)}</span>` : ''}
+      </div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px">${escHtml(item.text)}</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="confirmDesignGoalSuggestion('${g.id}',${i})" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer">Add to Evidence</button>
+        <button onclick="dismissDesignGoalSuggestion(${i})" style="background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">Dismiss</button>
+      </div>
+    </div>`;
+
+  return `
+    <div style="max-width:900px">
+      <div class="breadcrumb">
+        <button class="back-arrow-btn" onclick="state.view='goals';state.designGoalId=null;state.designGoalAddMode=null;state.designGoalSuggestions=[];render()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Back
+        </button>
+        ${DESIGN_TEAM_GOALS.length > 1 ? `
+        <div class="skill-nav-arrows">
+          <button class="skill-nav-btn" onclick="navigateToDesignGoal('${prevGoal.id}')" title="${escHtml(prevGoal.goal)}">‹ Prev</button>
+          <button class="skill-nav-btn" onclick="navigateToDesignGoal('${nextGoal.id}')" title="${escHtml(nextGoal.goal)}">Next ›</button>
+        </div>` : ''}
+      </div>
+
+      <!-- Header -->
+      <div style="margin-bottom:24px">
+        <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <h1 style="font-size:22px;font-weight:800;color:var(--text);margin:0;flex:1">${escHtml(g.goal)}</h1>
+          <select class="review-level-select" style="color:${sc.color};background:${sc.bg};border-color:${sc.color};font-weight:600;flex-shrink:0" onchange="saveDesignGoalStatusFromDetail('${g.id}',this.value)">
+            ${Object.entries(GOAL_STATUS_CONFIG).map(([k,v]) => `<option value="${k}" ${(contrib.status||'not_started')===k?'selected':''}>${v.label}</option>`).join('')}
+          </select>
+        </div>
+        ${g.timeFrame ? `<div style="font-size:13px;color:var(--text-muted);margin-top:4px">${escHtml(g.timeFrame)}</div>` : ''}
+      </div>
+
+      <!-- KPI + Notes -->
+      <div class="review-table-wrap" style="overflow:hidden;margin-bottom:24px">
+        <div style="display:grid;grid-template-columns:1fr 1fr">
+          <div style="padding:16px 20px;border-right:1px solid var(--border)">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px">KPI / How I'll Contribute</div>
+            <div style="font-size:14px;color:var(--text-secondary);line-height:1.6">${escHtml(g.kpi || '—')}</div>
+          </div>
+          <div style="padding:16px 20px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px">My Notes</div>
+            <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:8px">${contrib.notes ? escHtml(contrib.notes) : '<span style="color:var(--text-muted);font-style:italic">No notes yet</span>'}</div>
+            <button onclick="openGoalNotesModal('design','${g.id}',0)" style="font-size:12px;font-weight:600;color:var(--primary);background:none;border:none;padding:0;cursor:pointer">${contrib.notes ? 'Edit notes →' : '+ Add notes'}</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Evidence section -->
+      <div class="review-table-wrap" style="overflow:hidden">
+        <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:14px;font-weight:700;color:var(--text)">Evidence</span>
+          <div style="display:flex;gap:8px">
+            <button onclick="state.designGoalAddMode = state.designGoalAddMode === 'manual' ? null : 'manual'; render()" style="font-size:12px;font-weight:600;color:var(--primary);background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer">+ Add</button>
+            <button onclick="findDesignGoalEvidence('${g.id}')" style="font-size:12px;font-weight:600;color:#92400E;background:#FEF3C7;border:none;border-radius:6px;padding:5px 12px;cursor:pointer">✦ Find with AI</button>
+          </div>
+        </div>
+        <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+          ${state.designGoalAddMode === 'manual' ? `
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">Add Evidence</div>
+              <input id="dge2-label" class="form-input" placeholder="Source / label (e.g. Merchant visit, Research session)" style="margin-bottom:8px" />
+              <textarea id="dge2-text" class="form-input" rows="3" placeholder="Describe the evidence…" style="resize:vertical"></textarea>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button onclick="saveDesignGoalEvidence('${g.id}', document.getElementById('dge2-text').value, document.getElementById('dge2-label').value)" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">Save</button>
+                <button onclick="state.designGoalAddMode=null;render()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">Cancel</button>
+              </div>
+            </div>` : ''}
+          ${state.designGoalAddMode === 'ai' ? `
+            <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:12px 14px">
+              <div style="font-size:12px;font-weight:600;color:#92400E;margin-bottom:4px">✦ AI found ${state.designGoalSuggestions.length} potential match${state.designGoalSuggestions.length !== 1 ? 'es' : ''} from your data</div>
+              <div style="font-size:12px;color:#78350F">Review and add anything relevant to this goal.</div>
+            </div>
+            ${state.designGoalSuggestions.length === 0
+              ? `<div style="font-size:13px;color:var(--text-muted);font-style:italic">All suggestions reviewed.</div>`
+              : state.designGoalSuggestions.map((s, i) => suggestionCard(s, i)).join('')}
+            <button onclick="state.designGoalAddMode=null;render()" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:0">Done reviewing</button>
+          ` : ''}
+          ${allItems.length === 0 && state.designGoalAddMode !== 'manual' && state.designGoalAddMode !== 'ai'
+            ? `<div style="font-size:13px;color:var(--text-muted);font-style:italic">No evidence yet. Add manually or use AI to find relevant items from your assessments and notes.</div>`
+            : allItems.map(item => {
+                const manualMatch = manualItems.find(e => e.text === item.text);
+                return evidenceCard(item, manualMatch ? manualMatch.id : null);
+              }).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+function saveDesignGoalStatusFromDetail(goalId, status) {
+  const c = getGoalContribution(goalId);
+  c.status = status;
+  saveGoalContribution(goalId, c);
+  render();
+}
+
 function renderDesignTeamGoals() {
   return `
     <div class="goals-section">
@@ -4267,7 +4406,7 @@ function renderDesignTeamGoals() {
           const items = getDesignGoalEvidence(g);
           const count = items.length;
           return `
-            <div onclick="openDesignGoalModal('${g.id}')" style="display:grid;grid-template-columns:1fr 130px;align-items:center;padding:14px 16px;cursor:pointer;transition:background .12s;${i > 0 ? 'border-top:1px solid var(--border)' : ''}" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background=''">
+            <div onclick="navigateToDesignGoal('${g.id}')" style="display:grid;grid-template-columns:1fr 130px;align-items:center;padding:14px 16px;cursor:pointer;transition:background .12s;${i > 0 ? 'border-top:1px solid var(--border)' : ''}" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background=''">
               <div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(g.goal)}</div>
               <div style="display:flex;align-items:center;justify-content:space-between">
                 ${count > 0
@@ -4278,7 +4417,6 @@ function renderDesignTeamGoals() {
             </div>`;
         }).join('')}
       </div>
-      ${state.designGoalModal ? renderDesignGoalModal() : ''}
     </div>`;
 }
 
@@ -4951,6 +5089,7 @@ function navigate(view, param) {
     state.view = 'goals';
     state.growthThemeId = null;
     state.personalGoalId = null;
+    state.designGoalId = null;
   } else if (view === 'value') {
     state.prevView = state.view;
     state.view = 'value';
@@ -5633,6 +5772,10 @@ function getViewTitle() {
       const pg = getPersonalGoals().find(x => x.id === state.personalGoalId);
       return pg ? escHtml(pg.goal) : 'Personal Goal';
     }
+    case 'design-goal': {
+      const dg = DESIGN_TEAM_GOALS.find(x => x.id === state.designGoalId);
+      return dg ? escHtml(dg.goal) : 'Team Goal';
+    }
     case 'growth-theme': {
       const d = getData();
       const t = (d.growthThemes || []).find(x => x.id === state.growthThemeId);
@@ -5762,6 +5905,7 @@ function render() {
         ${state.view === 'goals' ? renderGoals() : ''}
         ${state.view === 'growth-theme' ? renderGrowthThemeDetail() : ''}
         ${state.view === 'personal-goal' ? renderPersonalGoalDetail() : ''}
+        ${state.view === 'design-goal' ? renderDesignGoalDetail() : ''}
       </div>
     </div>
 
