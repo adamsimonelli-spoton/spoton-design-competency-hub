@@ -3012,8 +3012,6 @@ function renderReview() {
                 <th style="cursor:pointer;user-select:none" onclick="setTableSort('review','assessment')">Assessment${sortIndicator('review','assessment')}</th>
                 <th style="cursor:pointer;user-select:none" onclick="setTableSort('review','expected')">Expected${sortIndicator('review','expected')}</th>
                 <th style="cursor:pointer;user-select:none" onclick="setTableSort('review','gap')">Gap${sortIndicator('review','gap')}</th>
-                <th>Evidence &amp; Examples</th>
-                <th>Notes</th>
                 <th style="cursor:pointer;user-select:none" onclick="setTableSort('review','updated')">Updated${sortIndicator('review','updated')}</th>
               </tr>
             </thead>
@@ -3049,16 +3047,6 @@ function renderReview() {
                     </td>
                     <td style="text-align:center">
                       ${isGap ? `<span class="review-gap-badge review-gap-under-${gapDiff}">−${gapDiff}</span>` : isOver ? `<span class="review-gap-badge review-gap-over-${gapDiff}">+${gapDiff}</span>` : '<span style="color:var(--text-muted);font-size:12px">—</span>'}
-                    </td>
-                    <td>
-                      <button class="review-notes-btn" onclick="openNotesModal('${skill.id}','evidence')">
-                        ${a.evidence ? `<span class="review-notes-preview-text">${escHtml(a.evidence)}</span><span class="review-notes-expand">↗</span>` : '<span class="review-notes-placeholder">Add evidence…</span>'}
-                      </button>
-                    </td>
-                    <td>
-                      <button class="review-notes-btn" onclick="openNotesModal('${skill.id}','goals')">
-                        ${a.goals ? `<span class="review-notes-preview-text">${escHtml(a.goals)}</span><span class="review-notes-expand">↗</span>` : '<span class="review-notes-placeholder">Add note…</span>'}
-                      </button>
                     </td>
                     <td><span style="font-size:11px;color:var(--text-muted)">${formatDate(a.lastUpdated) || '—'}</span></td>
                   </tr>
@@ -4240,7 +4228,7 @@ function renderGrowthThemes() {
           const count = evidence.length;
           return `
             <div onclick="navigateToGrowthTheme('${t.id}')" style="display:grid;grid-template-columns:1fr 130px 110px;align-items:center;padding:14px 16px;cursor:pointer;transition:background .12s;${i > 0 ? 'border-top:1px solid var(--border)' : ''}" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background=''">
-              <div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(t.theme)}</div>
+              <div class="goals-goal-name">${escHtml(t.theme)}</div>
               <div style="font-size:13px;color:var(--text-secondary)">${today !== null ? `${today} → ${best}` : '—'}</div>
               <div style="display:flex;align-items:center;justify-content:space-between">
                 ${count > 0
@@ -4436,7 +4424,7 @@ function renderDesignTeamGoals() {
           const count = items.length;
           return `
             <div onclick="navigateToDesignGoal('${g.id}')" style="display:grid;grid-template-columns:1fr 130px;align-items:center;padding:14px 16px;cursor:pointer;transition:background .12s;${i > 0 ? 'border-top:1px solid var(--border)' : ''}" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background=''">
-              <div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(g.goal)}</div>
+              <div class="goals-goal-name">${escHtml(g.goal)}</div>
               <div style="display:flex;align-items:center;justify-content:space-between">
                 ${count > 0
                   ? `<span style="font-size:13px;font-weight:600;color:var(--primary)">${count} piece${count !== 1 ? 's' : ''}</span>`

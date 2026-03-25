@@ -3347,7 +3347,7 @@ body {
 .personal-goals-table th:nth-child(4),
 .personal-goals-table td:nth-child(4) { width: 36px; padding: 0 8px; text-align: center; }
 .personal-goals-table th:nth-child(5),
-.personal-goals-table td:nth-child(5) { width: 32px; padding-right: 12px; text-align: right; }
+.personal-goals-table td:nth-child(5) { width: 32px; padding: 14px 16px 14px 0; text-align: right; }
 .personal-goals-table .review-level-select { min-width: 0; width: 100%; }
 .goals-table th:nth-child(2),
 .goals-table td:nth-child(2) { white-space: normal; min-width: 240px; }
@@ -3366,7 +3366,8 @@ body {
   line-height: 1.4;
   transition: color .12s;
 }
-tr:hover .goals-goal-name { color: var(--primary); }
+tr:hover .goals-goal-name,
+div:hover > .goals-goal-name { color: var(--primary); }
 .goals-kpi-cell {
   font-size: 14px;
   color: var(--text-secondary);
