@@ -49,6 +49,7 @@
   --shadow-lg: 0 0 40px rgba(0,0,0,.05);
   --shadow-overlay: 0 8px 24px rgba(0,0,0,.14);
   --shadow-modal: 0 20px 48px rgba(0,0,0,.18);
+  --surface-hover: #EEF2F8;
   --radius: 10px;
   --radius-sm: 8px;
   --radius-lg: 12px;
@@ -2227,6 +2228,7 @@ body {
   vertical-align: middle;
 }
 .review-table tr:last-child td { border-bottom: none; }
+.review-table td { transition: background .12s; }
 .review-table tr:hover td { background: var(--surface-hover); }
 .review-table th:nth-child(1),
 .review-table td:nth-child(1) { min-width: 260px; width: 260px; }

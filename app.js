@@ -3809,7 +3809,7 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
           <thead>
             <tr>
               <th style="cursor:pointer;user-select:none" onclick="setTableSort('goals-${sectionId}','goal')">Goal${sortIndicator('goals-'+sectionId,'goal')}</th>
-              <th>KPI / How I'll Contribute</th>
+              ${sectionId !== 'personal' ? '<th>KPI / How I\'ll Contribute</th>' : ''}
               <th style="cursor:pointer;user-select:none" onclick="setTableSort('goals-${sectionId}','timeFrame')">Time Frame${sortIndicator('goals-'+sectionId,'timeFrame')}</th>
               <th style="cursor:pointer;user-select:none" onclick="setTableSort('goals-${sectionId}','status')">Status${sortIndicator('goals-'+sectionId,'status')}</th>
               <th>Notes</th>
@@ -3830,9 +3830,9 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
               const notes  = isEditable ? (g.notes || '') : (contrib.notes || '');
               const sc = GOAL_STATUS_CONFIG[status];
               return `
-                <tr ${sectionId === 'personal' ? `style="cursor:pointer" onclick="navigateToPersonalGoal('${g.id}')" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background=''"` : ''}>
+                <tr ${sectionId === 'personal' ? `style="cursor:pointer" onclick="navigateToPersonalGoal('${g.id}')"` : ''}>
                   <td><div class="goals-goal-name">${escHtml(g.goal)}</div></td>
-                  <td class="goals-kpi-cell">${escHtml(g.kpi)}</td>
+                  ${sectionId !== 'personal' ? `<td class="goals-kpi-cell">${escHtml(g.kpi)}</td>` : ''}
                   <td><span style="font-size:12px;color:var(--text-secondary);white-space:nowrap">${escHtml(g.timeFrame || '—')}</span></td>
                   <td onclick="${sectionId === 'personal' ? 'event.stopPropagation()' : ''}">
                     <select class="review-level-select" style="color:${sc.color};background:${sc.bg};border-color:${sc.color};font-weight:600;min-width:120px" onchange="saveGoalStatus('${sectionId}','${g.id}',this.value,${i})">
