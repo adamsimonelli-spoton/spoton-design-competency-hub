@@ -3919,13 +3919,29 @@ function renderGrowthThemeDetail() {
       </div>
     </div>`;
 
+  const themeIdx = themes.findIndex(x => x.id === state.growthThemeId);
+  const prevTheme = themeIdx > 0 ? themes[themeIdx - 1] : null;
+  const nextTheme = themeIdx < themes.length - 1 ? themes[themeIdx + 1] : null;
+
   return `
     <div style="max-width:900px">
-      <!-- Back nav -->
-      <button onclick="state.view='goals';state.growthThemeId=null;render()" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--text-muted);font-size:13px;font-weight:600;cursor:pointer;padding:0;margin-bottom:20px">
-        <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"/></svg>
-        Growth Themes
-      </button>
+      <!-- Back nav + prev/next -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <button onclick="state.view='goals';state.growthThemeId=null;render()" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--text-muted);font-size:13px;font-weight:600;cursor:pointer;padding:0">
+          <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"/></svg>
+          Growth Themes
+        </button>
+        <div style="display:flex;align-items:center;gap:4px">
+          <button onclick="navigateToGrowthTheme('${prevTheme ? prevTheme.id : ''}')" ${!prevTheme ? 'disabled' : ''} style="display:inline-flex;align-items:center;gap:4px;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;color:${prevTheme ? 'var(--text-secondary)' : 'var(--text-muted)'};cursor:${prevTheme ? 'pointer' : 'default'};opacity:${prevTheme ? '1' : '.4'}">
+            <svg width="13" height="13" viewBox="0 0 256 256" fill="currentColor"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"/></svg>
+            ${prevTheme ? escHtml(prevTheme.theme) : 'Previous'}
+          </button>
+          <button onclick="navigateToGrowthTheme('${nextTheme ? nextTheme.id : ''}')" ${!nextTheme ? 'disabled' : ''} style="display:inline-flex;align-items:center;gap:4px;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;color:${nextTheme ? 'var(--text-secondary)' : 'var(--text-muted)'};cursor:${nextTheme ? 'pointer' : 'default'};opacity:${nextTheme ? '1' : '.4'}">
+            ${nextTheme ? escHtml(nextTheme.theme) : 'Next'}
+            <svg width="13" height="13" viewBox="0 0 256 256" fill="currentColor"><path d="M32,128a8,8,0,0,1,8-8H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72a8,8,0,0,1,0,11.32l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40A8,8,0,0,1,32,128Z"/></svg>
+          </button>
+        </div>
+      </div>
 
       <!-- Header -->
       <div style="margin-bottom:24px">
