@@ -80,6 +80,9 @@
           "today": ["Participates in research sessions but relies on senior guidance", "Needs support on screener design, discussion guides, and synthesis", "Often observes rather than leads"],
           "better": ["Independently plans and leads moderated studies end-to-end", "Synthesizes findings into actionable insights without coaching", "Presents findings to the team independently"],
           "best": ["Drives the research agenda for a full product area", "Mentors others on research methodology", "Contributes to raising the team's research standards"],
+          "todayHowTo": ["Ask to shadow Tyler on 2 upcoming studies this quarter", "Draft a discussion guide independently before reviewing it with Tyler", "Volunteer to own the synthesis document for a small study, even while supervised"],
+          "betterHowTo": ["Run a full moderated study from recruitment through readout with only light manager review at the end", "Use Dovetail to tag, cluster, and synthesize findings without being prompted", "Present your own research findings at the next team review meeting"],
+          "bestHowTo": ["Volunteer to own the research plan for an entire product area for a quarter", "Propose and run a team session on research best practices or methodology", "Informally mentor a designer who is newer to research by pairing on their next study"],
           "indicators": ["Solo study completion rate", "Synthesis doc quality", "Insight-to-decision traceability"],
           "dependencies": ["Participant recruitment access", "Dovetail license", "Manager availability for review sign-off"],
           "collaborators": ["Tyler Chen (UX Research)", "Design Manager", "PM"]
@@ -90,6 +93,9 @@
           "today": ["Visual execution is strong but accessibility is applied inconsistently", "Contrast misses and missing focus states still appear at handoff"],
           "better": ["Accessibility is a built-in checkpoint before every handoff", "Zero violations in dev QA for 3+ consecutive sprints", "Proactively catches a11y issues in design reviews"],
           "best": ["Leads accessibility culture on the team", "Reviews others' work for a11y issues and contributes patterns to the design system", "Sets the standard for inclusive design"],
+          "todayHowTo": ["Install the Figma Accessibility Annotation Kit and use it on your next feature", "Complete a WCAG 2.1 basics course (use your learning budget)", "Add an accessibility checklist to your personal handoff process"],
+          "betterHowTo": ["Run your designs through VoiceOver or NVDA before every handoff", "Partner with Engineering to add one automated accessibility check to a sprint's QA process", "Bring an a11y issue you caught to a design critique and walk through your fix"],
+          "bestHowTo": ["Propose and lead a team accessibility working session", "Contribute at least 2 accessibility-focused components or annotations to the design system", "Write a short internal guide on accessible design practices at SpotOn and share it with the team"],
           "indicators": ["A11y violations in dev QA", "Design system contribution count", "Component reuse rate"],
           "dependencies": ["Figma accessibility plugin", "Engineering QA process", "Design system maturity"],
           "collaborators": ["Marcus Webb", "Engineering", "Design system team"]
@@ -100,6 +106,9 @@
           "today": ["Communicates confidently in 1:1 and small group settings", "Tends to go quiet in larger cross-functional reviews", "Frames opinions as questions rather than positions"],
           "better": ["Consistently shares a design perspective in group settings", "States design rationale with confidence", "Invites critique rather than avoiding it"],
           "best": ["A trusted voice in cross-functional rooms", "Facilitates discussions and advocates for the user when challenged", "Models clear, confident communication for peers"],
+          "todayHowTo": ["Prepare 1-2 specific talking points before every cross-functional review", "Volunteer to present one decision per critique, even a small one, instead of observing", "Practice reframing your opinions from questions to positions — say 'I recommend' instead of 'should we'"],
+          "betterHowTo": ["Ask to run the intro segment or design rationale walkthrough in a cross-functional meeting", "Share a design perspective proactively in Slack or async after key product discussions", "Take on a 'design advocate' role in one upcoming quarterly planning session"],
+          "bestHowTo": ["Volunteer to facilitate a full cross-functional design critique from end to end", "Present a design recommendation directly to a director or VP with manager sponsorship", "Coach a newer team member on how to present design decisions with confidence"],
           "indicators": ["Critique participation rate", "Cross-functional presentation count", "Peer feedback quality"],
           "dependencies": ["Team psychological safety", "Meeting cadence and structure"],
           "collaborators": ["Design team", "PM", "Cross-functional partners"]
@@ -186,6 +195,9 @@
           "today": ["Effective communicator within the design team", "Rarely presents to VP-level or above independently", "Tends to over-explain rather than leading with impact"],
           "better": ["Delivers crisp, outcome-focused presentations to VP-level stakeholders", "Frames design decisions in business terms", "Handles pushback with confidence"],
           "best": ["A trusted design voice at the leadership table", "Proactively shapes strategy conversations", "Elevates design's perceived value across the org"],
+          "todayHowTo": ["Join Elena's next VP-level meeting as a silent observer and debrief with her afterward", "Draft one design recommendation as a one-page executive summary — decision focused, no jargon", "Review how Elena frames design strategy in her leadership communications and ask her to walk you through her prep process"],
+          "betterHowTo": ["Request to present one design decision directly to a VP or director — prepare a 10-minute crisp narrative", "Write a post-presentation brief summarizing key decisions and follow-up actions for the PM and stakeholders", "Ask for feedback from at least two people after every exec-level presentation"],
+          "bestHowTo": ["Own a quarterly design strategy update directly to the CPO or product leadership", "Proactively bring design perspectives into strategy or planning forums without being asked", "Share what worked in your exec communication approach with the team to raise the bar org-wide"],
           "indicators": ["VP-level presentation count", "Post-presentation follow-up action rate", "Design influence on roadmap decisions"],
           "dependencies": ["Access to leadership forums", "Elena's sponsorship", "CPO/VP availability"],
           "collaborators": ["Elena Santos", "VP of Product", "CPO", "PMM"]
@@ -196,6 +208,9 @@
           "today": ["Designs excellent individual features", "Doesn't consistently connect work to upstream/downstream systems", "Relies on existing frameworks rather than questioning them"],
           "better": ["Regularly maps how feature designs affect broader product flows", "Proposes system-level improvements", "Identifies when an existing pattern needs to evolve"],
           "best": ["Drives the product design system strategy", "Sees the full ecosystem and proactively closes gaps", "Connects product areas, platforms, and user journeys"],
+          "todayHowTo": ["Map the full end-to-end journey for one product area and share it with the team as a reference artifact", "In your next feature, explicitly document how your design decisions connect to adjacent flows", "Read 'A Pattern Language' or review the team's existing component library with a critical systems eye"],
+          "betterHowTo": ["Identify 2-3 cross-product patterns that could be standardized and propose them to the design system team", "Lead a cross-squad session to align on a shared approach to a recurring design problem", "Document your systems thinking process in a Notion doc so others can learn from it"],
+          "bestHowTo": ["Own the design system contribution process for a major pattern area end-to-end", "Run a cross-functional workshop to align Engineering, Product, and Design on a shared systems framework", "Mentor others on how to think and design at the systems level — make it a teachable skill on the team"],
           "indicators": ["Cross-product patterns documented", "Design system contributions", "Pattern reuse rate across squads"],
           "dependencies": ["Design system maturity", "Cross-squad visibility", "PM alignment on system investment"],
           "collaborators": ["Design system team", "Engineering", "Tyler Chen", "Other product designers"]
@@ -206,6 +221,9 @@
           "today": ["Provides helpful ad hoc feedback to junior designers", "Mentorship is reactive rather than proactive", "No formal cadence or structured growth plan with mentees"],
           "better": ["Runs a consistent bi-weekly mentorship cadence with a defined agenda", "Tracks growth against a written development plan", "Adjusts coaching based on outcomes"],
           "best": ["A sought-after mentor across the design org", "Builds others' capabilities systematically", "Creates lasting growth visible in the work and careers of those they've coached"],
+          "todayHowTo": ["Set up a recurring bi-weekly 1:1 with Jordan with a written growth agenda", "Ask Jordan to name one skill they want to work on this quarter and co-create a 30-day plan", "After each session, write one sentence capturing what you coached on — build a log"],
+          "betterHowTo": ["Share Jordan's growth plan with the manager so coaching is aligned to team development goals", "Introduce Jordan to one stakeholder outside the design team to expand their network", "Lead a team-level skill-building session on something you are strong at — treat it as scaled coaching"],
+          "bestHowTo": ["Propose and run a formal mentorship program structure for the design team with Elena's sponsorship", "Track measurable growth signals for the people you mentor (promotions, new responsibilities, presentations)", "Write a short guide on effective design mentorship to share with future team leads"],
           "indicators": ["Mentorship session consistency", "Mentee skill growth trajectory", "Written growth plan on file"],
           "dependencies": ["Protected time for mentorship", "Mentee engagement and availability"],
           "collaborators": ["Jordan Kim", "Elena Santos", "HRBP"]
@@ -294,6 +312,9 @@
           "today": ["Highly influential within the design team and with direct product partners", "Strategic design voice is established at the team level", "Not yet consistently felt at the exec level"],
           "better": ["Regularly shapes product strategy at the CPO level", "Design perspectives are sought out — not just responded to — in major decisions", "Embedded in roadmap and investment conversations"],
           "best": ["Design is embedded in the company's strategic language", "Elena is a named voice in exec forums", "Design maturity across the org has measurably improved"],
+          "todayHowTo": ["Request to join one CPO-level strategy session as a design representative this quarter", "Prepare a one-pager on design's impact in Q1 and share it proactively with product leadership", "Identify one roadmap decision where design's perspective is underweighted and make the case to change it"],
+          "betterHowTo": ["Establish a recurring design strategy touchpoint with the CPO or a VP of Product", "Propose a design-led initiative that would not exist without design driving it from the start", "Document 3 business outcomes that were directly shaped by design decisions in the last half"],
+          "bestHowTo": ["Become a standing voice in product strategy forums — not just invited in, but expected", "Shape how design's value is measured and communicated at the board or ELT level", "Sponsor a design-first culture initiative across multiple product squads"],
           "indicators": ["Design-first initiative count", "Roadmap decisions citing design input", "CPO forum participation rate"],
           "dependencies": ["CPO sponsorship", "Company strategy stability", "Cross-functional trust in design"],
           "collaborators": ["CPO", "Product VPs", "HRBP", "ELT"]
@@ -304,6 +325,9 @@
           "today": ["Builds strong individual relationships and coaches well 1:1", "Team capacity is growing", "A formal development operating system is still ad hoc"],
           "better": ["A consistent team development cadence is in place", "Growth reviews happen on schedule and skill gaps are tracked", "Designers have clear visibility into advancement"],
           "best": ["The design team is a talent magnet", "Elena's development system produces promotions and strong retention", "Designers who came up through the system raise the bar org-wide"],
+          "todayHowTo": ["Map out the current state of team development by having candid 1:1s about each designer's 12-month trajectory", "Identify which designers are close to a promotion and make sure they have the right visibility and opportunities", "Set up a team health pulse — even an informal Slack emoji poll — to establish a baseline"],
+          "betterHowTo": ["Create an explicit growth plan for each designer with 90-day milestones", "Partner with HRBP to align on leveling criteria and ensure the team sees a clear path forward", "Run a team retrospective on what would make the design team a great place to grow careers"],
+          "bestHowTo": ["Build a design team development playbook that other design managers at SpotOn can use", "Drive at least one promotion cycle with a designer you have invested in over 12+ months", "Influence how design roles and levels are defined org-wide so growth paths are clear and motivating"],
           "indicators": ["Team retention rate", "Promotion velocity", "Design team health survey scores"],
           "dependencies": ["Headcount investment", "Compensation alignment", "Leadership support"],
           "collaborators": ["HRBP", "ELT", "Design leads", "Recruiting"]
@@ -314,6 +338,9 @@
           "today": ["Has introduced several high-impact frameworks", "Adoption is uneven across teams", "Some areas still operate without design process clarity"],
           "better": ["Design process frameworks are documented and adopted across all squads", "Frameworks are iterated on based on feedback", "New designers ramp into a clear, predictable way of working"],
           "best": ["SpotOn's design process is a competitive advantage", "External practitioners reference it", "Elena is recognized for having built something replicable and scalable"],
+          "todayHowTo": ["Audit the current design process across 3 squads and identify the biggest friction points", "Pick one bottleneck — like design review or handoff — and propose a lightweight solution to test this sprint", "Get buy-in from one PM and one Engineering lead to co-own a process improvement this quarter"],
+          "betterHowTo": ["Document a process framework that any designer on the team can follow without needing to ask you", "Measure the impact of a process change — track time saved, confusion reduced, or velocity gained", "Facilitate a cross-functional process retrospective that includes PM and Engineering perspectives"],
+          "bestHowTo": ["Roll out a scalable design process framework across all product squads with clear ownership", "Create an onboarding process so strong that a new designer hits full productivity within 30 days", "Establish design operational standards that survive team growth, reorgs, and leadership changes"],
           "indicators": ["Squad process adoption rate", "Time-to-ramp for new designers", "Process doc usage analytics"],
           "dependencies": ["Engineering and PM buy-in", "Tool stability (Figma, Jira)", "Leadership prioritization"],
           "collaborators": ["Engineering leads", "PM", "Design team", "Ops"]
@@ -403,6 +430,9 @@
           "today": ["Delivers high-quality research outputs", "The path from insight to product decision is often unclear", "Impact is felt but not formally tracked or attributed"],
           "better": ["Consistently links research findings to specific product decisions", "Tracks influence metrics", "Stakeholders can name studies that changed what they built"],
           "best": ["Research is embedded in the product decision-making culture", "Tyler's impact is measurable and cited in leadership reviews", "Research findings are used to justify the research investment"],
+          "todayHowTo": ["At the end of every study, write a one-sentence 'so what' for each insight before writing the full report", "Follow up 4 weeks after a readout to document what decisions were made based on your research", "Ask the PM after each study: 'What would you do differently based on what we found?'"],
+          "betterHowTo": ["Co-present research findings directly in a product review or roadmap planning session", "Create a simple Research Impact tracker — a running log of studies and the decisions they influenced", "Partner with Data Analytics to connect a qualitative insight to a quantitative signal"],
+          "bestHowTo": ["Own the research strategy for a full product area and show how it maps to business outcomes", "Build a research citation habit on the team — every design decision references a study or a signal", "Present a research-to-outcome story at an all-hands or leadership forum to elevate research's visibility"],
           "indicators": ["Research-influenced decision count", "Study citation rate in roadmap reviews", "Insight-to-action turnaround time"],
           "dependencies": ["PM trust in research", "Data infrastructure access", "Study timeline feasibility"],
           "collaborators": ["Elena Santos", "PM", "Data Analytics", "Product leads"]
@@ -413,6 +443,9 @@
           "today": ["Highly skilled in qualitative methods", "Comfortable reading analytics", "Relies on data scientists or PMs to design and interpret quantitative studies"],
           "better": ["Designs and independently interprets mixed-methods studies", "Knows when to pair qual with quant", "Comfortably discusses statistical significance"],
           "best": ["A fully mixed-methods researcher", "Designs studies combining qual depth with quant rigor", "Shapes the product analytics strategy"],
+          "todayHowTo": ["Schedule a 1:1 with a data analyst this quarter to learn how to pull a basic product metric yourself", "On your next study, ask 'what does the data already tell us?' before designing the study", "Complete one SQL basics course or data literacy workshop using your learning budget"],
+          "betterHowTo": ["Design and run one mixed-methods study where you combine qual findings with a quantitative signal", "Build a self-serve analytics view for a product area you are actively researching", "Present a study that combines your qualitative findings with data alongside a data analyst partner"],
+          "bestHowTo": ["Establish a quantitative research standard for the team — a template for how qual and quant work together", "Own the measurement framework for a product initiative from hypothesis through post-launch analysis", "Train a designer or PM on how to interpret and use quantitative research alongside qualitative methods"],
           "indicators": ["Mixed-method study count", "Analytics self-serve usage", "Statistical confidence in reports"],
           "dependencies": ["Data infrastructure access", "Analytics team partnership", "Tool availability"],
           "collaborators": ["Data Analytics", "Engineering", "PM", "Elena Santos"]
@@ -423,6 +456,9 @@
           "today": ["Research readouts are thorough but sometimes too detailed for exec audiences", "Key takeaways get buried in evidence"],
           "better": ["Delivers crisp, insight-led readouts tailored to the audience", "Leads with 'so what'", "Leaves stakeholders with clear, actionable implications"],
           "best": ["A master research communicator", "Research stories inspire urgency and clarity in leadership", "Readouts are referenced as models long after the study ends"],
+          "todayHowTo": ["For your next readout, cut your deck to 5 slides: context, method, 3 insights, recommendation", "Practice presenting your findings to one safe audience (a designer or PM you trust) before the real readout", "Ask for feedback after every exec-level presentation — specifically on clarity and actionability"],
+          "betterHowTo": ["Structure every readout around a decision, not just findings — end with 'therefore, we recommend'", "Build a reusable research readout template that others on the team can use", "Get at least one piece of research cited in a product strategy doc or roadmap decision this quarter"],
+          "bestHowTo": ["Develop a signature storytelling style that leadership recognizes and actively requests", "Run a workshop for the design and PM team on how to turn research into compelling decisions", "Build a research portfolio of high-impact moments — studies where your insights directly changed the product"],
           "indicators": ["Exec readout feedback scores", "Action rate on insights", "Research deck reuse across teams"],
           "dependencies": ["Executive accessibility", "Meeting slots for research readouts"],
           "collaborators": ["Elena Santos", "CPO/VPs", "PM", "Design team"]
@@ -440,7 +476,7 @@
   };
 
   // Seed version — bump this when seed data changes to force a refresh of example profiles
-  var SEED_VERSION = 16;
+  var SEED_VERSION = 17;
   var storedVersion = parseInt(localStorage.getItem('dch_seed_version') || '0', 10);
   var exampleIds = ['p_jordan_001', 'p_marcus_001', 'p_elena_001', 'p_tyler_001'];
 

@@ -715,6 +715,7 @@ let state = {
   eoyTextTab: 'self',
   tableSort: {},
   growthThemeModal: null,
+  growthThemeLevelModal: null,
   designGoalModal: null,
   radarLayers: ['manager', 'expected'],
   quickWinModal: null,
@@ -3859,17 +3860,19 @@ function renderGrowthThemes() {
   const s1 = base !== null ? (base + 0.25).toFixed(2) : null;
   const s2 = base !== null ? (base + 0.50).toFixed(2) : null;
 
-  const scoreCol = (label, score, bg, color, items) => {
+  const scoreCol = (label, score, bg, color, items, howTo, themeId) => {
     const list = Array.isArray(items) ? items : (items ? [items] : []);
+    const hw = Array.isArray(howTo) ? howTo : [];
     return `
-    <div style="background:${bg};border-radius:8px;padding:14px 16px">
+    <div style="background:${bg};border-radius:8px;padding:14px 16px;display:flex;flex-direction:column">
       <div style="display:flex;align-items:center;gap:5px;margin-bottom:10px">
         ${score !== null ? `<span style="font-size:16px;font-weight:800;color:${color};line-height:1">${score}</span><span style="font-size:10px;font-weight:600;color:${color};opacity:.6">/5</span>` : ''}
         <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${color}${score !== null ? ';margin-left:2px' : ''}">${label}</span>
       </div>
-      <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px">
+      <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px;flex:1">
         ${list.map(i => `<li style="position:relative;padding-left:13px;font-size:13px;color:var(--text-secondary);line-height:1.5"><span style="position:absolute;left:1px;top:8px;width:5px;height:5px;border-radius:50%;background:${color};opacity:.5"></span>${escHtml(i)}</li>`).join('')}
       </ul>
+      ${hw.length ? `<button onclick="openGrowthThemeLevelModal('${themeId}','${label.toLowerCase()}')" style="margin-top:12px;background:none;border:none;padding:0;font-size:12px;font-weight:600;color:${color};cursor:pointer;text-align:left;opacity:.8" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.8'">How to get here →</button>` : ''}
     </div>`;
   };
 
@@ -3899,9 +3902,9 @@ function renderGrowthThemes() {
             <div style="display:grid;grid-template-columns:1fr 280px;align-items:stretch">
               <!-- left: today / better / best horizontal -->
               <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-content:start">
-                ${scoreCol('Today',  s0, '#F8FAFC', 'var(--text-muted)', t.today)}
-                ${scoreCol('Better', s1, '#EFF6FF', '#3B82F6',           t.better)}
-                ${scoreCol('Best',   s2, '#F0FDF4', '#16A34A',           t.best)}
+                ${scoreCol('Today',  s0, '#F8FAFC', 'var(--text-muted)', t.today,  t.todayHowTo,  t.id)}
+                ${scoreCol('Better', s1, '#EFF6FF', '#3B82F6',           t.better, t.betterHowTo, t.id)}
+                ${scoreCol('Best',   s2, '#F0FDF4', '#16A34A',           t.best,   t.bestHowTo,   t.id)}
               </div>
               <!-- right: indicators / dependencies / collaborators -->
               <div style="border-left:1px solid var(--border);padding:16px 20px;display:flex;flex-direction:column;gap:16px">
@@ -4057,6 +4060,59 @@ function renderGrowthThemeModal() {
 
 function openGrowthThemeModal(id) { state.growthThemeModal = id; render(); }
 function closeGrowthThemeModal() { state.growthThemeModal = null; render(); }
+function openGrowthThemeLevelModal(themeId, level) { state.growthThemeLevelModal = { themeId, level }; render(); }
+function closeGrowthThemeLevelModal() { state.growthThemeLevelModal = null; render(); }
+function renderGrowthThemeLevelModal() {
+  const m = state.growthThemeLevelModal;
+  if (!m) return '';
+  const d = getData();
+  const t = (d.growthThemes || []).find(x => x.id === m.themeId);
+  if (!t) return '';
+
+  const level = m.level; // 'today', 'better', 'best'
+  const howToKey = level + 'HowTo';
+  const items = Array.isArray(t[howToKey]) ? t[howToKey] : [];
+
+  const labelMap = { today: 'Today', better: 'Better', best: 'Best' };
+  const colorMap = { today: 'var(--text-muted)', better: '#3B82F6', best: '#16A34A' };
+  const bgMap = { today: '#F8FAFC', better: '#EFF6FF', best: '#F0FDF4' };
+
+  const label = labelMap[level] || level;
+  const color = colorMap[level] || 'var(--primary)';
+  const bg = bgMap[level] || 'var(--surface)';
+
+  return `
+    <div class="modal-overlay" onclick="if(event.target===this)closeGrowthThemeLevelModal()" style="z-index:1100">
+      <div class="modal-box" onclick="event.stopPropagation()" style="max-width:480px">
+        <div class="insight-modal-header">
+          <div>
+            <div class="insight-modal-title">How to get here</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${escHtml(t.theme)} — ${label}</div>
+          </div>
+          <button class="insight-modal-close" onclick="closeGrowthThemeLevelModal()">✕</button>
+        </div>
+        <div style="padding:20px 24px">
+          <!-- what this level looks like -->
+          <div style="background:${bg};border-radius:8px;padding:12px 16px;margin-bottom:20px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${color};margin-bottom:8px">${label} looks like</div>
+            <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px">
+              ${(Array.isArray(t[level]) ? t[level] : []).map(i => `<li style="position:relative;padding-left:13px;font-size:13px;color:var(--text-secondary);line-height:1.5"><span style="position:absolute;left:1px;top:8px;width:5px;height:5px;border-radius:50%;background:${color};opacity:.5"></span>${escHtml(i)}</li>`).join('')}
+            </ul>
+          </div>
+          <!-- how to get there -->
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">Actions to get there</div>
+          <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px">
+            ${items.map((item, i) => `
+              <li style="display:flex;gap:10px;align-items:flex-start">
+                <span style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:${bg};border:1.5px solid ${color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:${color};margin-top:1px">${i+1}</span>
+                <span style="font-size:13px;color:var(--text-secondary);line-height:1.55">${escHtml(item)}</span>
+              </li>`).join('')}
+          </ul>
+        </div>
+      </div>
+    </div>
+  `;
+}
 function openDesignGoalModal(id) { state.designGoalModal = id; render(); }
 function closeDesignGoalModal() { state.designGoalModal = null; render(); }
 function saveGrowthTheme(id) {
@@ -4096,6 +4152,7 @@ function renderGoals() {
     ${renderDesignTeamGoals()}
 
     ${state.growthThemeModal ? renderGrowthThemeModal() : ''}
+    ${state.growthThemeLevelModal ? renderGrowthThemeLevelModal() : ''}
     ${state.goalModal ? renderGoalModal() : ''}
     ${state.goalNotesModal ? renderGoalNotesModal() : ''}
   `;
