@@ -2332,9 +2332,10 @@ function renderSkillDetail() {
       ${(() => {
         const prev = state.prevView;
         const dest = prev === 'resources' ? 'resources' : 'review';
+        const destLabel = prev === 'resources' ? 'Resources' : 'Skills';
         return `<button class="back-arrow-btn" onclick="navigate('${dest}')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          Back
+          ${destLabel}
         </button>`;
       })()}
       <div class="skill-nav-arrows">
@@ -3644,7 +3645,7 @@ function renderCoreValueDetail() {
     <div class="breadcrumb">
       <button class="back-arrow-btn" onclick="navigate('values')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        Back
+        Core Values
       </button>
       <div class="skill-nav-arrows">
         <button class="skill-nav-btn" onclick="navigate('value','${prev.id}')" title="${escHtml(prev.label)}">‹ Prev</button>
@@ -4025,7 +4026,7 @@ function renderPersonalGoalDetail() {
       <div class="breadcrumb">
         <button class="back-arrow-btn" onclick="state.view='goals';state.personalGoalId=null;state.designGoalAddMode=null;state.designGoalSuggestions=[];state.detailNotesEditing=false;render()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          Back
+          Goals
         </button>
         ${goals.length > 1 ? `
         <div class="skill-nav-arrows">
@@ -4138,7 +4139,7 @@ function renderGrowthThemeDetail() {
       <div class="breadcrumb">
         <button class="back-arrow-btn" onclick="state.view='goals';state.growthThemeId=null;render()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          Back
+          Goals
         </button>
         <div class="skill-nav-arrows">
           <button class="skill-nav-btn" onclick="navigateToGrowthTheme('${prevTheme.id}')" title="${escHtml(prevTheme.theme)}">‹ Prev</button>
@@ -4307,7 +4308,7 @@ function renderDesignGoalDetail() {
       <div class="breadcrumb">
         <button class="back-arrow-btn" onclick="state.view='goals';state.designGoalId=null;state.designGoalAddMode=null;state.designGoalSuggestions=[];state.detailNotesEditing=false;render()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          Back
+          Goals
         </button>
         ${DESIGN_TEAM_GOALS.length > 1 ? `
         <div class="skill-nav-arrows">
