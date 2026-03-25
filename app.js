@@ -3872,7 +3872,7 @@ function renderGrowthThemes() {
       <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px;flex:1">
         ${list.map(i => `<li style="position:relative;padding-left:13px;font-size:13px;color:var(--text-secondary);line-height:1.5"><span style="position:absolute;left:1px;top:8px;width:5px;height:5px;border-radius:50%;background:${color};opacity:.5"></span>${escHtml(i)}</li>`).join('')}
       </ul>
-      ${hw.length ? `<button onclick="openGrowthThemeLevelModal('${themeId}','${label.toLowerCase()}')" style="margin-top:12px;background:none;border:none;padding:0;font-size:12px;font-weight:600;color:${color};cursor:pointer;text-align:left;opacity:.8" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.8'">How to get here →</button>` : ''}
+      ${hw.length ? `<button onclick="openGrowthThemeLevelModal('${themeId}','${label.toLowerCase()}')" style="margin-top:12px;background:none;border:none;padding:0;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;text-align:left;text-decoration:underline;text-underline-offset:2px" onmouseover="this.style.opacity='.75'" onmouseout="this.style.opacity='1'">How to get here →</button>` : ''}
     </div>`;
   };
 
