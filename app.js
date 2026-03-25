@@ -3798,14 +3798,12 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
             const status = g.status || 'not_started';
             const sc = GOAL_STATUS_CONFIG[status];
             return `
-              <div class="growth-theme-tile" onclick="navigateToPersonalGoal('${g.id}')">
-                <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px">
-                  <div class="goals-goal-name" style="font-size:14px;flex:1">${escHtml(g.goal)}</div>
-                  ${isEditable ? `<button onclick="event.stopPropagation();deleteUserGoal('${sectionId}',${i})" class="evidence-delete" title="Delete" style="margin-top:1px">✕</button>` : ''}
-                </div>
+              <div class="growth-theme-tile" style="position:relative" onclick="navigateToPersonalGoal('${g.id}')">
+                ${isEditable ? `<button onclick="event.stopPropagation();deleteUserGoal('${sectionId}',${i})" class="evidence-delete" title="Delete" style="position:absolute;top:12px;right:12px">✕</button>` : ''}
+                <div class="goals-goal-name" style="font-size:14px;margin-bottom:8px;padding-right:${isEditable ? '20px' : '0'}">${escHtml(g.goal)}</div>
                 ${g.timeFrame ? `<div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">${escHtml(g.timeFrame)}</div>` : '<div style="margin-bottom:12px"></div>'}
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
-                  <select class="review-level-select" style="color:${sc.color};background:${sc.bg};border-color:${sc.color};font-weight:600;font-size:11px" onclick="event.stopPropagation()" onchange="event.stopPropagation();saveGoalStatus('${sectionId}','${g.id}',this.value,${i})">
+                  <select class="review-level-select" style="color:${sc.color};background:${sc.bg};border-color:${sc.color};font-weight:600;font-size:11px;min-width:0;flex-shrink:0" onclick="event.stopPropagation()" onchange="event.stopPropagation();saveGoalStatus('${sectionId}','${g.id}',this.value,${i})">
                     ${Object.entries(GOAL_STATUS_CONFIG).map(([k,v]) => `<option value="${k}" ${status===k?'selected':''}>${v.label}</option>`).join('')}
                   </select>
                   <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="color:var(--text-muted);flex-shrink:0"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
