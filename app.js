@@ -2321,8 +2321,8 @@ function renderSkillDetail() {
 
   const allSkills = SKILLS_DATA.skills;
   const skillIdx = allSkills.findIndex(s => s.id === skill.id);
-  const prevSkill = skillIdx > 0 ? allSkills[skillIdx - 1] : null;
-  const nextSkill = skillIdx < allSkills.length - 1 ? allSkills[skillIdx + 1] : null;
+  const prevSkill = allSkills[(skillIdx - 1 + allSkills.length) % allSkills.length];
+  const nextSkill = allSkills[(skillIdx + 1) % allSkills.length];
 
   return `
     <div class="breadcrumb">
@@ -2335,8 +2335,8 @@ function renderSkillDetail() {
         </button>`;
       })()}
       <div class="skill-nav-arrows">
-        <button class="skill-nav-btn" onclick="navigate('skill','${prevSkill?.id}')" ${!prevSkill ? 'disabled' : ''} title="${prevSkill ? escHtml(prevSkill.name) : ''}">‹ Prev</button>
-        <button class="skill-nav-btn" onclick="navigate('skill','${nextSkill?.id}')" ${!nextSkill ? 'disabled' : ''} title="${nextSkill ? escHtml(nextSkill.name) : ''}">Next ›</button>
+        <button class="skill-nav-btn" onclick="navigate('skill','${prevSkill.id}')" title="${escHtml(prevSkill.name)}">‹ Prev</button>
+        <button class="skill-nav-btn" onclick="navigate('skill','${nextSkill.id}')" title="${escHtml(nextSkill.name)}">Next ›</button>
       </div>
     </div>
 
@@ -3643,8 +3643,8 @@ function renderCoreValueDetail() {
   const rc = v.managerRating ? CV_RATING_CONFIG[v.managerRating] : null;
 
   const idx = CORE_VALUES_DATA.indexOf(cv);
-  const prev = CORE_VALUES_DATA[idx - 1];
-  const next = CORE_VALUES_DATA[idx + 1];
+  const prev = CORE_VALUES_DATA[(idx - 1 + CORE_VALUES_DATA.length) % CORE_VALUES_DATA.length];
+  const next = CORE_VALUES_DATA[(idx + 1) % CORE_VALUES_DATA.length];
 
   const activeTab = state.cvLevelTab || 3;
   const activeRc = CV_RATING_CONFIG[activeTab];
@@ -3656,8 +3656,8 @@ function renderCoreValueDetail() {
         Back
       </button>
       <div class="skill-nav-arrows">
-        <button class="skill-nav-btn" onclick="navigate('value','${prev?.id}')" ${!prev ? 'disabled' : ''} title="${prev ? escHtml(prev.label) : ''}">‹ Prev</button>
-        <button class="skill-nav-btn" onclick="navigate('value','${next?.id}')" ${!next ? 'disabled' : ''} title="${next ? escHtml(next.label) : ''}">Next ›</button>
+        <button class="skill-nav-btn" onclick="navigate('value','${prev.id}')" title="${escHtml(prev.label)}">‹ Prev</button>
+        <button class="skill-nav-btn" onclick="navigate('value','${next.id}')" title="${escHtml(next.label)}">Next ›</button>
       </div>
     </div>
 
@@ -3920,26 +3920,20 @@ function renderGrowthThemeDetail() {
     </div>`;
 
   const themeIdx = themes.findIndex(x => x.id === state.growthThemeId);
-  const prevTheme = themeIdx > 0 ? themes[themeIdx - 1] : null;
-  const nextTheme = themeIdx < themes.length - 1 ? themes[themeIdx + 1] : null;
+  const prevTheme = themes[(themeIdx - 1 + themes.length) % themes.length];
+  const nextTheme = themes[(themeIdx + 1) % themes.length];
 
   return `
     <div style="max-width:900px">
       <!-- Back nav + prev/next -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <button onclick="state.view='goals';state.growthThemeId=null;render()" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--text-muted);font-size:13px;font-weight:600;cursor:pointer;padding:0">
-          <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"/></svg>
-          Growth Themes
+      <div class="breadcrumb">
+        <button class="back-arrow-btn" onclick="state.view='goals';state.growthThemeId=null;render()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Back
         </button>
-        <div style="display:flex;align-items:center;gap:4px">
-          <button onclick="navigateToGrowthTheme('${prevTheme ? prevTheme.id : ''}')" ${!prevTheme ? 'disabled' : ''} style="display:inline-flex;align-items:center;gap:4px;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;color:${prevTheme ? 'var(--text-secondary)' : 'var(--text-muted)'};cursor:${prevTheme ? 'pointer' : 'default'};opacity:${prevTheme ? '1' : '.4'}">
-            <svg width="13" height="13" viewBox="0 0 256 256" fill="currentColor"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"/></svg>
-            ${prevTheme ? escHtml(prevTheme.theme) : 'Previous'}
-          </button>
-          <button onclick="navigateToGrowthTheme('${nextTheme ? nextTheme.id : ''}')" ${!nextTheme ? 'disabled' : ''} style="display:inline-flex;align-items:center;gap:4px;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;color:${nextTheme ? 'var(--text-secondary)' : 'var(--text-muted)'};cursor:${nextTheme ? 'pointer' : 'default'};opacity:${nextTheme ? '1' : '.4'}">
-            ${nextTheme ? escHtml(nextTheme.theme) : 'Next'}
-            <svg width="13" height="13" viewBox="0 0 256 256" fill="currentColor"><path d="M32,128a8,8,0,0,1,8-8H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72a8,8,0,0,1,0,11.32l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40A8,8,0,0,1,32,128Z"/></svg>
-          </button>
+        <div class="skill-nav-arrows">
+          <button class="skill-nav-btn" onclick="navigateToGrowthTheme('${prevTheme.id}')" title="${escHtml(prevTheme.theme)}">‹ Prev</button>
+          <button class="skill-nav-btn" onclick="navigateToGrowthTheme('${nextTheme.id}')" title="${escHtml(nextTheme.theme)}">Next ›</button>
         </div>
       </div>
 
