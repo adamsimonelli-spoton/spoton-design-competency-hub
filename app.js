@@ -737,7 +737,7 @@ let state = {
   unlockedProfiles: [],
   personalGoalId: null,
   designGoalId: null,
-  growthThemeNotesEditing: false,
+  detailNotesEditing: false,
 };
 
 // ============ STORAGE ============
@@ -3849,7 +3849,7 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
 function navigateToGrowthTheme(themeId) {
   state.growthThemeId = themeId;
   state.view = 'growth-theme';
-  state.growthThemeNotesEditing = false;
+  state.detailNotesEditing = false;
   render();
   window.scrollTo(0, 0);
 }
@@ -3915,6 +3915,128 @@ function findPersonalGoalEvidence(goalId) {
   render();
 }
 
+// ── Shared detail-page helpers ────────────────────────────────────────────────
+function detailEvidenceCard(item, deleteFn) {
+  return `
+    <div class="evidence-card">
+      <div class="evidence-card-header">
+        <span class="evidence-card-label">${escHtml(item.label)}</span>
+        ${item.tag ? `<span class="evidence-tag">${escHtml(item.tag)}</span>` : ''}
+        ${item.date ? `<span class="evidence-date">${formatDate(item.date)}</span>` : ''}
+        ${deleteFn ? `<button onclick="${deleteFn}" class="evidence-delete" title="Remove">✕</button>` : ''}
+      </div>
+      <div class="evidence-card-text">${escHtml(item.text)}</div>
+    </div>`;
+}
+
+function detailSuggestionCard(item, idx, confirmExpr) {
+  // confirmExpr: full JS expression string for the confirm action, e.g. "confirmFoo('id',2)"
+  if (item.noMatch) return `<div class="evidence-card" style="color:var(--text-muted);font-size:13px">${escHtml(item.text)}</div>`;
+  return `
+    <div class="suggestion-card">
+      <div class="evidence-card-header">
+        <span class="evidence-card-label" style="flex:1">${escHtml(item.label)}</span>
+        <span class="suggestion-badge">AI Suggested</span>
+        ${item.date ? `<span class="evidence-date">${formatDate(item.date)}</span>` : ''}
+      </div>
+      <div class="evidence-card-text" style="margin-bottom:10px">${escHtml(item.text)}</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="${confirmExpr}" class="btn btn-primary btn-sm">Add to Evidence</button>
+        <button onclick="dismissDesignGoalSuggestion(${idx})" class="btn btn-secondary btn-sm">Dismiss</button>
+      </div>
+    </div>`;
+}
+
+function detailNotesPanel(notes, saveExpr) {
+  // saveExpr: full JS expression called on Save click, e.g.
+  //   "savePersonalGoalNote(document.getElementById('detail-notes-input').value)"
+  //   "saveGrowthThemeNote('id', document.getElementById('detail-notes-input').value)"
+  if (state.detailNotesEditing) {
+    return `
+      <div class="sidebar-panel" style="margin-bottom:24px">
+        <div class="panel-header"><span class="panel-title">Notes</span></div>
+        <div class="panel-body">
+          <textarea id="detail-notes-input" class="form-input" rows="4" style="resize:vertical;margin-bottom:10px" placeholder="Add your notes…">${escHtml(notes)}</textarea>
+          <div style="display:flex;gap:8px">
+            <button onclick="${saveExpr}" class="btn btn-primary btn-sm">Save</button>
+            <button onclick="state.detailNotesEditing=false;render()" class="btn btn-secondary btn-sm">Cancel</button>
+          </div>
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="sidebar-panel" style="margin-bottom:24px">
+      <div class="panel-header">
+        <span class="panel-title">Notes</span>
+        <button onclick="state.detailNotesEditing=true;render()" style="font-size:12px;font-weight:600;color:var(--primary);background:none;border:none;padding:0;cursor:pointer">${notes ? 'Edit' : '+ Add'}</button>
+      </div>
+      <div class="panel-body">
+        <div style="font-size:14px;color:var(--text-secondary);line-height:1.6">${notes ? escHtml(notes) : '<span style="color:var(--text-muted);font-style:italic">No notes yet</span>'}</div>
+      </div>
+    </div>`;
+}
+
+function detailEvidenceSection(goalId, evidence, addFormId, saveFn, findFn, allItems, manualItems) {
+  const isManual = state.designGoalAddMode === 'manual';
+  const isAI = state.designGoalAddMode === 'ai';
+  return `
+    <div class="sidebar-panel">
+      <div class="panel-header">
+        <span class="panel-title">Evidence</span>
+        <div style="display:flex;gap:8px">
+          <button onclick="state.designGoalAddMode = isManual ? null : 'manual'; render()" class="btn btn-secondary btn-sm">+ Add</button>
+          <button onclick="${findFn}" class="btn-ai-find">✦ Find with AI</button>
+        </div>
+      </div>
+      <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
+        ${isManual ? `
+          <div class="evidence-add-form">
+            <div class="detail-section-label" style="margin-bottom:8px">Add Evidence</div>
+            <input id="${addFormId}-label" class="form-input" placeholder="Source / label" style="margin-bottom:8px" />
+            <textarea id="${addFormId}-text" class="form-input" rows="3" placeholder="Describe the evidence…" style="resize:vertical"></textarea>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button onclick="${saveFn}(document.getElementById('${addFormId}-text').value, document.getElementById('${addFormId}-label').value)" class="btn btn-primary btn-sm">Save</button>
+              <button onclick="state.designGoalAddMode=null;render()" class="btn btn-secondary btn-sm">Cancel</button>
+            </div>
+          </div>` : ''}
+        ${isAI ? `
+          <div class="suggestion-card" style="background:#FFFBEB;border-color:#FDE68A">
+            <div style="font-size:12px;font-weight:600;color:#92400E;margin-bottom:4px">✦ AI found ${state.designGoalSuggestions.length} potential match${state.designGoalSuggestions.length !== 1 ? 'es' : ''} from your data</div>
+            <div style="font-size:12px;color:#78350F">Review and add anything relevant.</div>
+          </div>
+          ${state.designGoalSuggestions.length === 0
+            ? `<div style="font-size:13px;color:var(--text-muted);font-style:italic">All suggestions reviewed.</div>`
+            : state.designGoalSuggestions.map((s, i) => detailSuggestionCard(s, i, `confirmDesignGoalSuggestion('${goalId}',${i})`)).join('')}
+          <button onclick="state.designGoalAddMode=null;render()" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:0">Done reviewing</button>
+        ` : ''}
+        ${(allItems || evidence).length === 0 && !isManual && !isAI
+          ? `<div style="font-size:13px;color:var(--text-muted);font-style:italic">No evidence yet. Add manually or use AI to find matches.</div>`
+          : (allItems || evidence).map(item => {
+              const del = manualItems ? manualItems.find(e => e.text === item.text) : null;
+              return detailEvidenceCard(item, del ? `deleteEvidenceItem('${goalId}','${del.id}')` : null);
+            }).join('')}
+      </div>
+    </div>`;
+}
+
+function savePersonalGoalNote(notes) {
+  const goals = getPersonalGoals();
+  const g = goals.find(x => x.id === state.personalGoalId);
+  if (!g) return;
+  g.notes = notes;
+  savePersonalGoals(goals);
+  state.detailNotesEditing = false;
+  render();
+}
+
+function saveDesignGoalNote(notes) {
+  const c = getGoalContribution(state.designGoalId);
+  c.notes = notes;
+  saveGoalContribution(state.designGoalId, c);
+  state.detailNotesEditing = false;
+  render();
+}
+
 function renderPersonalGoalDetail() {
   const goals = getPersonalGoals();
   const d = getData();
@@ -3928,37 +4050,10 @@ function renderPersonalGoalDetail() {
   const sc = GOAL_STATUS_CONFIG[g.status || 'not_started'];
   const evidence = d.personalGoalEvidence?.[g.id] || [];
 
-  const evidenceCard = (item, deleteId) => `
-    <div style="padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border);position:relative">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <span style="font-size:12px;font-weight:700;color:var(--text)">${escHtml(item.label)}</span>
-        ${item.tag ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--primary-light);color:var(--primary)">${escHtml(item.tag)}</span>` : ''}
-        ${item.date ? `<span style="font-size:11px;color:var(--text-muted);margin-left:auto">${formatDate(item.date)}</span>` : ''}
-        ${deleteId ? `<button onclick="deletePersonalGoalEvidence('${g.id}','${deleteId}')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:14px;padding:0 4px;line-height:1;margin-left:${item.date ? '8px' : 'auto'}" title="Remove">✕</button>` : ''}
-      </div>
-      <div style="font-size:13px;color:var(--text-secondary);line-height:1.5">${escHtml(item.text)}</div>
-    </div>`;
-
-  const suggestionCard = (item, i) => item.noMatch
-    ? `<div style="padding:12px 14px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);font-size:13px;color:var(--text-muted)">${escHtml(item.text)}</div>`
-    : `
-    <div style="padding:12px 14px;background:#FFFBEB;border-radius:8px;border:1px solid #FDE68A">
-      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px">
-        <span style="font-size:12px;font-weight:700;color:var(--text);flex:1">${escHtml(item.label)}</span>
-        <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#FEF3C7;color:#92400E;white-space:nowrap">AI Suggested</span>
-        ${item.date ? `<span style="font-size:11px;color:var(--text-muted);white-space:nowrap">${formatDate(item.date)}</span>` : ''}
-      </div>
-      <div style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px">${escHtml(item.text)}</div>
-      <div style="display:flex;gap:8px">
-        <button onclick="confirmPersonalGoalSuggestion('${g.id}',${i})" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer">Add to Evidence</button>
-        <button onclick="dismissDesignGoalSuggestion(${i})" style="background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">Dismiss</button>
-      </div>
-    </div>`;
-
   return `
     <div style="max-width:900px">
       <div class="breadcrumb">
-        <button class="back-arrow-btn" onclick="state.view='goals';state.personalGoalId=null;state.designGoalAddMode=null;state.designGoalSuggestions=[];render()">
+        <button class="back-arrow-btn" onclick="state.view='goals';state.personalGoalId=null;state.designGoalAddMode=null;state.designGoalSuggestions=[];state.detailNotesEditing=false;render()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           Back
         </button>
@@ -3969,55 +4064,51 @@ function renderPersonalGoalDetail() {
         </div>` : ''}
       </div>
 
-      <!-- Header -->
-      <div style="margin-bottom:24px">
-        <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
-          <h1 style="font-size:22px;font-weight:800;color:var(--text);margin:0;flex:1;max-width:600px">${escHtml(g.goal)}</h1>
-          <select class="review-level-select" style="color:${sc.color};background:${sc.bg};border-color:${sc.color};font-weight:600;flex-shrink:0" onchange="saveGoalStatusFromDetail('${g.id}',this.value)">
-            ${Object.entries(GOAL_STATUS_CONFIG).map(([k,v]) => `<option value="${k}" ${(g.status||'not_started')===k?'selected':''}>${v.label}</option>`).join('')}
-          </select>
-        </div>
-        ${g.timeFrame ? `<div style="font-size:13px;color:var(--text-muted);margin-top:4px">${escHtml(g.timeFrame)}</div>` : ''}
+      <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:4px">
+        <h1 style="font-size:22px;font-weight:800;color:var(--text);line-height:1.3;margin:0;flex:1;max-width:600px">${escHtml(g.goal)}</h1>
+        <select class="review-level-select" style="color:${sc.color};background:${sc.bg};border-color:${sc.color};font-weight:600;flex-shrink:0;margin-top:4px" onchange="saveGoalStatusFromDetail('${g.id}',this.value)">
+          ${Object.entries(GOAL_STATUS_CONFIG).map(([k,v]) => `<option value="${k}" ${(g.status||'not_started')===k?'selected':''}>${v.label}</option>`).join('')}
+        </select>
+      </div>
+      ${g.timeFrame ? `<div style="font-size:13px;color:var(--text-muted);margin-bottom:24px">${escHtml(g.timeFrame)}</div>` : '<div style="margin-bottom:24px"></div>'}
+
+      <div class="sidebar-panel" style="margin-bottom:24px">
+        <div class="panel-header"><span class="panel-title">KPI / How I'll Contribute</span></div>
+        <div class="panel-body"><div style="font-size:14px;color:var(--text-secondary);line-height:1.6">${escHtml(g.kpi || '—')}</div></div>
       </div>
 
-      <!-- KPI + Notes -->
-      <div class="review-table-wrap" style="overflow:hidden;margin-bottom:24px">
-        <div style="display:grid;grid-template-columns:1fr 1fr;divide">
-          <div style="padding:16px 20px;border-right:1px solid var(--border)">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px">KPI / How I'll Contribute</div>
-            <div style="font-size:14px;color:var(--text-secondary);line-height:1.6">${escHtml(g.kpi || '—')}</div>
-          </div>
-          <div style="padding:16px 20px">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px">Notes</div>
-            <div style="font-size:14px;color:var(--text-secondary);line-height:1.6">${escHtml(g.notes || '—')}</div>
-          </div>
-        </div>
-      </div>
+      ${detailNotesPanel(g.notes || '', "savePersonalGoalNote(document.getElementById('detail-notes-input').value)")}
 
-      <!-- Evidence section -->
-      <div class="review-table-wrap" style="overflow:hidden">
-        <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-          <span style="font-size:14px;font-weight:700;color:var(--text)">Evidence</span>
+      <div class="sidebar-panel">
+        <div class="panel-header">
+          <span class="panel-title">Evidence</span>
           <div style="display:flex;gap:8px">
-            <button onclick="state.designGoalAddMode = state.designGoalAddMode === 'manual' ? null : 'manual'; render()" style="font-size:12px;font-weight:600;color:var(--primary);background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer">+ Add</button>
-            <button onclick="findPersonalGoalEvidence('${g.id}')" style="font-size:12px;font-weight:600;color:#92400E;background:#FEF3C7;border:none;border-radius:6px;padding:5px 12px;cursor:pointer">✦ Find with AI</button>
+            <button onclick="state.designGoalAddMode=state.designGoalAddMode==='manual'?null:'manual';render()" class="btn btn-secondary btn-sm">+ Add</button>
+            <button onclick="findPersonalGoalEvidence('${g.id}')" class="btn-ai-find">✦ Find with AI</button>
           </div>
         </div>
-        <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+        <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
           ${state.designGoalAddMode === 'manual' ? `
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px">
-              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">Add Evidence</div>
+            <div class="evidence-add-form">
+              <div class="detail-section-label" style="margin-bottom:8px">Add Evidence</div>
               <input id="pge-label" class="form-input" placeholder="Source / label" style="margin-bottom:8px" />
               <textarea id="pge-text" class="form-input" rows="3" placeholder="Describe the evidence…" style="resize:vertical"></textarea>
               <div style="display:flex;gap:8px;margin-top:10px">
-                <button onclick="savePersonalGoalEvidence('${g.id}', document.getElementById('pge-text').value, document.getElementById('pge-label').value)" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">Save</button>
-                <button onclick="state.designGoalAddMode=null;render()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">Cancel</button>
+                <button onclick="savePersonalGoalEvidence('${g.id}',document.getElementById('pge-text').value,document.getElementById('pge-label').value)" class="btn btn-primary btn-sm">Save</button>
+                <button onclick="state.designGoalAddMode=null;render()" class="btn btn-secondary btn-sm">Cancel</button>
               </div>
             </div>` : ''}
-          ${state.designGoalAddMode === 'ai' ? state.designGoalSuggestions.map((s, i) => suggestionCard(s, i)).join('') : ''}
-          ${evidence.length === 0 && state.designGoalAddMode !== 'manual' && state.designGoalAddMode !== 'ai'
-            ? `<div style="font-size:13px;color:var(--text-muted)">No evidence added yet.</div>`
-            : evidence.map(item => evidenceCard(item, item.id)).join('')}
+          ${state.designGoalAddMode === 'ai' ? `
+            <div class="suggestion-card">
+              <div style="font-size:12px;font-weight:600;color:#92400E;margin-bottom:4px">✦ AI found ${state.designGoalSuggestions.length} potential match${state.designGoalSuggestions.length!==1?'es':''}</div>
+              <div style="font-size:12px;color:#78350F">Review and add anything relevant.</div>
+            </div>
+            ${state.designGoalSuggestions.map((s,i) => detailSuggestionCard(s,i,`confirmPersonalGoalSuggestion('${g.id}',${i})`)).join('')}
+            <button onclick="state.designGoalAddMode=null;render()" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:0">Done reviewing</button>
+          ` : ''}
+          ${evidence.length === 0 && !state.designGoalAddMode
+            ? `<div style="font-size:13px;color:var(--text-muted);font-style:italic">No evidence yet. Add manually or use AI to find matches.</div>`
+            : evidence.map(item => detailEvidenceCard(item, `deletePersonalGoalEvidence('${g.id}','${item.id}')`)).join('')}
         </div>
       </div>
     </div>`;
@@ -4067,31 +4158,6 @@ function renderGrowthThemeDetail() {
   // Evidence section
   const evidence = d.growthThemeEvidence?.[t.id] || [];
 
-  const evidenceCard = (item, deleteId) => `
-    <div style="padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border);position:relative">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <span style="font-size:12px;font-weight:700;color:var(--text)">${escHtml(item.label)}</span>
-        ${item.tag ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--primary-light);color:var(--primary)">${escHtml(item.tag)}</span>` : ''}
-        ${item.date ? `<span style="font-size:11px;color:var(--text-muted);margin-left:auto">${formatDate(item.date)}</span>` : ''}
-        ${deleteId ? `<button onclick="deleteGrowthThemeEvidence('${t.id}','${deleteId}')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:14px;padding:0 4px;line-height:1;margin-left:${item.date ? '8px' : 'auto'}" title="Remove">✕</button>` : ''}
-      </div>
-      <div style="font-size:13px;color:var(--text-secondary);line-height:1.5">${escHtml(item.text)}</div>
-    </div>`;
-
-  const suggestionCard = (item, idx) => `
-    <div style="padding:12px 14px;background:#FFFBEB;border-radius:8px;border:1px solid #FDE68A">
-      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px">
-        <span style="font-size:12px;font-weight:700;color:var(--text);flex:1">${escHtml(item.label)}</span>
-        <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#FEF3C7;color:#92400E;white-space:nowrap">AI Suggested</span>
-        ${item.date ? `<span style="font-size:11px;color:var(--text-muted);white-space:nowrap">${formatDate(item.date)}</span>` : ''}
-      </div>
-      <div style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px">${escHtml(item.text)}</div>
-      <div style="display:flex;gap:8px">
-        <button onclick="confirmGrowthThemeSuggestion('${t.id}',${idx})" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer">Add to Evidence</button>
-        <button onclick="dismissDesignGoalSuggestion(${idx})" style="background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">Dismiss</button>
-      </div>
-    </div>`;
-
   const themeIdx = themes.findIndex(x => x.id === state.growthThemeId);
   const prevTheme = themes[(themeIdx - 1 + themes.length) % themes.length];
   const nextTheme = themes[(themeIdx + 1) % themes.length];
@@ -4132,66 +4198,44 @@ function renderGrowthThemeDetail() {
       </div>
 
       <!-- Notes panel -->
-      ${(() => {
-        const notes = d.growthThemeNotes?.[t.id] || '';
-        if (state.growthThemeNotesEditing) {
-          return `
-            <div class="review-table-wrap" style="overflow:hidden;margin-bottom:24px">
-              <div style="padding:16px 20px">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:8px">Notes</div>
-                <textarea id="gt-notes-input" class="form-input" rows="4" style="resize:vertical;margin-bottom:10px" placeholder="Add your notes about this theme…">${escHtml(notes)}</textarea>
-                <div style="display:flex;gap:8px">
-                  <button onclick="saveGrowthThemeNote('${t.id}', document.getElementById('gt-notes-input').value)" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">Save</button>
-                  <button onclick="state.growthThemeNotesEditing=false;render()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">Cancel</button>
-                </div>
-              </div>
-            </div>`;
-        }
-        return `
-          <div class="review-table-wrap" style="overflow:hidden;margin-bottom:24px">
-            <div style="padding:16px 20px">
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px">Notes</div>
-              <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:8px">${notes ? escHtml(notes) : '<span style="color:var(--text-muted);font-style:italic">No notes yet</span>'}</div>
-              <button onclick="state.growthThemeNotesEditing=true;render()" style="font-size:12px;font-weight:600;color:var(--primary);background:none;border:none;padding:0;cursor:pointer">${notes ? 'Edit notes →' : '+ Add notes'}</button>
-            </div>
-          </div>`;
-      })()}
+      ${detailNotesPanel(d.growthThemeNotes?.[t.id] || '', `saveGrowthThemeNote('${t.id}', document.getElementById('detail-notes-input').value)`)}
 
-      <!-- Evidence section -->
-      <div class="review-table-wrap" style="overflow:hidden">
-        <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-          <span style="font-size:14px;font-weight:700;color:var(--text)">Evidence</span>
+      <!-- Evidence panel -->
+      <div class="sidebar-panel">
+        <div class="panel-header">
+          <span class="panel-title">Evidence</span>
           <div style="display:flex;gap:8px">
-            <button onclick="state.designGoalAddMode = state.designGoalAddMode === 'manual' ? null : 'manual'; render()" style="font-size:12px;font-weight:600;color:var(--primary);background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer">+ Add</button>
-            <button onclick="findGrowthThemeEvidence('${t.id}')" style="font-size:12px;font-weight:600;color:#92400E;background:#FEF3C7;border:none;border-radius:6px;padding:5px 12px;cursor:pointer">✦ Find with AI</button>
+            <button onclick="state.designGoalAddMode=state.designGoalAddMode==='manual'?null:'manual';render()" class="btn btn-secondary btn-sm">+ Add</button>
+            <button onclick="findGrowthThemeEvidence('${t.id}')" class="btn-ai-find">✦ Find with AI</button>
           </div>
         </div>
-        <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+        <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
           ${state.designGoalAddMode === 'manual' ? `
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px">
-              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">Add Evidence</div>
+            <div class="evidence-add-form">
+              <div class="detail-section-label" style="margin-bottom:8px">Add Evidence</div>
               <input id="gte-label" class="form-input" placeholder="Source / label" style="margin-bottom:8px" />
               <textarea id="gte-text" class="form-input" rows="3" placeholder="Describe the evidence…" style="resize:vertical"></textarea>
               <div style="display:flex;gap:8px;margin-top:10px">
-                <button onclick="saveGrowthThemeEvidence('${t.id}', document.getElementById('gte-text').value, document.getElementById('gte-label').value)" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">Save</button>
-                <button onclick="state.designGoalAddMode=null;render()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">Cancel</button>
+                <button onclick="saveGrowthThemeEvidence('${t.id}',document.getElementById('gte-text').value,document.getElementById('gte-label').value)" class="btn btn-primary btn-sm">Save</button>
+                <button onclick="state.designGoalAddMode=null;render()" class="btn btn-secondary btn-sm">Cancel</button>
               </div>
             </div>` : ''}
-
           ${state.designGoalAddMode === 'ai' ? `
-            <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:12px 14px">
+            <div class="suggestion-card" style="background:#FFFBEB;border-color:#FDE68A">
               <div style="font-size:12px;font-weight:600;color:#92400E;margin-bottom:4px">✦ AI found ${state.designGoalSuggestions.length} potential match${state.designGoalSuggestions.length !== 1 ? 'es' : ''}</div>
               <div style="font-size:12px;color:#78350F">Review and add anything relevant to this theme.</div>
             </div>
             ${state.designGoalSuggestions.length === 0
               ? `<div style="font-size:13px;color:var(--text-muted);font-style:italic">All suggestions reviewed.</div>`
-              : state.designGoalSuggestions.map((s, i) => suggestionCard(s, i)).join('')}
+              : state.designGoalSuggestions.map((s, i) => detailSuggestionCard(s, i, `confirmGrowthThemeSuggestion('${t.id}',${i})`)).join('')}
             <button onclick="state.designGoalAddMode=null;render()" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:0">Done reviewing</button>
           ` : ''}
-
-          ${evidence.length === 0 && state.designGoalAddMode !== 'ai'
+          ${evidence.length === 0 && !state.designGoalAddMode
             ? `<div style="font-size:13px;color:var(--text-muted);font-style:italic">No evidence yet. Add manually or use AI to find relevant items.</div>`
-            : evidence.map(e => evidenceCard({ label: e.label, text: e.text, date: e.date, tag: e.source === 'ai_confirmed' ? 'AI Found' : null }, e.id)).join('')}
+            : evidence.map(e => detailEvidenceCard(
+                { label: e.label, text: e.text, date: e.date, tag: e.source === 'ai_confirmed' ? 'AI Found' : null },
+                `deleteGrowthThemeEvidence('${t.id}','${e.id}')`
+              )).join('')}
         </div>
       </div>
 
@@ -4214,26 +4258,24 @@ function renderGrowthThemes() {
           <div class="goals-section-title">Growth Themes</div>
         </div>
       </div>
-      <div class="review-table-wrap" style="overflow:hidden">
-        <div style="display:grid;grid-template-columns:1fr 130px 110px;padding:8px 16px;background:var(--bg);border-bottom:2px solid var(--border)">
-          <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Theme</span>
-          <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Score Range</span>
-          <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Evidence</span>
-        </div>
-        ${themes.map((t, i) => {
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">
+        ${themes.map(t => {
           const today = base !== null ? base.toFixed(1) : null;
           const best  = base !== null ? (base + 0.50).toFixed(2) : null;
-          const evidence = (d.growthThemeEvidence?.[t.id] || []);
-          const count = evidence.length;
+          const count = (d.growthThemeEvidence?.[t.id] || []).length;
+          const preview = (t.today || [])[0] || '';
           return `
-            <div onclick="navigateToGrowthTheme('${t.id}')" style="display:grid;grid-template-columns:1fr 130px 110px;align-items:center;padding:14px 16px;cursor:pointer;transition:background .12s;${i > 0 ? 'border-top:1px solid var(--border)' : ''}" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background=''">
-              <div class="goals-goal-name">${escHtml(t.theme)}</div>
-              <div style="font-size:13px;color:var(--text-secondary)">${today !== null ? `${today} → ${best}` : '—'}</div>
-              <div style="display:flex;align-items:center;justify-content:space-between">
+            <div class="growth-theme-tile" onclick="navigateToGrowthTheme('${t.id}')">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">
+                <div class="goals-goal-name" style="font-size:14px">${escHtml(t.theme)}</div>
+                <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="color:var(--text-muted);flex-shrink:0;margin-top:2px"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
+              </div>
+              ${preview ? `<div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escHtml(preview)}</div>` : '<div style="margin-bottom:12px"></div>'}
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
+                ${today !== null ? `<span style="font-size:11px;font-weight:600;color:var(--text-muted)">${today} → ${best}</span>` : '<span></span>'}
                 ${count > 0
-                  ? `<span style="font-size:13px;font-weight:600;color:var(--primary)">${count} piece${count !== 1 ? 's' : ''}</span>`
-                  : `<span style="font-size:12px;color:var(--text-muted);font-style:italic">None yet</span>`}
-                <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="color:var(--text-muted);flex-shrink:0"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
+                  ? `<span style="font-size:11px;font-weight:700;color:var(--primary);background:var(--primary-light);padding:2px 8px;border-radius:20px">${count} piece${count !== 1 ? 's' : ''}</span>`
+                  : `<span style="font-size:11px;color:var(--text-muted);font-style:italic">No evidence yet</span>`}
               </div>
             </div>`;
         }).join('')}
@@ -4290,37 +4332,10 @@ function renderDesignGoalDetail() {
   const allItems = getDesignGoalEvidence(g);
   const manualItems = d.designGoalEvidence?.[g.id] || [];
 
-  const evidenceCard = (item, deleteId) => `
-    <div style="padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <span style="font-size:12px;font-weight:700;color:var(--text)">${escHtml(item.label)}</span>
-        ${item.tag ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--primary-light);color:var(--primary)">${escHtml(item.tag)}</span>` : ''}
-        ${item.date ? `<span style="font-size:11px;color:var(--text-muted);margin-left:auto">${formatDate(item.date)}</span>` : ''}
-        ${deleteId ? `<button onclick="deleteDesignGoalEvidence('${g.id}','${deleteId}')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:14px;padding:0 4px;line-height:1;margin-left:${item.date ? '8px' : 'auto'}" title="Remove">✕</button>` : ''}
-      </div>
-      <div style="font-size:13px;color:var(--text-secondary);line-height:1.5">${escHtml(item.text)}</div>
-    </div>`;
-
-  const suggestionCard = (item, i) => item.noMatch
-    ? `<div style="padding:12px 14px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);font-size:13px;color:var(--text-muted)">${escHtml(item.text)}</div>`
-    : `
-    <div style="padding:12px 14px;background:#FFFBEB;border-radius:8px;border:1px solid #FDE68A">
-      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px">
-        <span style="font-size:12px;font-weight:700;color:var(--text);flex:1">${escHtml(item.label)}</span>
-        <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#FEF3C7;color:#92400E;white-space:nowrap">AI Suggested</span>
-        ${item.date ? `<span style="font-size:11px;color:var(--text-muted);white-space:nowrap">${formatDate(item.date)}</span>` : ''}
-      </div>
-      <div style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px">${escHtml(item.text)}</div>
-      <div style="display:flex;gap:8px">
-        <button onclick="confirmDesignGoalSuggestion('${g.id}',${i})" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer">Add to Evidence</button>
-        <button onclick="dismissDesignGoalSuggestion(${i})" style="background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">Dismiss</button>
-      </div>
-    </div>`;
-
   return `
     <div style="max-width:900px">
       <div class="breadcrumb">
-        <button class="back-arrow-btn" onclick="state.view='goals';state.designGoalId=null;state.designGoalAddMode=null;state.designGoalSuggestions=[];render()">
+        <button class="back-arrow-btn" onclick="state.view='goals';state.designGoalId=null;state.designGoalAddMode=null;state.designGoalSuggestions=[];state.detailNotesEditing=false;render()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           Back
         </button>
@@ -4332,66 +4347,58 @@ function renderDesignGoalDetail() {
       </div>
 
       <!-- Header -->
-      <div style="margin-bottom:24px">
-        <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
-          <h1 style="font-size:22px;font-weight:800;color:var(--text);margin:0;flex:1">${escHtml(g.goal)}</h1>
-          <select class="review-level-select" style="color:${sc.color};background:${sc.bg};border-color:${sc.color};font-weight:600;flex-shrink:0" onchange="saveDesignGoalStatusFromDetail('${g.id}',this.value)">
-            ${Object.entries(GOAL_STATUS_CONFIG).map(([k,v]) => `<option value="${k}" ${(contrib.status||'not_started')===k?'selected':''}>${v.label}</option>`).join('')}
-          </select>
-        </div>
-        ${g.timeFrame ? `<div style="font-size:13px;color:var(--text-muted);margin-top:4px">${escHtml(g.timeFrame)}</div>` : ''}
+      <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:4px">
+        <h1 style="font-size:22px;font-weight:800;color:var(--text);line-height:1.3;margin:0;flex:1;max-width:600px">${escHtml(g.goal)}</h1>
+        <select class="review-level-select" style="color:${sc.color};background:${sc.bg};border-color:${sc.color};font-weight:600;flex-shrink:0;margin-top:4px" onchange="saveDesignGoalStatusFromDetail('${g.id}',this.value)">
+          ${Object.entries(GOAL_STATUS_CONFIG).map(([k,v]) => `<option value="${k}" ${(contrib.status||'not_started')===k?'selected':''}>${v.label}</option>`).join('')}
+        </select>
+      </div>
+      ${g.timeFrame ? `<div style="font-size:13px;color:var(--text-muted);margin-bottom:24px">${escHtml(g.timeFrame)}</div>` : '<div style="margin-bottom:24px"></div>'}
+
+      <!-- KPI panel -->
+      <div class="sidebar-panel" style="margin-bottom:24px">
+        <div class="panel-header"><span class="panel-title">KPI / How I'll Contribute</span></div>
+        <div class="panel-body"><div style="font-size:14px;color:var(--text-secondary);line-height:1.6">${escHtml(g.kpi || '—')}</div></div>
       </div>
 
-      <!-- KPI + Notes -->
-      <div class="review-table-wrap" style="overflow:hidden;margin-bottom:24px">
-        <div style="display:grid;grid-template-columns:1fr 1fr">
-          <div style="padding:16px 20px;border-right:1px solid var(--border)">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px">KPI / How I'll Contribute</div>
-            <div style="font-size:14px;color:var(--text-secondary);line-height:1.6">${escHtml(g.kpi || '—')}</div>
-          </div>
-          <div style="padding:16px 20px">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px">My Notes</div>
-            <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:8px">${contrib.notes ? escHtml(contrib.notes) : '<span style="color:var(--text-muted);font-style:italic">No notes yet</span>'}</div>
-            <button onclick="openGoalNotesModal('design','${g.id}',0)" style="font-size:12px;font-weight:600;color:var(--primary);background:none;border:none;padding:0;cursor:pointer">${contrib.notes ? 'Edit notes →' : '+ Add notes'}</button>
-          </div>
-        </div>
-      </div>
+      <!-- Notes panel -->
+      ${detailNotesPanel(contrib.notes || '', "saveDesignGoalNote(document.getElementById('detail-notes-input').value)")}
 
-      <!-- Evidence section -->
-      <div class="review-table-wrap" style="overflow:hidden">
-        <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-          <span style="font-size:14px;font-weight:700;color:var(--text)">Evidence</span>
+      <!-- Evidence panel -->
+      <div class="sidebar-panel">
+        <div class="panel-header">
+          <span class="panel-title">Evidence</span>
           <div style="display:flex;gap:8px">
-            <button onclick="state.designGoalAddMode = state.designGoalAddMode === 'manual' ? null : 'manual'; render()" style="font-size:12px;font-weight:600;color:var(--primary);background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer">+ Add</button>
-            <button onclick="findDesignGoalEvidence('${g.id}')" style="font-size:12px;font-weight:600;color:#92400E;background:#FEF3C7;border:none;border-radius:6px;padding:5px 12px;cursor:pointer">✦ Find with AI</button>
+            <button onclick="state.designGoalAddMode=state.designGoalAddMode==='manual'?null:'manual';render()" class="btn btn-secondary btn-sm">+ Add</button>
+            <button onclick="findDesignGoalEvidence('${g.id}')" class="btn-ai-find">✦ Find with AI</button>
           </div>
         </div>
-        <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+        <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
           ${state.designGoalAddMode === 'manual' ? `
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px">
-              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">Add Evidence</div>
-              <input id="dge2-label" class="form-input" placeholder="Source / label (e.g. Merchant visit, Research session)" style="margin-bottom:8px" />
+            <div class="evidence-add-form">
+              <div class="detail-section-label" style="margin-bottom:8px">Add Evidence</div>
+              <input id="dge2-label" class="form-input" placeholder="Source / label" style="margin-bottom:8px" />
               <textarea id="dge2-text" class="form-input" rows="3" placeholder="Describe the evidence…" style="resize:vertical"></textarea>
               <div style="display:flex;gap:8px;margin-top:10px">
-                <button onclick="saveDesignGoalEvidence('${g.id}', document.getElementById('dge2-text').value, document.getElementById('dge2-label').value)" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">Save</button>
-                <button onclick="state.designGoalAddMode=null;render()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">Cancel</button>
+                <button onclick="saveDesignGoalEvidence('${g.id}',document.getElementById('dge2-text').value,document.getElementById('dge2-label').value)" class="btn btn-primary btn-sm">Save</button>
+                <button onclick="state.designGoalAddMode=null;render()" class="btn btn-secondary btn-sm">Cancel</button>
               </div>
             </div>` : ''}
           ${state.designGoalAddMode === 'ai' ? `
-            <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:12px 14px">
+            <div class="suggestion-card" style="background:#FFFBEB;border-color:#FDE68A">
               <div style="font-size:12px;font-weight:600;color:#92400E;margin-bottom:4px">✦ AI found ${state.designGoalSuggestions.length} potential match${state.designGoalSuggestions.length !== 1 ? 'es' : ''} from your data</div>
-              <div style="font-size:12px;color:#78350F">Review and add anything relevant to this goal.</div>
+              <div style="font-size:12px;color:#78350F">Review and add anything relevant.</div>
             </div>
             ${state.designGoalSuggestions.length === 0
               ? `<div style="font-size:13px;color:var(--text-muted);font-style:italic">All suggestions reviewed.</div>`
-              : state.designGoalSuggestions.map((s, i) => suggestionCard(s, i)).join('')}
+              : state.designGoalSuggestions.map((s, i) => detailSuggestionCard(s, i, `confirmDesignGoalSuggestion('${g.id}',${i})`)).join('')}
             <button onclick="state.designGoalAddMode=null;render()" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:0">Done reviewing</button>
           ` : ''}
-          ${allItems.length === 0 && state.designGoalAddMode !== 'manual' && state.designGoalAddMode !== 'ai'
-            ? `<div style="font-size:13px;color:var(--text-muted);font-style:italic">No evidence yet. Add manually or use AI to find relevant items from your assessments and notes.</div>`
+          ${allItems.length === 0 && !state.designGoalAddMode
+            ? `<div style="font-size:13px;color:var(--text-muted);font-style:italic">No evidence yet. Add manually or use AI to find matches.</div>`
             : allItems.map(item => {
                 const manualMatch = manualItems.find(e => e.text === item.text);
-                return evidenceCard(item, manualMatch ? manualMatch.id : null);
+                return detailEvidenceCard(item, manualMatch ? `deleteDesignGoalEvidence('${g.id}','${manualMatch.id}')` : null);
               }).join('')}
         </div>
       </div>
@@ -4490,7 +4497,7 @@ function saveGrowthThemeNote(themeId, notes) {
   if (!d.growthThemeNotes) d.growthThemeNotes = {};
   d.growthThemeNotes[themeId] = notes;
   saveData(d);
-  state.growthThemeNotesEditing = false;
+  state.detailNotesEditing = false;
   render();
 }
 
