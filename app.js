@@ -5557,7 +5557,7 @@ function render() {
     <div id="main">
       <div class="topbar">
         <div style="flex:1">
-          <div class="topbar-title">${escHtml(getViewTitle())}</div>
+          <div class="topbar-title">${getViewTitle()}</div>
         </div>
         <div class="topbar-search" id="topbar-search-container">
           <span class="search-icon"><svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.66,218.34l-50.06-50.07a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.31-11.31ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg></span>
