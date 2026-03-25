@@ -3805,7 +3805,7 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
       ${goals.length === 0 ? `
         <div class="goals-empty">No goals added yet. <button class="goals-empty-add" onclick="openAddGoalModal('${sectionId}')">Add one →</button></div>
       ` : `
-        <div class="review-table-wrap"><table class="review-table goals-table">
+        <div class="review-table-wrap"><table class="review-table goals-table${sectionId === 'personal' ? ' personal-goals-table' : ''}">
           <thead>
             <tr>
               <th style="cursor:pointer;user-select:none" onclick="setTableSort('goals-${sectionId}','goal')">Goal${sortIndicator('goals-'+sectionId,'goal')}</th>
@@ -3814,6 +3814,7 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
               <th style="cursor:pointer;user-select:none" onclick="setTableSort('goals-${sectionId}','status')">Status${sortIndicator('goals-'+sectionId,'status')}</th>
               <th>Notes</th>
               ${isEditable ? '<th></th>' : ''}
+              ${sectionId === 'personal' ? '<th style="width:32px;min-width:32px;max-width:32px"></th>' : ''}
             </tr>
           </thead>
           <tbody>
@@ -3845,6 +3846,7 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
                     </button>
                   </td>
                   ${isEditable ? `<td onclick="event.stopPropagation()"><button class="resource-delete" onclick="deleteUserGoal('${sectionId}',${i})" title="Delete">✕</button></td>` : ''}
+                  ${sectionId === 'personal' ? `<td style="width:32px;padding-right:12px;text-align:right"><svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="color:var(--text-muted);display:block;margin-left:auto"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg></td>` : ''}
                 </tr>
               `;
             }).join('')}

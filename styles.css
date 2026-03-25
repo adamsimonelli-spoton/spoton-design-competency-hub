@@ -3337,6 +3337,8 @@ body {
 }
 .goals-table th:nth-child(1),
 .goals-table td:nth-child(1) { min-width: 180px; width: 180px; }
+.personal-goals-table th:nth-child(1),
+.personal-goals-table td:nth-child(1) { min-width: 300px; width: auto; }
 .goals-table th:nth-child(2),
 .goals-table td:nth-child(2) { white-space: normal; min-width: 240px; }
 .goals-table th:nth-child(3),
