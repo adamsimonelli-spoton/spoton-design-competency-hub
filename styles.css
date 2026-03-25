@@ -2227,7 +2227,7 @@ body {
   vertical-align: middle;
 }
 .review-table tr:last-child td { border-bottom: none; }
-.review-table tr:hover td { background: var(--bg); }
+.review-table tr:hover td { background: var(--surface-hover); }
 .review-table th:nth-child(1),
 .review-table td:nth-child(1) { min-width: 260px; width: 260px; }
 .review-table th:nth-child(2),

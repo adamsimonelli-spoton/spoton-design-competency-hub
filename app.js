@@ -737,6 +737,7 @@ let state = {
   unlockedProfiles: [],
   personalGoalId: null,
   designGoalId: null,
+  growthThemeNotesEditing: false,
 };
 
 // ============ STORAGE ============
@@ -744,7 +745,7 @@ function getStorageKey() { return `dch_data_${state.profile}`; }
 function getData() {
   const raw = localStorage.getItem(getStorageKey());
   const base = raw ? JSON.parse(raw) : {};
-  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], designGoalEvidence: {}, growthThemeEvidence: {}, personalGoalEvidence: {}, ...base };
+  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], designGoalEvidence: {}, growthThemeEvidence: {}, personalGoalEvidence: {}, growthThemeNotes: {}, ...base };
 }
 function saveData(data) {
   localStorage.setItem(getStorageKey(), JSON.stringify(data));
@@ -982,7 +983,7 @@ function getAssessedCount() {
 function getDataForProfile(profileId) {
   const raw = localStorage.getItem(`dch_data_${profileId}`);
   const base = raw ? JSON.parse(raw) : {};
-  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], designGoalEvidence: {}, growthThemeEvidence: {}, personalGoalEvidence: {}, ...base };
+  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], designGoalEvidence: {}, growthThemeEvidence: {}, personalGoalEvidence: {}, growthThemeNotes: {}, ...base };
 }
 function getExpectedLevelForSkillAndRole(skillId, role) {
   if (!role) return null;
@@ -3857,6 +3858,7 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
 function navigateToGrowthTheme(themeId) {
   state.growthThemeId = themeId;
   state.view = 'growth-theme';
+  state.growthThemeNotesEditing = false;
   render();
   window.scrollTo(0, 0);
 }
@@ -4138,6 +4140,32 @@ function renderGrowthThemeDetail() {
           </div>
         </div>
       </div>
+
+      <!-- Notes panel -->
+      ${(() => {
+        const notes = d.growthThemeNotes?.[t.id] || '';
+        if (state.growthThemeNotesEditing) {
+          return `
+            <div class="review-table-wrap" style="overflow:hidden;margin-bottom:24px">
+              <div style="padding:16px 20px">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:8px">Notes</div>
+                <textarea id="gt-notes-input" class="form-input" rows="4" style="resize:vertical;margin-bottom:10px" placeholder="Add your notes about this theme…">${escHtml(notes)}</textarea>
+                <div style="display:flex;gap:8px">
+                  <button onclick="saveGrowthThemeNote('${t.id}', document.getElementById('gt-notes-input').value)" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">Save</button>
+                  <button onclick="state.growthThemeNotesEditing=false;render()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">Cancel</button>
+                </div>
+              </div>
+            </div>`;
+        }
+        return `
+          <div class="review-table-wrap" style="overflow:hidden;margin-bottom:24px">
+            <div style="padding:16px 20px">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px">Notes</div>
+              <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:8px">${notes ? escHtml(notes) : '<span style="color:var(--text-muted);font-style:italic">No notes yet</span>'}</div>
+              <button onclick="state.growthThemeNotesEditing=true;render()" style="font-size:12px;font-weight:600;color:var(--primary);background:none;border:none;padding:0;cursor:pointer">${notes ? 'Edit notes →' : '+ Add notes'}</button>
+            </div>
+          </div>`;
+      })()}
 
       <!-- Evidence section -->
       <div class="review-table-wrap" style="overflow:hidden">
@@ -4466,6 +4494,15 @@ function confirmDesignGoalSuggestion(goalId, idx) {
 function dismissDesignGoalSuggestion(idx) {
   state.designGoalSuggestions.splice(idx, 1);
   if (state.designGoalSuggestions.length === 0) state.designGoalAddMode = null;
+  render();
+}
+
+function saveGrowthThemeNote(themeId, notes) {
+  const d = getData();
+  if (!d.growthThemeNotes) d.growthThemeNotes = {};
+  d.growthThemeNotes[themeId] = notes;
+  saveData(d);
+  state.growthThemeNotesEditing = false;
   render();
 }
 
