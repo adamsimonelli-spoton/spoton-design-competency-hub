@@ -715,6 +715,7 @@ let state = {
   eoyTextTab: 'self',
   tableSort: {},
   growthThemeModal: null,
+  growthThemeId: null,
   growthThemeLevelModal: null,
   designGoalModal: null,
   designGoalAddMode: null,   // 'manual' | 'ai' | null
@@ -741,7 +742,7 @@ function getStorageKey() { return `dch_data_${state.profile}`; }
 function getData() {
   const raw = localStorage.getItem(getStorageKey());
   const base = raw ? JSON.parse(raw) : {};
-  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], designGoalEvidence: {}, ...base };
+  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], designGoalEvidence: {}, growthThemeEvidence: {}, ...base };
 }
 function saveData(data) {
   localStorage.setItem(getStorageKey(), JSON.stringify(data));
@@ -979,7 +980,7 @@ function getAssessedCount() {
 function getDataForProfile(profileId) {
   const raw = localStorage.getItem(`dch_data_${profileId}`);
   const base = raw ? JSON.parse(raw) : {};
-  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], designGoalEvidence: {}, ...base };
+  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], designGoalEvidence: {}, growthThemeEvidence: {}, ...base };
 }
 function getExpectedLevelForSkillAndRole(skillId, role) {
   if (!role) return null;
@@ -3851,81 +3852,184 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
   `;
 }
 
+function navigateToGrowthTheme(themeId) {
+  state.growthThemeId = themeId;
+  state.view = 'growth-theme';
+  render();
+  window.scrollTo(0, 0);
+}
+
+function renderGrowthThemeDetail() {
+  const d = getData();
+  const themes = d.growthThemes || [];
+  const t = themes.find(x => x.id === state.growthThemeId);
+  if (!t) return '<div style="padding:32px">Theme not found.</div>';
+
+  const base = typeof d.growthThemeScore === 'number' ? d.growthThemeScore : null;
+  const s0 = base !== null ? base.toFixed(1) : null;
+  const s1 = base !== null ? (base + 0.25).toFixed(2) : null;
+  const s2 = base !== null ? (base + 0.50).toFixed(2) : null;
+
+  const scoreCol = (label, score, bg, color, items, howTo) => {
+    const list = Array.isArray(items) ? items : (items ? [items] : []);
+    const hw = Array.isArray(howTo) ? howTo : [];
+    return `
+      <div style="background:${bg};border-radius:8px;padding:14px 16px;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:10px">
+          ${score !== null ? `<span style="font-size:16px;font-weight:800;color:${color};line-height:1">${score}</span><span style="font-size:10px;font-weight:600;color:${color};opacity:.6">/5</span>` : ''}
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${color}${score !== null ? ';margin-left:2px' : ''}">${label}</span>
+        </div>
+        <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px;flex:1">
+          ${list.map(i => `<li style="position:relative;padding-left:13px;font-size:13px;color:var(--text-secondary);line-height:1.5"><span style="position:absolute;left:1px;top:8px;width:5px;height:5px;border-radius:50%;background:${color};opacity:.5"></span>${escHtml(i)}</li>`).join('')}
+        </ul>
+        ${hw.length ? `<button onclick="openGrowthThemeLevelModal('${t.id}','${label.toLowerCase()}')" style="margin-top:12px;background:none;border:none;padding:0;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;text-align:left">How to get here →</button>` : ''}
+      </div>`;
+  };
+
+  const CH = `font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:10px`;
+  const bullets = (items) => (items || []).map(i =>
+    `<li style="position:relative;padding-left:14px;font-size:13px;color:var(--text-secondary);line-height:1.55;margin-bottom:4px"><span style="position:absolute;left:2px;top:8px;width:5px;height:5px;border-radius:50%;background:var(--text-muted)"></span>${escHtml(i)}</li>`
+  ).join('');
+
+  // Evidence section
+  const evidence = d.growthThemeEvidence?.[t.id] || [];
+
+  const evidenceCard = (item, deleteId) => `
+    <div style="padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border);position:relative">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:12px;font-weight:700;color:var(--text)">${escHtml(item.label)}</span>
+        ${item.tag ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--primary-light);color:var(--primary)">${escHtml(item.tag)}</span>` : ''}
+        ${item.date ? `<span style="font-size:11px;color:var(--text-muted);margin-left:auto">${formatDate(item.date)}</span>` : ''}
+        ${deleteId ? `<button onclick="deleteGrowthThemeEvidence('${t.id}','${deleteId}')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:14px;padding:0 4px;line-height:1;margin-left:${item.date ? '8px' : 'auto'}" title="Remove">✕</button>` : ''}
+      </div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.5">${escHtml(item.text)}</div>
+    </div>`;
+
+  const suggestionCard = (item, idx) => `
+    <div style="padding:12px 14px;background:#FFFBEB;border-radius:8px;border:1px solid #FDE68A">
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px">
+        <span style="font-size:12px;font-weight:700;color:var(--text);flex:1">${escHtml(item.label)}</span>
+        <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#FEF3C7;color:#92400E;white-space:nowrap">AI Suggested</span>
+        ${item.date ? `<span style="font-size:11px;color:var(--text-muted);white-space:nowrap">${formatDate(item.date)}</span>` : ''}
+      </div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px">${escHtml(item.text)}</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="confirmGrowthThemeSuggestion('${t.id}',${idx})" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer">Add to Evidence</button>
+        <button onclick="dismissDesignGoalSuggestion(${idx})" style="background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">Dismiss</button>
+      </div>
+    </div>`;
+
+  return `
+    <div style="max-width:900px">
+      <!-- Back nav -->
+      <button onclick="state.view='goals';state.growthThemeId=null;render()" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--text-muted);font-size:13px;font-weight:600;cursor:pointer;padding:0;margin-bottom:20px">
+        <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"/></svg>
+        Growth Themes
+      </button>
+
+      <!-- Header -->
+      <div style="margin-bottom:24px">
+        <h1 style="font-size:22px;font-weight:800;color:var(--text);margin:0 0 4px">${escHtml(t.theme)}</h1>
+        ${base !== null ? `<div style="font-size:13px;color:var(--text-muted)">Score range: ${s0} → ${s2}/5</div>` : ''}
+      </div>
+
+      <!-- Today / Better / Best + right panel -->
+      <div class="review-table-wrap" style="overflow:hidden;margin-bottom:24px">
+        <div style="display:grid;grid-template-columns:1fr 260px;align-items:stretch">
+          <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-content:start">
+            ${scoreCol('Today',  s0, '#F8FAFC', 'var(--text-muted)', t.today,  t.todayHowTo)}
+            ${scoreCol('Better', s1, '#EFF6FF', '#3B82F6',           t.better, t.betterHowTo)}
+            ${scoreCol('Best',   s2, '#F0FDF4', '#16A34A',           t.best,   t.bestHowTo)}
+          </div>
+          <div style="border-left:1px solid var(--border);padding:16px 20px;display:flex;flex-direction:column;gap:16px">
+            <div><div style="${CH}">Indicators</div><ul style="margin:0;padding:0;list-style:none">${bullets(t.indicators)}</ul></div>
+            <div><div style="${CH}">Dependencies</div><ul style="margin:0;padding:0;list-style:none">${bullets(t.dependencies)}</ul></div>
+            <div><div style="${CH}">Collaborators</div><ul style="margin:0;padding:0;list-style:none">${bullets(t.collaborators)}</ul></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Evidence section -->
+      <div class="review-table-wrap" style="overflow:hidden">
+        <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:14px;font-weight:700;color:var(--text)">Evidence</span>
+          <div style="display:flex;gap:8px">
+            <button onclick="state.designGoalAddMode = state.designGoalAddMode === 'manual' ? null : 'manual'; render()" style="font-size:12px;font-weight:600;color:var(--primary);background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer">+ Add</button>
+            <button onclick="findGrowthThemeEvidence('${t.id}')" style="font-size:12px;font-weight:600;color:#92400E;background:#FEF3C7;border:none;border-radius:6px;padding:5px 12px;cursor:pointer">✦ Find with AI</button>
+          </div>
+        </div>
+        <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+          ${state.designGoalAddMode === 'manual' ? `
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">Add Evidence</div>
+              <input id="gte-label" class="form-input" placeholder="Source / label" style="margin-bottom:8px" />
+              <textarea id="gte-text" class="form-input" rows="3" placeholder="Describe the evidence…" style="resize:vertical"></textarea>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button onclick="saveGrowthThemeEvidence('${t.id}', document.getElementById('gte-text').value, document.getElementById('gte-label').value)" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">Save</button>
+                <button onclick="state.designGoalAddMode=null;render()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">Cancel</button>
+              </div>
+            </div>` : ''}
+
+          ${state.designGoalAddMode === 'ai' ? `
+            <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:12px 14px">
+              <div style="font-size:12px;font-weight:600;color:#92400E;margin-bottom:4px">✦ AI found ${state.designGoalSuggestions.length} potential match${state.designGoalSuggestions.length !== 1 ? 'es' : ''}</div>
+              <div style="font-size:12px;color:#78350F">Review and add anything relevant to this theme.</div>
+            </div>
+            ${state.designGoalSuggestions.length === 0
+              ? `<div style="font-size:13px;color:var(--text-muted);font-style:italic">All suggestions reviewed.</div>`
+              : state.designGoalSuggestions.map((s, i) => suggestionCard(s, i)).join('')}
+            <button onclick="state.designGoalAddMode=null;render()" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:0">Done reviewing</button>
+          ` : ''}
+
+          ${evidence.length === 0 && state.designGoalAddMode !== 'ai'
+            ? `<div style="font-size:13px;color:var(--text-muted);font-style:italic">No evidence yet. Add manually or use AI to find relevant items.</div>`
+            : evidence.map(e => evidenceCard({ label: e.label, text: e.text, date: e.date, tag: e.source === 'ai_confirmed' ? 'AI Found' : null }, e.id)).join('')}
+        </div>
+      </div>
+
+      ${state.growthThemeLevelModal ? renderGrowthThemeLevelModal() : ''}
+    </div>
+  `;
+}
+
 function renderGrowthThemes() {
   const d = getData();
   const themes = d.growthThemes || [];
   if (!themes.length) return '';
 
   const base = typeof d.growthThemeScore === 'number' ? d.growthThemeScore : null;
-  const fmt = n => (Math.round(n * 100) / 100).toFixed(2).replace(/\.?0+$/, '') + (Number.isInteger(n) ? '.0' : '');
-  const s0 = base !== null ? base.toFixed(1) : null;
-  const s1 = base !== null ? (base + 0.25).toFixed(2) : null;
-  const s2 = base !== null ? (base + 0.50).toFixed(2) : null;
-
-  const scoreCol = (label, score, bg, color, items, howTo, themeId) => {
-    const list = Array.isArray(items) ? items : (items ? [items] : []);
-    const hw = Array.isArray(howTo) ? howTo : [];
-    return `
-    <div style="background:${bg};border-radius:8px;padding:14px 16px;display:flex;flex-direction:column">
-      <div style="display:flex;align-items:center;gap:5px;margin-bottom:10px">
-        ${score !== null ? `<span style="font-size:16px;font-weight:800;color:${color};line-height:1">${score}</span><span style="font-size:10px;font-weight:600;color:${color};opacity:.6">/5</span>` : ''}
-        <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${color}${score !== null ? ';margin-left:2px' : ''}">${label}</span>
-      </div>
-      <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px;flex:1">
-        ${list.map(i => `<li style="position:relative;padding-left:13px;font-size:13px;color:var(--text-secondary);line-height:1.5"><span style="position:absolute;left:1px;top:8px;width:5px;height:5px;border-radius:50%;background:${color};opacity:.5"></span>${escHtml(i)}</li>`).join('')}
-      </ul>
-      ${hw.length ? `<button onclick="openGrowthThemeLevelModal('${themeId}','${label.toLowerCase()}')" style="margin-top:12px;background:none;border:none;padding:0;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;text-align:left" onmouseover="this.style.opacity='.75'" onmouseout="this.style.opacity='1'">How to get here →</button>` : ''}
-    </div>`;
-  };
-
-  const bullets = (items) => (items || []).map(i =>
-    `<li style="position:relative;padding-left:14px;font-size:13px;color:var(--text-secondary);line-height:1.55;margin-bottom:4px"><span style="position:absolute;left:2px;top:8px;width:5px;height:5px;border-radius:50%;background:var(--text-muted)"></span>${escHtml(i)}</li>`
-  ).join('');
-
-  const CH = `font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:10px`;
 
   return `
     <div class="goals-section">
       <div class="goals-section-header">
         <div>
           <div class="goals-section-title">Growth Themes</div>
-          <div class="goals-section-subtitle">Manager-assigned focus areas with a growth trajectory and supporting context</div>
+          <div class="goals-section-subtitle">Manager-assigned focus areas with a growth trajectory</div>
         </div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:16px">
-        ${themes.map(t => `
-          <div class="review-table-wrap" style="overflow:hidden">
-            <!-- theme header -->
-            <div style="padding:12px 20px;background:#F1F5FB;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-              <div style="font-size:14px;font-weight:700;color:var(--text)">${escHtml(t.theme)}</div>
-              <button onclick="openGrowthThemeModal('${escHtml(t.id)}')" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer;line-height:1.4" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background='none'">Edit</button>
-            </div>
-            <!-- body: left = stacked score tiles, right = indicators/dependencies/collaborators -->
-            <div style="display:grid;grid-template-columns:1fr 280px;align-items:stretch">
-              <!-- left: today / better / best horizontal -->
-              <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-content:start">
-                ${scoreCol('Today',  s0, '#F8FAFC', 'var(--text-muted)', t.today,  t.todayHowTo,  t.id)}
-                ${scoreCol('Better', s1, '#EFF6FF', '#3B82F6',           t.better, t.betterHowTo, t.id)}
-                ${scoreCol('Best',   s2, '#F0FDF4', '#16A34A',           t.best,   t.bestHowTo,   t.id)}
+      <div class="review-table-wrap" style="overflow:hidden">
+        <div style="display:grid;grid-template-columns:1fr 130px 110px;padding:8px 16px;background:var(--bg);border-bottom:2px solid var(--border)">
+          <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Theme</span>
+          <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Score Range</span>
+          <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Evidence</span>
+        </div>
+        ${themes.map((t, i) => {
+          const today = base !== null ? base.toFixed(1) : null;
+          const best  = base !== null ? (base + 0.50).toFixed(2) : null;
+          const evidence = (d.growthThemeEvidence?.[t.id] || []);
+          const count = evidence.length;
+          return `
+            <div onclick="navigateToGrowthTheme('${t.id}')" style="display:grid;grid-template-columns:1fr 130px 110px;align-items:center;padding:14px 16px;cursor:pointer;transition:background .12s;${i > 0 ? 'border-top:1px solid var(--border)' : ''}" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background=''">
+              <div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(t.theme)}</div>
+              <div style="font-size:13px;color:var(--text-secondary)">${today !== null ? `${today} → ${best}` : '—'}</div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                ${count > 0
+                  ? `<span style="font-size:13px;font-weight:600;color:var(--primary)">${count} piece${count !== 1 ? 's' : ''}</span>`
+                  : `<span style="font-size:12px;color:var(--text-muted);font-style:italic">None yet</span>`}
+                <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="color:var(--text-muted);flex-shrink:0"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
               </div>
-              <!-- right: indicators / dependencies / collaborators -->
-              <div style="border-left:1px solid var(--border);padding:16px 20px;display:flex;flex-direction:column;gap:16px">
-                <div>
-                  <div style="${CH}">Indicators</div>
-                  <ul style="margin:0;padding:0;list-style:none">${bullets(t.indicators)}</ul>
-                </div>
-                <div>
-                  <div style="${CH}">Dependencies</div>
-                  <ul style="margin:0;padding:0;list-style:none">${bullets(t.dependencies)}</ul>
-                </div>
-                <div>
-                  <div style="${CH}">Collaborators</div>
-                  <ul style="margin:0;padding:0;list-style:none">${bullets(t.collaborators)}</ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        `).join('')}
+            </div>`;
+        }).join('')}
       </div>
     </div>
   `;
@@ -4035,6 +4139,98 @@ function confirmDesignGoalSuggestion(goalId, idx) {
 function dismissDesignGoalSuggestion(idx) {
   state.designGoalSuggestions.splice(idx, 1);
   if (state.designGoalSuggestions.length === 0) state.designGoalAddMode = null;
+  render();
+}
+
+function saveGrowthThemeEvidence(themeId, text, label) {
+  if (!text.trim()) return;
+  const d = getData();
+  if (!d.growthThemeEvidence) d.growthThemeEvidence = {};
+  if (!d.growthThemeEvidence[themeId]) d.growthThemeEvidence[themeId] = [];
+  d.growthThemeEvidence[themeId].push({
+    id: 'gte_' + Date.now(),
+    text: text.trim(),
+    label: label || 'Manual',
+    date: new Date().toISOString().split('T')[0],
+    source: 'manual'
+  });
+  saveData(d);
+  state.designGoalAddMode = null;
+  render();
+}
+
+function deleteGrowthThemeEvidence(themeId, evidenceId) {
+  const d = getData();
+  if (!d.growthThemeEvidence?.[themeId]) return;
+  d.growthThemeEvidence[themeId] = d.growthThemeEvidence[themeId].filter(e => e.id !== evidenceId);
+  saveData(d);
+  render();
+}
+
+function confirmGrowthThemeSuggestion(themeId, idx) {
+  const item = state.designGoalSuggestions[idx];
+  if (!item) return;
+  const d = getData();
+  if (!d.growthThemeEvidence) d.growthThemeEvidence = {};
+  if (!d.growthThemeEvidence[themeId]) d.growthThemeEvidence[themeId] = [];
+  d.growthThemeEvidence[themeId].push({
+    id: 'gte_' + Date.now() + '_' + idx,
+    text: item.text,
+    label: item.label,
+    date: item.date || new Date().toISOString().split('T')[0],
+    source: 'ai_confirmed'
+  });
+  state.designGoalSuggestions.splice(idx, 1);
+  saveData(d);
+  render();
+}
+
+function findGrowthThemeEvidence(themeId) {
+  const d = getData();
+  const od = getOutreachData();
+  const t = (d.growthThemes || []).find(x => x.id === themeId);
+  if (!t) return;
+
+  const stopWords = new Set(['the','a','an','and','or','to','of','in','for','with','on','at','from','that','this','as','is','are','was','were','be','have','has','had','by','how','what','when','where','who','will','we','our','your','their','its','it','not','but','so','if','then','do','did','can','may','more','each','all','per','one','two','three','about','into','through','team','design','product']);
+  const srcText = [t.theme, ...(t.today||[]), ...(t.better||[]), ...(t.best||[])].join(' ');
+  const keywords = [...srcText.toLowerCase().matchAll(/\b[a-z]{4,}\b/g)]
+    .map(m => m[0]).filter(w => !stopWords.has(w));
+
+  const score = (text) => {
+    if (!text) return 0;
+    const lower = text.toLowerCase();
+    return keywords.reduce((n, kw) => n + (lower.includes(kw) ? 1 : 0), 0);
+  };
+
+  const alreadyAdded = new Set((d.growthThemeEvidence?.[themeId] || []).map(e => e.text));
+  const suggestions = [];
+
+  Object.entries(d.assessments || {}).forEach(([skillId, a]) => {
+    if (a.evidence && !alreadyAdded.has(a.evidence) && score(a.evidence) > 0) {
+      const skill = SKILLS_DATA.skills.find(x => x.id === skillId);
+      suggestions.push({ text: a.evidence, label: skill?.name || skillId, date: a.lastUpdated?.split('T')[0], score: score(a.evidence), source: 'assessment' });
+    }
+    if (a.goals && !alreadyAdded.has(a.goals) && score(a.goals) > 0) {
+      const skill = SKILLS_DATA.skills.find(x => x.id === skillId);
+      suggestions.push({ text: a.goals, label: (skill?.name || skillId) + ' (goal)', date: a.lastUpdated?.split('T')[0], score: score(a.goals), source: 'goal_note' });
+    }
+  });
+
+  (d.personalGoals || []).forEach(g => {
+    if (g.notes && !alreadyAdded.has(g.notes) && score(g.notes + ' ' + g.goal) > 0) {
+      suggestions.push({ text: g.notes, label: g.goal, date: null, score: score(g.notes + ' ' + g.goal), source: 'personal_goal' });
+    }
+  });
+
+  (od.entries || []).forEach(e => {
+    if (e.notes && !alreadyAdded.has(e.notes) && score(e.notes) > 0) {
+      suggestions.push({ text: e.notes, label: e.merchant, date: e.date, score: score(e.notes), source: 'outreach' });
+    }
+  });
+
+  suggestions.sort((a, b) => b.score - a.score);
+  state.designGoalSuggestions = suggestions.slice(0, 10);
+  state.designGoalAddMode = 'ai';
   render();
 }
 
@@ -4564,6 +4760,7 @@ function navigate(view, param) {
     state.view = 'values';
   } else if (view === 'goals') {
     state.view = 'goals';
+    state.growthThemeId = null;
   } else if (view === 'value') {
     state.prevView = state.view;
     state.view = 'value';
@@ -5242,6 +5439,11 @@ function getViewTitle() {
     case 'values': return 'Core Values';
     case 'value': return 'Core Values';
     case 'goals': return 'Goals';
+    case 'growth-theme': {
+      const d = getData();
+      const t = (d.growthThemes || []).find(x => x.id === state.growthThemeId);
+      return t ? escHtml(t.theme) : 'Growth Theme';
+    }
     case 'eoy': return 'Performance Review';
     case 'outreach': return 'Merchant Outreach';
     default: return 'Design Competency Hub';
@@ -5364,6 +5566,7 @@ function render() {
         ${state.view === 'values' ? renderCoreValues() : ''}
         ${state.view === 'value' ? renderCoreValueDetail() : ''}
         ${state.view === 'goals' ? renderGoals() : ''}
+        ${state.view === 'growth-theme' ? renderGrowthThemeDetail() : ''}
       </div>
     </div>
 
