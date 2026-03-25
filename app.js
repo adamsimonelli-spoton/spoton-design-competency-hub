@@ -735,6 +735,7 @@ let state = {
   goalNotesModal: null,
   pinModal: null,
   unlockedProfiles: [],
+  personalGoalId: null,
 };
 
 // ============ STORAGE ============
@@ -742,7 +743,7 @@ function getStorageKey() { return `dch_data_${state.profile}`; }
 function getData() {
   const raw = localStorage.getItem(getStorageKey());
   const base = raw ? JSON.parse(raw) : {};
-  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], designGoalEvidence: {}, growthThemeEvidence: {}, ...base };
+  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], designGoalEvidence: {}, growthThemeEvidence: {}, personalGoalEvidence: {}, ...base };
 }
 function saveData(data) {
   localStorage.setItem(getStorageKey(), JSON.stringify(data));
@@ -980,7 +981,7 @@ function getAssessedCount() {
 function getDataForProfile(profileId) {
   const raw = localStorage.getItem(`dch_data_${profileId}`);
   const base = raw ? JSON.parse(raw) : {};
-  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], designGoalEvidence: {}, growthThemeEvidence: {}, ...base };
+  return { assessments: {}, customResources: {}, cvCustomResources: {}, coreValues: {}, goalContributions: {}, personalGoals: [], productGoals: [], growthThemes: [], designGoalEvidence: {}, growthThemeEvidence: {}, personalGoalEvidence: {}, ...base };
 }
 function getExpectedLevelForSkillAndRole(skillId, role) {
   if (!role) return null;
@@ -3827,21 +3828,21 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
               const notes  = isEditable ? (g.notes || '') : (contrib.notes || '');
               const sc = GOAL_STATUS_CONFIG[status];
               return `
-                <tr>
+                <tr ${sectionId === 'personal' ? `style="cursor:pointer" onclick="navigateToPersonalGoal('${g.id}')" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background=''"` : ''}>
                   <td><div class="goals-goal-name">${escHtml(g.goal)}</div></td>
                   <td class="goals-kpi-cell">${escHtml(g.kpi)}</td>
                   <td><span style="font-size:12px;color:var(--text-secondary);white-space:nowrap">${escHtml(g.timeFrame || '—')}</span></td>
-                  <td>
+                  <td onclick="${sectionId === 'personal' ? 'event.stopPropagation()' : ''}">
                     <select class="review-level-select" style="color:${sc.color};background:${sc.bg};border-color:${sc.color};font-weight:600;min-width:120px" onchange="saveGoalStatus('${sectionId}','${g.id}',this.value,${i})">
                       ${Object.entries(GOAL_STATUS_CONFIG).map(([k,v]) => `<option value="${k}" ${status===k?'selected':''}>${v.label}</option>`).join('')}
                     </select>
                   </td>
-                  <td>
+                  <td onclick="${sectionId === 'personal' ? 'event.stopPropagation()' : ''}">
                     <button class="review-notes-btn" onclick="openGoalNotesModal('${sectionId}','${g.id}',${i})">
                       ${notes ? `<span class="review-notes-preview-text">${escHtml(notes)}</span><span class="review-notes-expand">↗</span>` : '<span class="review-notes-placeholder">Add notes…</span>'}
                     </button>
                   </td>
-                  ${isEditable ? `<td><button class="resource-delete" onclick="deleteUserGoal('${sectionId}',${i})" title="Delete">✕</button></td>` : ''}
+                  ${isEditable ? `<td onclick="event.stopPropagation()"><button class="resource-delete" onclick="deleteUserGoal('${sectionId}',${i})" title="Delete">✕</button></td>` : ''}
                 </tr>
               `;
             }).join('')}
@@ -3857,6 +3858,184 @@ function navigateToGrowthTheme(themeId) {
   state.view = 'growth-theme';
   render();
   window.scrollTo(0, 0);
+}
+
+function navigateToPersonalGoal(goalId) {
+  state.personalGoalId = goalId;
+  state.view = 'personal-goal';
+  state.designGoalAddMode = null;
+  state.designGoalSuggestions = [];
+  render();
+  window.scrollTo(0, 0);
+}
+
+function savePersonalGoalEvidence(goalId, text, label) {
+  if (!text.trim()) return;
+  const d = getData();
+  if (!d.personalGoalEvidence[goalId]) d.personalGoalEvidence[goalId] = [];
+  d.personalGoalEvidence[goalId].push({ id: `pge_${Date.now()}`, label: label || 'Evidence', text: text.trim(), date: new Date().toISOString() });
+  saveData(d);
+  state.designGoalAddMode = null;
+  render();
+}
+
+function deletePersonalGoalEvidence(goalId, evidenceId) {
+  const d = getData();
+  if (!d.personalGoalEvidence?.[goalId]) return;
+  d.personalGoalEvidence[goalId] = d.personalGoalEvidence[goalId].filter(e => e.id !== evidenceId);
+  saveData(d);
+  render();
+}
+
+function confirmPersonalGoalSuggestion(goalId, idx) {
+  const item = state.designGoalSuggestions[idx];
+  if (!item) return;
+  const d = getData();
+  if (!d.personalGoalEvidence[goalId]) d.personalGoalEvidence[goalId] = [];
+  d.personalGoalEvidence[goalId].push({ id: `pge_${Date.now()}`, label: item.label, text: item.text, date: item.date || new Date().toISOString() });
+  saveData(d);
+  state.designGoalSuggestions.splice(idx, 1);
+  render();
+}
+
+function findPersonalGoalEvidence(goalId) {
+  const goals = getPersonalGoals();
+  const g = goals.find(x => x.id === goalId);
+  if (!g) return;
+  const stopWords = new Set(['a','an','the','and','or','but','in','on','at','to','for','of','with','by','from','as','is','was','are','be','been','being','have','has','had','do','does','did','will','would','could','should','may','might','that','this','these','those','it','its','i','my','we','our','you','your','they','their']);
+  const keywords = (g.goal + ' ' + (g.kpi || '')).toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(w => w.length > 3 && !stopWords.has(w));
+  const score = (text) => { if (!text) return 0; const t = text.toLowerCase(); return keywords.reduce((s, k) => s + (t.includes(k) ? 1 : 0), 0); };
+  const d = getData();
+  const candidates = [];
+  (d.assessments ? Object.entries(d.assessments) : []).forEach(([sid, a]) => {
+    const sk = getSkillById(sid);
+    if (a.evidence) candidates.push({ text: a.evidence, label: sk ? sk.name + ' (Assessment)' : 'Assessment', date: a.lastUpdated, score: score(a.evidence) });
+    if (a.goals)    candidates.push({ text: a.goals,    label: sk ? sk.name + ' (Goals)'      : 'Goals',      date: a.lastUpdated, score: score(a.goals) });
+  });
+  (d.personalGoals || []).filter(x => x.id !== goalId).forEach(pg => {
+    if (pg.notes) candidates.push({ text: pg.notes, label: pg.goal + ' (Personal Goal)', date: null, score: score(pg.notes + ' ' + pg.goal) });
+  });
+  state.designGoalSuggestions = candidates.filter(c => c.score > 0).sort((a,b) => b.score - a.score).slice(0, 10);
+  if (!state.designGoalSuggestions.length) state.designGoalSuggestions = [{ label: 'No matches found', text: 'No relevant evidence was found. Try adding evidence manually.', date: null, score: 0, noMatch: true }];
+  state.designGoalAddMode = 'ai';
+  render();
+}
+
+function renderPersonalGoalDetail() {
+  const goals = getPersonalGoals();
+  const d = getData();
+  const g = goals.find(x => x.id === state.personalGoalId);
+  if (!g) return '<div style="padding:32px">Goal not found.</div>';
+
+  const idx = goals.findIndex(x => x.id === state.personalGoalId);
+  const prevGoal = goals[(idx - 1 + goals.length) % goals.length];
+  const nextGoal = goals[(idx + 1) % goals.length];
+
+  const sc = GOAL_STATUS_CONFIG[g.status || 'not_started'];
+  const evidence = d.personalGoalEvidence?.[g.id] || [];
+
+  const evidenceCard = (item, deleteId) => `
+    <div style="padding:12px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border);position:relative">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:12px;font-weight:700;color:var(--text)">${escHtml(item.label)}</span>
+        ${item.tag ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--primary-light);color:var(--primary)">${escHtml(item.tag)}</span>` : ''}
+        ${item.date ? `<span style="font-size:11px;color:var(--text-muted);margin-left:auto">${formatDate(item.date)}</span>` : ''}
+        ${deleteId ? `<button onclick="deletePersonalGoalEvidence('${g.id}','${deleteId}')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:14px;padding:0 4px;line-height:1;margin-left:${item.date ? '8px' : 'auto'}" title="Remove">✕</button>` : ''}
+      </div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.5">${escHtml(item.text)}</div>
+    </div>`;
+
+  const suggestionCard = (item, i) => item.noMatch
+    ? `<div style="padding:12px 14px;background:#F8FAFC;border-radius:8px;border:1px solid var(--border);font-size:13px;color:var(--text-muted)">${escHtml(item.text)}</div>`
+    : `
+    <div style="padding:12px 14px;background:#FFFBEB;border-radius:8px;border:1px solid #FDE68A">
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px">
+        <span style="font-size:12px;font-weight:700;color:var(--text);flex:1">${escHtml(item.label)}</span>
+        <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#FEF3C7;color:#92400E;white-space:nowrap">AI Suggested</span>
+        ${item.date ? `<span style="font-size:11px;color:var(--text-muted);white-space:nowrap">${formatDate(item.date)}</span>` : ''}
+      </div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px">${escHtml(item.text)}</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="confirmPersonalGoalSuggestion('${g.id}',${i})" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer">Add to Evidence</button>
+        <button onclick="dismissDesignGoalSuggestion(${i})" style="background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">Dismiss</button>
+      </div>
+    </div>`;
+
+  return `
+    <div style="max-width:900px">
+      <div class="breadcrumb">
+        <button class="back-arrow-btn" onclick="state.view='goals';state.personalGoalId=null;state.designGoalAddMode=null;state.designGoalSuggestions=[];render()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Back
+        </button>
+        ${goals.length > 1 ? `
+        <div class="skill-nav-arrows">
+          <button class="skill-nav-btn" onclick="navigateToPersonalGoal('${prevGoal.id}')" title="${escHtml(prevGoal.goal)}">‹ Prev</button>
+          <button class="skill-nav-btn" onclick="navigateToPersonalGoal('${nextGoal.id}')" title="${escHtml(nextGoal.goal)}">Next ›</button>
+        </div>` : ''}
+      </div>
+
+      <!-- Header -->
+      <div style="margin-bottom:24px">
+        <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <h1 style="font-size:22px;font-weight:800;color:var(--text);margin:0;flex:1">${escHtml(g.goal)}</h1>
+          <select class="review-level-select" style="color:${sc.color};background:${sc.bg};border-color:${sc.color};font-weight:600;flex-shrink:0" onchange="saveGoalStatusFromDetail('${g.id}',this.value)">
+            ${Object.entries(GOAL_STATUS_CONFIG).map(([k,v]) => `<option value="${k}" ${(g.status||'not_started')===k?'selected':''}>${v.label}</option>`).join('')}
+          </select>
+        </div>
+        ${g.timeFrame ? `<div style="font-size:13px;color:var(--text-muted);margin-top:4px">${escHtml(g.timeFrame)}</div>` : ''}
+      </div>
+
+      <!-- KPI + Notes -->
+      <div class="review-table-wrap" style="overflow:hidden;margin-bottom:24px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;divide">
+          <div style="padding:16px 20px;border-right:1px solid var(--border)">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px">KPI / How I'll Contribute</div>
+            <div style="font-size:14px;color:var(--text-secondary);line-height:1.6">${escHtml(g.kpi || '—')}</div>
+          </div>
+          <div style="padding:16px 20px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:6px">Notes</div>
+            <div style="font-size:14px;color:var(--text-secondary);line-height:1.6">${escHtml(g.notes || '—')}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Evidence section -->
+      <div class="review-table-wrap" style="overflow:hidden">
+        <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:14px;font-weight:700;color:var(--text)">Evidence</span>
+          <div style="display:flex;gap:8px">
+            <button onclick="state.designGoalAddMode = state.designGoalAddMode === 'manual' ? null : 'manual'; render()" style="font-size:12px;font-weight:600;color:var(--primary);background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer">+ Add</button>
+            <button onclick="findPersonalGoalEvidence('${g.id}')" style="font-size:12px;font-weight:600;color:#92400E;background:#FEF3C7;border:none;border-radius:6px;padding:5px 12px;cursor:pointer">✦ Find with AI</button>
+          </div>
+        </div>
+        <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+          ${state.designGoalAddMode === 'manual' ? `
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">Add Evidence</div>
+              <input id="pge-label" class="form-input" placeholder="Source / label" style="margin-bottom:8px" />
+              <textarea id="pge-text" class="form-input" rows="3" placeholder="Describe the evidence…" style="resize:vertical"></textarea>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button onclick="savePersonalGoalEvidence('${g.id}', document.getElementById('pge-text').value, document.getElementById('pge-label').value)" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer">Save</button>
+                <button onclick="state.designGoalAddMode=null;render()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">Cancel</button>
+              </div>
+            </div>` : ''}
+          ${state.designGoalAddMode === 'ai' ? state.designGoalSuggestions.map((s, i) => suggestionCard(s, i)).join('') : ''}
+          ${evidence.length === 0 && state.designGoalAddMode !== 'manual' && state.designGoalAddMode !== 'ai'
+            ? `<div style="font-size:13px;color:var(--text-muted)">No evidence added yet.</div>`
+            : evidence.map(item => evidenceCard(item, item.id)).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+function saveGoalStatusFromDetail(goalId, status) {
+  const goals = getPersonalGoals();
+  const idx = goals.findIndex(g => g.id === goalId);
+  if (idx === -1) return;
+  goals[idx].status = status;
+  savePersonalGoals(goals);
+  render();
 }
 
 function renderGrowthThemeDetail() {
@@ -4771,6 +4950,7 @@ function navigate(view, param) {
   } else if (view === 'goals') {
     state.view = 'goals';
     state.growthThemeId = null;
+    state.personalGoalId = null;
   } else if (view === 'value') {
     state.prevView = state.view;
     state.view = 'value';
@@ -5449,6 +5629,10 @@ function getViewTitle() {
     case 'values': return 'Core Values';
     case 'value': return 'Core Values';
     case 'goals': return 'Goals';
+    case 'personal-goal': {
+      const pg = getPersonalGoals().find(x => x.id === state.personalGoalId);
+      return pg ? escHtml(pg.goal) : 'Personal Goal';
+    }
     case 'growth-theme': {
       const d = getData();
       const t = (d.growthThemes || []).find(x => x.id === state.growthThemeId);
@@ -5577,6 +5761,7 @@ function render() {
         ${state.view === 'value' ? renderCoreValueDetail() : ''}
         ${state.view === 'goals' ? renderGoals() : ''}
         ${state.view === 'growth-theme' ? renderGrowthThemeDetail() : ''}
+        ${state.view === 'personal-goal' ? renderPersonalGoalDetail() : ''}
       </div>
     </div>
 
