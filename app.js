@@ -4112,8 +4112,7 @@ function renderGrowthThemeDetail() {
 
       <!-- Header -->
       <div style="margin-bottom:24px">
-        <h1 style="font-size:22px;font-weight:800;color:var(--text);margin:0 0 4px">${escHtml(t.theme)}</h1>
-        ${base !== null ? `<div style="font-size:13px;color:var(--text-muted)">Score range: ${s0} → ${s2}/5</div>` : ''}
+        <h1 style="font-size:22px;font-weight:800;color:var(--text);margin:0">${escHtml(t.theme)}</h1>
       </div>
 
       <!-- Today / Better / Best -->
@@ -5793,19 +5792,9 @@ function getViewTitle() {
     case 'values': return 'Core Values';
     case 'value': return 'Core Values';
     case 'goals': return 'Goals';
-    case 'personal-goal': {
-      const pg = getPersonalGoals().find(x => x.id === state.personalGoalId);
-      return pg ? escHtml(pg.goal) : 'Personal Goal';
-    }
-    case 'design-goal': {
-      const dg = DESIGN_TEAM_GOALS.find(x => x.id === state.designGoalId);
-      return dg ? escHtml(dg.goal) : 'Team Goal';
-    }
-    case 'growth-theme': {
-      const d = getData();
-      const t = (d.growthThemes || []).find(x => x.id === state.growthThemeId);
-      return t ? escHtml(t.theme) : 'Growth Theme';
-    }
+    case 'personal-goal': return 'Goals';
+    case 'design-goal':   return 'Goals';
+    case 'growth-theme':  return 'Goals';
     case 'eoy': return 'Performance Review';
     case 'outreach': return 'Merchant Outreach';
     default: return 'Design Competency Hub';
@@ -5872,7 +5861,7 @@ function render() {
           <span>Core Values</span>
         </button>
 
-        <button class="nav-item ${state.view === 'goals' ? 'active' : ''}" onclick="navigate('goals')">
+        <button class="nav-item ${['goals','personal-goal','design-goal','growth-theme'].includes(state.view) ? 'active' : ''}" onclick="navigate('goals')">
           <span class="nav-icon">🎯</span>
           <span>Goals</span>
         </button>
