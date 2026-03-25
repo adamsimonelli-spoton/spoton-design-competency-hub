@@ -3793,54 +3793,26 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
       ${goals.length === 0 ? `
         <div class="goals-empty">No goals added yet. <button class="goals-empty-add" onclick="openAddGoalModal('${sectionId}')">Add one →</button></div>
       ` : `
-        <div class="review-table-wrap"><table class="review-table goals-table${sectionId === 'personal' ? ' personal-goals-table' : ''}">
-          <thead>
-            <tr>
-              <th style="cursor:pointer;user-select:none" onclick="setTableSort('goals-${sectionId}','goal')">Goal${sortIndicator('goals-'+sectionId,'goal')}</th>
-              ${sectionId !== 'personal' ? '<th>KPI / How I\'ll Contribute</th>' : ''}
-              <th style="cursor:pointer;user-select:none" onclick="setTableSort('goals-${sectionId}','timeFrame')">Time Frame${sortIndicator('goals-'+sectionId,'timeFrame')}</th>
-              <th style="cursor:pointer;user-select:none" onclick="setTableSort('goals-${sectionId}','status')">Status${sortIndicator('goals-'+sectionId,'status')}</th>
-              ${sectionId !== 'personal' ? '<th>Notes</th>' : ''}
-              ${isEditable ? '<th></th>' : ''}
-              ${sectionId === 'personal' ? '<th style="width:32px;min-width:32px;max-width:32px"></th>' : ''}
-            </tr>
-          </thead>
-          <tbody>
-            ${(() => {
-              const statusOrder = { completed: 0, on_track: 1, in_progress: 2, at_risk: 3, not_started: 4 };
-              return applySortToRows(goals.map((g,i) => ({...g, _i: i})), 'goals-'+sectionId, {
-                goal:      g => g.goal,
-                timeFrame: g => g.timeFrame || '',
-                status:    g => { const contrib = isEditable ? null : getGoalContribution(g.id); const st = isEditable ? (g.status||'not_started') : (contrib.status||'not_started'); return statusOrder[st] ?? 9; },
-              });
-            })().map((g) => { const i = g._i;
-              const contrib = isEditable ? null : getGoalContribution(g.id);
-              const status = isEditable ? (g.status || 'not_started') : (contrib.status || 'not_started');
-              const notes  = isEditable ? (g.notes || '') : (contrib.notes || '');
-              const sc = GOAL_STATUS_CONFIG[status];
-              return `
-                <tr ${sectionId === 'personal' ? `style="cursor:pointer" onclick="navigateToPersonalGoal('${g.id}')"` : ''}>
-                  <td><div class="goals-goal-name">${escHtml(g.goal)}</div></td>
-                  ${sectionId !== 'personal' ? `<td class="goals-kpi-cell">${escHtml(g.kpi)}</td>` : ''}
-                  <td><span style="font-size:12px;color:var(--text-secondary);white-space:nowrap">${escHtml(g.timeFrame || '—')}</span></td>
-                  <td onclick="${sectionId === 'personal' ? 'event.stopPropagation()' : ''}">
-                    <select class="review-level-select" style="color:${sc.color};background:${sc.bg};border-color:${sc.color};font-weight:600;min-width:120px" onchange="saveGoalStatus('${sectionId}','${g.id}',this.value,${i})">
-                      ${Object.entries(GOAL_STATUS_CONFIG).map(([k,v]) => `<option value="${k}" ${status===k?'selected':''}>${v.label}</option>`).join('')}
-                    </select>
-                  </td>
-                  ${sectionId !== 'personal' ? `
-                  <td onclick="${sectionId === 'personal' ? 'event.stopPropagation()' : ''}">
-                    <button class="review-notes-btn" onclick="openGoalNotesModal('${sectionId}','${g.id}',${i})">
-                      ${notes ? `<span class="review-notes-preview-text">${escHtml(notes)}</span><span class="review-notes-expand">↗</span>` : '<span class="review-notes-placeholder">Add notes…</span>'}
-                    </button>
-                  </td>` : ''}
-                  ${isEditable ? `<td onclick="event.stopPropagation()"><button class="resource-delete" onclick="deleteUserGoal('${sectionId}',${i})" title="Delete">✕</button></td>` : ''}
-                  ${sectionId === 'personal' ? `<td style="width:32px;padding-right:12px;text-align:right"><svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="color:var(--text-muted);display:block;margin-left:auto"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg></td>` : ''}
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">
+          ${goals.map((g, i) => {
+            const status = g.status || 'not_started';
+            const sc = GOAL_STATUS_CONFIG[status];
+            return `
+              <div class="growth-theme-tile" onclick="navigateToPersonalGoal('${g.id}')">
+                <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px">
+                  <div class="goals-goal-name" style="font-size:14px;flex:1">${escHtml(g.goal)}</div>
+                  ${isEditable ? `<button onclick="event.stopPropagation();deleteUserGoal('${sectionId}',${i})" class="evidence-delete" title="Delete" style="margin-top:1px">✕</button>` : ''}
+                </div>
+                ${g.timeFrame ? `<div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">${escHtml(g.timeFrame)}</div>` : '<div style="margin-bottom:12px"></div>'}
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
+                  <select class="review-level-select" style="color:${sc.color};background:${sc.bg};border-color:${sc.color};font-weight:600;font-size:11px" onclick="event.stopPropagation()" onchange="event.stopPropagation();saveGoalStatus('${sectionId}','${g.id}',this.value,${i})">
+                    ${Object.entries(GOAL_STATUS_CONFIG).map(([k,v]) => `<option value="${k}" ${status===k?'selected':''}>${v.label}</option>`).join('')}
+                  </select>
+                  <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="color:var(--text-muted);flex-shrink:0"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
+                </div>
+              </div>`;
+          }).join('')}
+        </div>
       `}
     </div>
   `;
@@ -4420,22 +4392,23 @@ function renderDesignTeamGoals() {
           <div class="goals-section-title">2026 Design Team Goals</div>
         </div>
       </div>
-      <div class="review-table-wrap" style="overflow:hidden">
-        <div style="display:grid;grid-template-columns:1fr 130px;padding:8px 16px;background:var(--bg);border-bottom:2px solid var(--border)">
-          <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Goal</span>
-          <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Evidence</span>
-        </div>
-        ${DESIGN_TEAM_GOALS.map((g, i) => {
-          const items = getDesignGoalEvidence(g);
-          const count = items.length;
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">
+        ${DESIGN_TEAM_GOALS.map(g => {
+          const count = getDesignGoalEvidence(g).length;
+          const contrib = getGoalContribution(g.id);
+          const sc = GOAL_STATUS_CONFIG[contrib.status || 'not_started'];
           return `
-            <div onclick="navigateToDesignGoal('${g.id}')" style="display:grid;grid-template-columns:1fr 130px;align-items:center;padding:14px 16px;cursor:pointer;transition:background .12s;${i > 0 ? 'border-top:1px solid var(--border)' : ''}" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background=''">
-              <div class="goals-goal-name">${escHtml(g.goal)}</div>
-              <div style="display:flex;align-items:center;justify-content:space-between">
+            <div class="growth-theme-tile" onclick="navigateToDesignGoal('${g.id}')">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">
+                <div class="goals-goal-name" style="font-size:14px">${escHtml(g.goal)}</div>
+                <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="color:var(--text-muted);flex-shrink:0;margin-top:2px"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
+              </div>
+              ${g.kpi ? `<div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escHtml(g.kpi)}</div>` : '<div style="margin-bottom:12px"></div>'}
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
+                <span style="font-size:11px;font-weight:600;color:${sc.color};background:${sc.bg};padding:2px 8px;border-radius:20px;border:1px solid ${sc.color}22">${sc.label}</span>
                 ${count > 0
-                  ? `<span style="font-size:13px;font-weight:600;color:var(--primary)">${count} piece${count !== 1 ? 's' : ''}</span>`
-                  : `<span style="font-size:12px;color:var(--text-muted);font-style:italic">None yet</span>`}
-                <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="color:var(--text-muted);flex-shrink:0"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
+                  ? `<span style="font-size:11px;font-weight:700;color:var(--primary);background:var(--primary-light);padding:2px 8px;border-radius:20px">${count} piece${count !== 1 ? 's' : ''}</span>`
+                  : `<span style="font-size:11px;color:var(--text-muted);font-style:italic">No evidence yet</span>`}
               </div>
             </div>`;
         }).join('')}
