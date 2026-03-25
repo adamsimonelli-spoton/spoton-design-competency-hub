@@ -4084,12 +4084,10 @@ function renderGrowthThemeLevelModal() {
   return `
     <div class="modal-overlay" onclick="if(event.target===this)closeGrowthThemeLevelModal()" style="z-index:1100">
       <div class="modal-box" onclick="event.stopPropagation()" style="max-width:480px">
-        <div class="insight-modal-header">
-          <div>
-            <div class="insight-modal-title">How to get here</div>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${escHtml(t.theme)} — ${label}</div>
-          </div>
-          <button class="insight-modal-close" onclick="closeGrowthThemeLevelModal()">✕</button>
+        <div style="position:relative;padding:20px 24px 16px;border-bottom:1px solid var(--border)">
+          <div class="insight-modal-title">How to get here</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${escHtml(t.theme)} — ${label}</div>
+          <button class="insight-modal-close" onclick="closeGrowthThemeLevelModal()" style="position:absolute;top:16px;right:16px">✕</button>
         </div>
         <div style="padding:20px 24px">
           <!-- what this level looks like -->
