@@ -3972,7 +3972,7 @@ function renderPersonalGoalDetail() {
       <!-- Header -->
       <div style="margin-bottom:24px">
         <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
-          <h1 style="font-size:22px;font-weight:800;color:var(--text);margin:0;flex:1">${escHtml(g.goal)}</h1>
+          <h1 style="font-size:22px;font-weight:800;color:var(--text);margin:0;flex:1;max-width:600px">${escHtml(g.goal)}</h1>
           <select class="review-level-select" style="color:${sc.color};background:${sc.bg};border-color:${sc.color};font-weight:600;flex-shrink:0" onchange="saveGoalStatusFromDetail('${g.id}',this.value)">
             ${Object.entries(GOAL_STATUS_CONFIG).map(([k,v]) => `<option value="${k}" ${(g.status||'not_started')===k?'selected':''}>${v.label}</option>`).join('')}
           </select>
@@ -5792,8 +5792,8 @@ function getViewTitle() {
     case 'values': return 'Core Values';
     case 'value': return 'Core Values';
     case 'goals': return 'Goals';
-    case 'personal-goal': return 'Goals';
-    case 'design-goal':   return 'Goals';
+    case 'personal-goal': return 'Personal Goals';
+    case 'design-goal':   return '2026 Design Team Goals';
     case 'growth-theme':  return 'Growth Themes';
     case 'eoy': return 'Performance Review';
     case 'outreach': return 'Merchant Outreach';
