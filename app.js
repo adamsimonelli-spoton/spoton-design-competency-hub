@@ -3992,10 +3992,10 @@ function renderDesignGoalModal() {
         <div style="position:relative;padding:20px 24px 16px;border-bottom:1px solid var(--border)">
           <div class="insight-modal-title">${escHtml(g.goal)}</div>
           ${g.kpi ? `<div style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-top:8px">${escHtml(g.kpi)}</div>` : ''}
-          <div style="margin-top:8px;font-size:12px;color:var(--text-muted)">${items.length} piece${items.length !== 1 ? 's' : ''} of evidence</div>
           <button class="insight-modal-close" onclick="closeDesignGoalModal()" style="position:absolute;top:16px;right:16px">✕</button>
         </div>
         <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Evidence</div>
           ${items.length === 0
             ? `<div style="font-size:13px;color:var(--text-muted);font-style:italic;padding:8px 0">No evidence found yet. As you add assessment notes and outreach activity, relevant pieces will appear here.</div>`
             : items.map(item => `
