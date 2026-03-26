@@ -27,6 +27,7 @@ const LUCIDE_PATHS = {
   'check-circle': '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>',
   'plus':         '<path d="M5 12h14"/><path d="M12 5v14"/>',
   'external-link':'<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  'upload':       '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
 };
 function icon(name, size = 16, color = 'currentColor', extraStyle = '') {
   const paths = LUCIDE_PATHS[name] || '';
@@ -1100,6 +1101,11 @@ let state = {
   personalGoalId: null,
   designGoalId: null,
   detailNotesEditing: false,
+  importModal: false,
+  importStep: 1,
+  importTypes: ['skill-matrix', 'perf-review'],
+  importFiles: {},
+  importPreview: null,
 };
 
 // ============ STORAGE ============
@@ -2408,7 +2414,10 @@ function renderHome() {
         <h1>Welcome back, ${escHtml((currentProfile?.name || 'Designer').split(' ')[0])}${currentProfile?.role ? ` <span style="font-size:13px;font-weight:600;color:var(--primary);background:var(--primary-light);border:1px solid rgba(99,102,241,.2);border-radius:20px;padding:4px 8px;vertical-align:middle;position:relative;top:-2px;margin-left:16px">${escHtml(shortRole(currentProfile.role))}</span>` : ''}</h1>
         <p>Track your design skill growth and prepare for your next performance review.</p>
       </div>
-      ${renderNoteInputCard()}
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+        ${renderNoteInputCard()}
+        <button class="btn btn-secondary" onclick="openImportModal()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import Documents</button>
+      </div>
     </div>
 
     <!-- DASHBOARD GRID: 2/3 left + 1/3 right -->
@@ -6298,6 +6307,7 @@ function render() {
 
     ${renderNoteInputModal()}
     ${renderOutreachModal()}
+    ${renderImportModal()}
     ${state.pinModal ? renderPinModal() : ''}
 
     ${renderNoteSuccessToast()}
@@ -6377,6 +6387,349 @@ function render() {
   `;
 }
 
+// ============ IMPORT DOCUMENTS MODAL ============
+
+function openImportModal() {
+  state.importModal = true;
+  state.importStep = 1;
+  state.importTypes = ['skill-matrix', 'perf-review'];
+  state.importFiles = {};
+  state.importPreview = null;
+  window._importFiles = {};
+  render();
+}
+
+function closeImportModal() {
+  state.importModal = false;
+  window._importFiles = {};
+  render();
+}
+
+function toggleImportType(type) {
+  const i = state.importTypes.indexOf(type);
+  if (i === -1) state.importTypes.push(type);
+  else if (state.importTypes.length > 1) state.importTypes.splice(i, 1);
+  render();
+}
+
+function importGoToUpload() {
+  if (state.importTypes.length === 0) return;
+  state.importStep = 2;
+  render();
+}
+
+function handleImportDrop(event, type) {
+  event.preventDefault();
+  event.currentTarget.classList.remove('import-dz-over');
+  const file = event.dataTransfer.files[0];
+  if (!file) return;
+  if (!window._importFiles) window._importFiles = {};
+  window._importFiles[type] = file;
+  state.importFiles = { ...state.importFiles, [type]: { name: file.name, size: file.size } };
+  render();
+}
+
+function handleImportFileSelect(event, type) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!window._importFiles) window._importFiles = {};
+  window._importFiles[type] = file;
+  state.importFiles = { ...state.importFiles, [type]: { name: file.name, size: file.size } };
+  render();
+}
+
+function removeImportFile(type) {
+  const files = { ...state.importFiles };
+  delete files[type];
+  state.importFiles = files;
+  if (window._importFiles) delete window._importFiles[type];
+  render();
+}
+
+function canAdvanceToProcess() {
+  return state.importTypes.length > 0 && state.importTypes.every(t => state.importFiles[t]);
+}
+
+function startImportProcessing() {
+  if (!canAdvanceToProcess()) return;
+  state.importStep = 3;
+  render();
+  setTimeout(() => {
+    state.importPreview = generateImportPreview();
+    state.importStep = 4;
+    render();
+  }, 2800);
+}
+
+function seededRnd(seed) {
+  const x = Math.sin(seed + 1) * 10000;
+  return x - Math.floor(x);
+}
+
+function generateImportPreview() {
+  const profiles = getProfiles();
+  const currentProfile = profiles.find(p => p.id === state.profile);
+  const nameHash = (currentProfile?.name || 'User').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  const result = {};
+
+  if (state.importTypes.includes('skill-matrix')) {
+    const allLevels = ['Learner', 'Learner', 'Contributor', 'Contributor', 'Contributor', 'Independent', 'Independent', 'Expert'];
+    const skills = {};
+    SKILLS_DATA.skills.forEach((s, i) => {
+      const seed = nameHash + i * 37;
+      const selfIdx = Math.floor(seededRnd(seed) * allLevels.length);
+      const delta = Math.floor(seededRnd(seed + 7) * 3) - 1;
+      const mgrIdx = Math.max(0, Math.min(allLevels.length - 1, selfIdx + delta));
+      skills[s.id] = {
+        selfLevel: allLevels[selfIdx],
+        managerLevel: allLevels[mgrIdx],
+        notes: '',
+        evidence: '',
+        lastUpdated: new Date().toISOString(),
+      };
+    });
+    result.skills = skills;
+  }
+
+  if (state.importTypes.includes('perf-review')) {
+    const cats = ['technical','quality','accountability','we_lead','we_deliver','we_learn','we_care','engagement','team_performance','feedback_coaching'];
+    const selfRatings = {}, mgrRatings = {};
+    cats.forEach((c, i) => {
+      selfRatings[c] = Math.min(5, Math.max(1, Math.round(3 + seededRnd(nameHash + i * 13) * 2 - 0.5)));
+      mgrRatings[c]  = Math.min(5, Math.max(1, Math.round(3 + seededRnd(nameHash + i * 19 + 3) * 2 - 0.5)));
+    });
+    result.review = {
+      year: new Date().getFullYear().toString(),
+      self: {
+        ratings: selfRatings,
+        accomplishments: [
+          { headline: 'Elevated design quality across key product surfaces', bullets: ['Raised the visual and interaction bar on multiple high-traffic flows.', 'Design critique sessions led to measurable improvements in handoff quality.'] },
+          { headline: 'Strengthened cross-functional collaboration', bullets: ['Partnered closely with PM and engineering to reduce design-to-dev friction.', 'Introduced shared vocabulary that improved sprint planning efficiency.'] },
+        ],
+        improvements: [
+          { headline: 'Build more confidence presenting to senior stakeholders', bullets: ['Continue developing executive communication skills.', 'Seek more opportunities to present at the leadership level.'] },
+        ],
+      },
+      manager: {
+        name: 'Your Manager',
+        ratings: mgrRatings,
+        accomplishments: [
+          { headline: 'Demonstrated strong ownership of design outcomes', bullets: ['Took initiative on projects without waiting for direction.', 'Proactively identified design gaps and proposed solutions.'] },
+          { headline: 'Consistently delivered high-quality work on schedule', bullets: ['Reliable execution across multiple parallel workstreams.', 'Strong attention to detail and consistent follow-through.'] },
+        ],
+        improvements: [
+          { headline: 'Increase speed of decision-making on lower-stakes choices', bullets: ['Room to be more decisive on smaller design decisions to maintain momentum.', 'Practice committing earlier to directions that can be refined in iteration.'] },
+        ],
+      },
+    };
+  }
+
+  return result;
+}
+
+function applyImportedData() {
+  if (!state.importPreview) return;
+  const d = getData();
+
+  if (state.importPreview.skills) {
+    Object.entries(state.importPreview.skills).forEach(([skillId, assessment]) => {
+      d.assessments[skillId] = assessment;
+    });
+  }
+
+  if (state.importPreview.review) {
+    localStorage.setItem('dch_review_' + state.profile, JSON.stringify(state.importPreview.review));
+  }
+
+  saveData(d);
+  state.importStep = 5;
+  render();
+  setTimeout(() => closeImportModal(), 2000);
+}
+
+function renderImportModal() {
+  if (!state.importModal) return '';
+  const closeable = state.importStep !== 3 && state.importStep !== 5;
+  return `
+    <div class="import-modal-overlay" onclick="if(event.target===this && ${closeable})closeImportModal()">
+      <div class="import-modal">
+        ${state.importStep === 5 ? `
+          <div style="text-align:center;padding:48px 32px">
+            ${icon('check-circle', 52, 'var(--green)')}
+            <div style="font-size:20px;font-weight:700;color:var(--text);margin-top:16px">Profile updated!</div>
+            <div style="font-size:14px;color:var(--text-secondary);margin-top:8px">
+              ${state.importPreview?.skills ? `${Object.keys(state.importPreview.skills).length} skills imported.` : ''}
+              ${state.importPreview?.review ? ' Performance review data added.' : ''}
+            </div>
+          </div>
+        ` : `
+          <div class="import-modal-header">
+            <div>
+              <div class="import-modal-title">Import Documents</div>
+              <div class="import-step-indicator">
+                ${[1,2,3,4].map(n => `<span class="import-step-dot ${n < state.importStep ? 'done' : n === state.importStep ? 'active' : ''}"></span>`).join('')}
+                <span style="font-size:12px;color:var(--text-muted)">Step ${Math.min(state.importStep,4)} of 4</span>
+              </div>
+            </div>
+            ${closeable ? `<button class="import-close-btn" onclick="closeImportModal()">✕</button>` : ''}
+          </div>
+          <div class="import-modal-body">
+            ${state.importStep === 1 ? renderImportStep1() : ''}
+            ${state.importStep === 2 ? renderImportStep2() : ''}
+            ${state.importStep === 3 ? renderImportStep3() : ''}
+            ${state.importStep === 4 ? renderImportStep4() : ''}
+          </div>
+        `}
+      </div>
+    </div>
+  `;
+}
+
+function renderImportStep1() {
+  const types = [
+    { id: 'skill-matrix', title: 'Skill Matrix', desc: 'Your skill assessment spreadsheet or PDF showing current competency levels.', iconName: 'layers' },
+    { id: 'perf-review',  title: 'Performance Review', desc: 'Your end-of-year review document with ratings, accomplishments, and feedback.', iconName: 'bar-chart-2' },
+  ];
+  return `
+    <div>
+      <h2 class="import-step-heading">What would you like to import?</h2>
+      <p class="import-step-sub">Select one or both. We'll extract the data and update your profile automatically.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px">
+        ${types.map(t => {
+          const sel = state.importTypes.includes(t.id);
+          return `
+            <div class="import-type-card ${sel ? 'selected' : ''}" onclick="toggleImportType('${t.id}')">
+              <div class="import-type-icon">${icon(t.iconName, 20, sel ? 'var(--primary)' : 'var(--text-muted)')}</div>
+              <div style="flex:1">
+                <div style="font-size:14px;font-weight:600;color:var(--text)">${t.title}</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${t.desc}</div>
+              </div>
+              ${sel ? icon('check-circle', 20, 'var(--primary)') : `<div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border)"></div>`}
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <div style="display:flex;justify-content:flex-end">
+        <button class="btn btn-primary" onclick="importGoToUpload()" ${state.importTypes.length === 0 ? 'disabled' : ''}>Continue →</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderImportStep2() {
+  const meta = {
+    'skill-matrix': { label: 'Skill Matrix',        iconName: 'layers' },
+    'perf-review':  { label: 'Performance Review',  iconName: 'bar-chart-2' },
+  };
+  return `
+    <div>
+      <h2 class="import-step-heading">Upload your files</h2>
+      <p class="import-step-sub">Drag and drop or click to browse. Accepts PDF, XLSX, CSV, PNG, or JPG.</p>
+      <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px">
+        ${state.importTypes.map(type => {
+          const m = meta[type];
+          const file = state.importFiles[type];
+          return `
+            <div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:6px">${m.label}</div>
+              ${file ? `
+                <div class="import-file-uploaded">
+                  ${icon('check-circle', 16, 'var(--green)')}
+                  <span style="font-size:13px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(file.name)}</span>
+                  <button style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:12px;padding:0;flex-shrink:0" onclick="removeImportFile('${type}')">Remove</button>
+                </div>
+              ` : `
+                <div class="import-dropzone"
+                     ondragover="event.preventDefault();event.currentTarget.classList.add('import-dz-over')"
+                     ondragleave="event.currentTarget.classList.remove('import-dz-over')"
+                     ondrop="handleImportDrop(event,'${type}')"
+                     onclick="document.getElementById('import-file-${type}').click()">
+                  <input type="file" id="import-file-${type}" style="display:none"
+                         accept=".pdf,.xlsx,.csv,.png,.jpg,.jpeg"
+                         onchange="handleImportFileSelect(event,'${type}')">
+                  ${icon(m.iconName, 28, 'var(--text-muted)')}
+                  <div style="font-size:13px;color:var(--text-secondary);margin-top:10px">
+                    Drag & drop or <span style="color:var(--primary);font-weight:600">browse files</span>
+                  </div>
+                  <div style="font-size:11px;color:var(--text-muted);margin-top:4px">PDF, XLSX, CSV, PNG, JPG</div>
+                </div>
+              `}
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <button class="btn btn-secondary" onclick="state.importStep=1;render()">← Back</button>
+        <button class="btn btn-primary" onclick="startImportProcessing()" ${!canAdvanceToProcess() ? 'disabled' : ''}>Analyze Documents →</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderImportStep3() {
+  return `
+    <div style="text-align:center;padding:44px 24px">
+      <div class="import-spinner"></div>
+      <div style="font-size:16px;font-weight:600;color:var(--text);margin-top:20px">Analyzing your documents...</div>
+      <div class="import-processing-msgs" style="margin-top:10px">
+        <span>Reading document structure</span>
+        <span>Extracting skill assessments</span>
+        <span>Mapping to competency framework</span>
+        <span>Calculating performance insights</span>
+        <span>Finalizing your profile</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderImportStep4() {
+  const preview = state.importPreview;
+  if (!preview) return '';
+
+  const skillCount = preview.skills ? Object.keys(preview.skills).length : 0;
+  const sampleSkills = preview.skills
+    ? SKILLS_DATA.skills.slice(0, 5).map(s => ({ name: s.name, level: preview.skills[s.id]?.managerLevel || 'Contributor' }))
+    : [];
+  const mgrAvg = preview.review
+    ? (Object.values(preview.review.manager.ratings).reduce((a,b)=>a+b,0) / Object.values(preview.review.manager.ratings).length).toFixed(1)
+    : null;
+
+  return `
+    <div>
+      <h2 class="import-step-heading">Here's what we found</h2>
+      <p class="import-step-sub">Review the extracted data before applying it to your profile.</p>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:28px;max-height:300px;overflow-y:auto">
+        ${skillCount > 0 ? `
+          <div class="import-preview-section">
+            <div class="import-preview-section-header">${icon('layers',14,'var(--primary)')} Skill Matrix — ${skillCount} skills detected</div>
+            ${sampleSkills.map(s => {
+              const lc = LEVEL_CONFIG[s.level] || LEVEL_CONFIG.Contributor;
+              return `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+                <span style="font-size:13px;color:var(--text)">${escHtml(s.name)}</span>
+                <span class="level-badge ${lc.cls}" style="font-size:10px;padding:3px 7px">${icon(lc.iconName,10,lc.color)} ${s.level}</span>
+              </div>`;
+            }).join('')}
+            ${skillCount > 5 ? `<div style="font-size:12px;color:var(--text-muted);padding-top:6px">+ ${skillCount - 5} more skills</div>` : ''}
+          </div>
+        ` : ''}
+        ${preview.review ? `
+          <div class="import-preview-section">
+            <div class="import-preview-section-header">${icon('bar-chart-2',14,'var(--primary)')} Performance Review ${preview.review.year} — avg score ${mgrAvg}/5</div>
+            <div style="font-size:13px;color:var(--text-secondary)">
+              <div style="font-weight:600;color:var(--text);margin-bottom:4px">${escHtml(preview.review.manager.accomplishments[0]?.headline || '')}</div>
+              Ratings imported for all 10 performance categories. Self and manager perspectives included.
+            </div>
+          </div>
+        ` : ''}
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <button class="btn btn-secondary" onclick="state.importStep=2;render()">← Back</button>
+        <button class="btn btn-primary" onclick="applyImportedData()">Apply to Profile →</button>
+      </div>
+    </div>
+  `;
+}
+
 function openQuickWinModal(idx) { state.quickWinModal = idx; render(); }
 function closeQuickWinModal() { state.quickWinModal = null; render(); }
 
@@ -6386,7 +6739,8 @@ function renderEOYReview() {
   const profiles = getProfiles();
   const currentProfile = profiles.find(p => p.id === state.profile);
   const profileFirstName = (currentProfile?.name || '').split(' ')[0].toLowerCase();
-  const review = EOY_REVIEWS[profileFirstName] || null;
+  const _savedReview = (() => { try { return JSON.parse(localStorage.getItem('dch_review_' + state.profile)); } catch(e) { return null; } })();
+  const review = _savedReview || EOY_REVIEWS[profileFirstName] || null;
   if (!review) return `<div style="padding:48px;text-align:center;color:var(--text-muted);font-size:14px">No performance review data available for this profile.</div>`;
   const tab = state.eoyTextTab || 'self';
   const tabData = tab === 'self' ? review.self : review.manager;
