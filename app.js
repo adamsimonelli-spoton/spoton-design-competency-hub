@@ -3277,18 +3277,16 @@ function renderQuickWinsSection() {
 
 function renderQuickWinCard(w, idx) {
   const typeLabel = w.kind === 'resource'
-    ? `<span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-right:8px">${(RESOURCE_TYPES[w.resourceType]?.label || 'Resource').toUpperCase()}</span>`
-    : `<span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-right:8px">ACTIVITY</span>`;
+    ? `<span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)">${(RESOURCE_TYPES[w.resourceType]?.label || 'Resource').toUpperCase()}</span>`
+    : '';
 
   return `
     <div class="quick-win-card" onclick="openQuickWinModal(${idx})">
       <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-          ${typeLabel}
-          <span class="qw-covers-badge" data-skills="${escHtml(w.matchingNames.join(' · '))}" onmouseenter="showQwTooltip(event,this)" onmouseleave="hideQwTooltip()" style="font-size:11px;font-weight:600;color:#5B21B6;background:#F5F3FF;border-radius:20px;padding:4px 8px;cursor:default">Covers ${w.score} skill${w.score !== 1 ? 's' : ''}</span>
-        </div>
+        ${typeLabel ? `<div style="margin-bottom:4px">${typeLabel}</div>` : ''}
         <div style="font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:4px">${escHtml(w.title)}</div>
         <div style="font-size:12px;color:var(--text-muted);line-height:1.5">${escHtml(w.desc)}</div>
+        <div class="qw-covers-badge" data-skills="${escHtml(w.matchingNames.join(' · '))}" onmouseenter="showQwTooltip(event,this)" onmouseleave="hideQwTooltip()" style="margin-top:6px;font-size:11px;color:var(--text-muted);cursor:default">Covers ${w.score} skill${w.score !== 1 ? 's' : ''}</div>
       </div>
       <span style="font-size:13px;color:var(--primary);opacity:.4;transition:opacity .12s;flex-shrink:0;align-self:center">→</span>
     </div>
