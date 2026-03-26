@@ -3373,7 +3373,7 @@ function renderOutreachWidget() {
         <button class="section-link" onclick="navigate('outreach')">View all →</button>
       </div>
       <div class="outreach-widget-compact-body">
-        <div class="outreach-hve-badge${hveOk ? ' ok' : ' due'}" style="border-radius:16px;width:100%;margin-bottom:16px;justify-content:flex-start;padding:14px 16px">
+        <div class="outreach-hve-badge${hveOk ? ' ok' : ' due'}" style="border-radius:6px;width:100%;margin-bottom:16px;justify-content:flex-start;padding:8px 12px">
           <span>${hveOk ? '✓' : '!'}</span>
           <span>HVE check-in ${hveOk ? 'done this month' : 'due this month'}</span>
         </div>
