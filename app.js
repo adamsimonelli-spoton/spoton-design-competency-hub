@@ -6551,19 +6551,26 @@ async function parseSkillMatrixFile(file) {
         if (roleCol === -1) roleCol = 2; // fall back to column C
 
         // Detect skill name column: prefer a header like "skill", "competency", "ability"
+        skillCol = -1;
         for (let c = 0; c < headerCells.length; c++) {
           if (/skill|competency|ability|name/i.test(headerCells[c])) {
             skillCol = c; break;
           }
         }
 
-        // If no header match, find the first column in data rows that matches any skill name
-        if (skillCol === 0 && !/skill|competency|ability|name/i.test(headerCells[0])) {
-          outer: for (let c = 0; c < Math.min(headerCells.length, 5); c++) {
-            for (let r = headerRow + 1; r < Math.min(rows.length, headerRow + 10); r++) {
-              if (matchSkillByName(rows[r][c])) { skillCol = c; break outer; }
+        // If no header match, scan ALL data rows and pick the column with the most skill name matches
+        if (skillCol === -1) {
+          let bestCol = 0, bestCount = 0;
+          for (let c = 0; c < Math.min(headerCells.length, 6); c++) {
+            if (c === mgrCol || c === roleCol) continue;
+            let count = 0;
+            for (let r = headerRow + 1; r < rows.length; r++) {
+              if (rows[r][c] && matchSkillByName(rows[r][c])) count++;
             }
+            console.log('[parseSkillMatrix] column', c, 'header="' + headerCells[c] + '" skill matches:', count);
+            if (count > bestCount) { bestCount = count; bestCol = c; }
           }
+          skillCol = bestCol;
         }
 
         console.log('[parseSkillMatrix] headerRow:', headerRow, 'mgrCol:', mgrCol, 'roleCol:', roleCol, 'skillCol:', skillCol);
