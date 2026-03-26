@@ -357,13 +357,12 @@ body {
 /* ===== HOME VIEW ===== */
 .home-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
   margin-bottom: 24px;
 }
-.home-header-text { flex: 1; min-width: 0; }
+.home-header-text { width: 100%; }
 .home-header h1 {
   font-family: var(--font-heading);
   font-size: 22px;
