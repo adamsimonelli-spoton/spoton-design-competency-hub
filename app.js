@@ -1244,8 +1244,8 @@ function renderValuesRadarChart(size) {
     const r = maxR * Math.max(s, 0.04); const p = pt(i, r);
     const cv = CORE_VALUES_DATA[i];
     const rating = getValueRating(cv.id).managerRating;
-    const levelLabels = ['', 'Developing', 'Emerging', 'Practicing', 'Exemplifying', 'Mastering'];
-    const tipText = rating ? `${cv.label.split('.')[0].trim()}: ${levelLabels[rating] || rating + '/5'}` : `${cv.label.split('.')[0].trim()}: Not rated`;
+    const ratingLabel = rating ? (CV_RATING_CONFIG[rating]?.label || rating + '/5') : 'Not rated';
+    const tipText = `${cv.label.split('.')[0].trim()}: ${ratingLabel}`;
     return `<circle cx="${p.x}" cy="${p.y}" r="6" fill="${color}" stroke="white" stroke-width="1.5" style="cursor:pointer" onclick="navigate('value','${cv.id}')" onmouseenter='showRadarTooltip(event,${JSON.stringify(tipText)})' onmouseleave='hideRadarTooltip()'/>`;
   }).join('');
 
@@ -2058,21 +2058,28 @@ function renderHome() {
         ${hasAssessments && currentProfile?.role ? `
           <div class="analysis-counts-row">
             <button class="analysis-count-chip analysis-count-gap" onclick="navigate('review');setReviewFilter('gap')">
-              <span class="analysis-count-num">${allGaps.length}</span>
               <span class="analysis-count-label">skill gap${allGaps.length !== 1 ? 's' : ''}</span>
+              <span class="analysis-count-num">${allGaps.length}</span>
             </button>
             <button class="analysis-count-chip analysis-count-over" onclick="navigate('review');setReviewFilter('strength')">
-              <span class="analysis-count-num">${allOverperforming.length}</span>
               <span class="analysis-count-label">overperforming</span>
+              <span class="analysis-count-num">${allOverperforming.length}</span>
             </button>
             ${(() => {
               const er = EOY_REVIEWS['2025'];
               if (!er) return '';
               const vals = Object.values(er.manager.ratings);
-              const avg = (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
+              const avgNum = vals.reduce((a, b) => a + b, 0) / vals.length;
+              const avg = avgNum.toFixed(1);
+              const fullStars = Math.round(avgNum);
+              const stars = Array.from({length: 5}, (_, i) =>
+                `<span style="color:${i < fullStars ? '#F59E0B' : '#CBD5E1'};font-size:11px;line-height:1">★</span>`
+              ).join('');
               return `<button class="analysis-count-chip analysis-count-review" onclick="navigate('eoy')">
-                <span class="analysis-count-num">${avg}</span>
                 <span class="analysis-count-label">Review Score</span>
+                <span class="analysis-count-num">${avg}</span>
+                <div style="display:flex;gap:1px;margin-top:2px">${stars}</div>
+                <span style="font-size:10px;color:var(--text-muted);margin-top:1px">out of 5</span>
               </button>`;
             })()}
           </div>
