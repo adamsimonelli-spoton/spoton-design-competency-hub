@@ -597,21 +597,22 @@ body {
   color: var(--text-secondary);
   margin-top: 2px;
 }
-.analysis-narrative-list {
-  list-style: none;
-  padding-left: 4px;
+.analysis-narrative-blocks {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 0;
+  gap: 16px;
 }
-.analysis-narrative-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
+.analysis-narrative-block {}
+.analysis-narrative-heading {
   font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.analysis-narrative-body {
+  font-size: 13px;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: 1.55;
   max-width: 80ch;
 }
 .analysis-two-col {

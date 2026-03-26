@@ -2438,19 +2438,19 @@ function renderHome() {
               </div>
             ` : ''}
             ${insightBullets.length > 0 ? `
-              <ul class="analysis-narrative-list">
+              <div class="analysis-narrative-blocks">
                 ${insightBullets.map(b => {
                   const dashIdx = b.indexOf(' — ');
                   if (dashIdx !== -1) {
-                    return `<li class="analysis-narrative-item"><span class="analysis-dot"></span><span><strong>${escHtml(b.slice(0, dashIdx))}</strong> — ${escHtml(b.slice(dashIdx + 3))}</span></li>`;
+                    return `<div class="analysis-narrative-block"><div class="analysis-narrative-heading">${escHtml(b.slice(0, dashIdx))}</div><div class="analysis-narrative-body">${escHtml(b.slice(dashIdx + 3))}</div></div>`;
                   }
                   const commaIdx = b.indexOf(', ');
                   if (commaIdx !== -1) {
-                    return `<li class="analysis-narrative-item"><span class="analysis-dot"></span><span><strong>${escHtml(b.slice(0, commaIdx))}</strong>, ${escHtml(b.slice(commaIdx + 2))}</span></li>`;
+                    return `<div class="analysis-narrative-block"><div class="analysis-narrative-heading">${escHtml(b.slice(0, commaIdx))}</div><div class="analysis-narrative-body">${escHtml(b.slice(commaIdx + 2))}</div></div>`;
                   }
-                  return `<li class="analysis-narrative-item"><span class="analysis-dot"></span><span>${escHtml(b)}</span></li>`;
+                  return `<div class="analysis-narrative-block"><div class="analysis-narrative-body">${escHtml(b)}</div></div>`;
                 }).join('')}
-              </ul>
+              </div>
             ` : '<div style="font-size:12px;color:var(--text-muted)">No insights yet</div>'}
           `}
         </div>
