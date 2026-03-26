@@ -2337,7 +2337,7 @@ body {
 .resources-table th:nth-child(2),
 .resources-table td:nth-child(2) { width: 100px; min-width: 90px; max-width: 120px; white-space: nowrap; }
 .resources-table th:nth-child(3),
-.resources-table td:nth-child(3) { width: 320px; min-width: 240px; max-width: 360px; white-space: normal; }
+.resources-table td:nth-child(3) { width: 200px; min-width: 160px; max-width: 240px; white-space: normal; }
 .resources-table th:nth-child(4),
 .resources-table td:nth-child(4) { width: 44px; min-width: 44px; max-width: 44px; text-align: center; }
 /* Core Values table column overrides */
