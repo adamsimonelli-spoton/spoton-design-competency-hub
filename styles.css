@@ -540,8 +540,8 @@ body {
   font-weight: 800;
   line-height: 1;
 }
-.analysis-count-gap .analysis-count-num { color: #B91C1C; }
-.analysis-count-over .analysis-count-num { color: #065F46; }
+.analysis-count-gap .analysis-count-num { color: var(--red); }
+.analysis-count-over .analysis-count-num { color: var(--green); }
 .analysis-count-label {
   font-size: 10px;
   font-weight: 600;
@@ -549,8 +549,8 @@ body {
   letter-spacing: 0.04em;
   color: var(--text-muted);
 }
-.analysis-count-gap .analysis-count-label { color: #B91C1C; }
-.analysis-count-over .analysis-count-label { color: #065F46; }
+.analysis-count-gap .analysis-count-label { color: var(--red); }
+.analysis-count-over .analysis-count-label { color: var(--green); }
 .analysis-empty {
   display: flex;
   flex-direction: column;
@@ -1332,8 +1332,8 @@ body {
   font-weight: 500;
 }
 .skill-gap-callout.gap  { color: #B45309; }
-.skill-gap-callout.over { color: #065F46; }
-.skill-gap-callout.met  { color: #065F46; }
+.skill-gap-callout.over { color: var(--green); }
+.skill-gap-callout.met  { color: var(--green); }
 
 /* ===== ASSESSMENT INLINE ===== */
 .assessment-inline {
@@ -2390,13 +2390,13 @@ body {
   padding: 1px 8px;
 }
 /* Under (gap) — red, increasing intensity */
-.review-gap-under-1 { color: #DC2626; background: #FEF2F2; border: 1px solid #FECACA; }
-.review-gap-under-2 { color: #B91C1C; background: #FEE2E2; border: 1px solid #FCA5A5; }
-.review-gap-under-3 { color: #7F1D1D; background: #FECACA; border: 1px solid #F87171; }
+.review-gap-under-1 { color: var(--red); background: #FEF2F2; border: 1px solid #FECACA; }
+.review-gap-under-2 { color: var(--red); background: #FEE2E2; border: 1px solid #FCA5A5; }
+.review-gap-under-3 { color: var(--red); background: #FECACA; border: 1px solid #F87171; }
 /* Over (above expected) — green, increasing intensity */
-.review-gap-over-1  { color: #059669; background: #ECFDF5; border: 1px solid #A7F3D0; }
-.review-gap-over-2  { color: #047857; background: #D1FAE5; border: 1px solid #6EE7B7; }
-.review-gap-over-3  { color: #065F46; background: #A7F3D0; border: 1px solid #34D399; }
+.review-gap-over-1  { color: var(--green); background: #ECFDF5; border: 1px solid #A7F3D0; }
+.review-gap-over-2  { color: var(--green); background: #D1FAE5; border: 1px solid #6EE7B7; }
+.review-gap-over-3  { color: var(--green); background: #A7F3D0; border: 1px solid #34D399; }
 .review-gap-met     { color: #94A3B8; background: transparent; border: 1px solid #E2E8F0; font-size: 10px; }
 .review-notes-btn {
   background: none;

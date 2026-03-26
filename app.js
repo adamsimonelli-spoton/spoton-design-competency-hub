@@ -124,7 +124,7 @@ const CORE_VALUES_DATA = [
 const GOAL_STATUS_CONFIG = {
   'not_started': { label: 'Not Started', color: '#94A3B8', bg: '#F8FAFC', border: '#E2E8F0' },
   'in_progress':  { label: 'In Progress', color: '#2563EB', bg: '#EFF6FF', border: '#BFDBFE' },
-  'on_track':     { label: 'On Track',    color: '#16A34A', bg: '#F0FDF4', border: '#BBF7D0' },
+  'on_track':     { label: 'On Track',    color: 'var(--green)', bg: '#F0FDF4', border: '#BBF7D0' },
   'at_risk':      { label: 'At Risk',     color: '#EA580C', bg: '#FFF7ED', border: '#FED7AA' },
   'completed':    { label: 'Completed',   color: '#7C3AED', bg: '#F5F3FF', border: '#DDD6FE' },
 };
@@ -158,17 +158,17 @@ const DESIGN_TEAM_GOALS = [
 
 
 const CV_RATING_CONFIG = {
-  1: { label: 'Unsatisfactory',      short: 'Unsatisfactory',      color: '#DC2626', bg: '#FEF2F2', border: '#FECACA' },
+  1: { label: 'Unsatisfactory',      short: 'Unsatisfactory',      color: 'var(--red)',   bg: '#FEF2F2', border: '#FECACA' },
   2: { label: 'Needs Development',   short: 'Needs Development',   color: '#EA580C', bg: '#FFF7ED', border: '#FED7AA' },
   3: { label: 'Meets Expectations',  short: 'Meets Expectations',  color: '#2563EB', bg: '#EFF6FF', border: '#BFDBFE' },
-  4: { label: 'Exceeds Expectations',short: 'Exceeds Expectations',color: '#16A34A', bg: '#F0FDF4', border: '#BBF7D0' },
+  4: { label: 'Exceeds Expectations',short: 'Exceeds Expectations',color: 'var(--green)', bg: '#F0FDF4', border: '#BBF7D0' },
   5: { label: 'Truly Outstanding',   short: 'Truly Outstanding',   color: '#7C3AED', bg: '#F5F3FF', border: '#DDD6FE' },
 };
 
 const RESOURCE_TYPES = {
   article: { icon: '📄', label: 'Article', tagColor: '#1D4ED8', tagBg: '#DBEAFE' },
-  video:   { icon: '▶️', label: 'Video',   tagColor: '#DC2626', tagBg: '#FEE2E2' },
-  course:  { icon: '🎓', label: 'Course',  tagColor: '#059669', tagBg: '#D1FAE5' },
+  video:   { icon: '▶️', label: 'Video',   tagColor: 'var(--red)',   tagBg: '#FEE2E2' },
+  course:  { icon: '🎓', label: 'Course',  tagColor: 'var(--green)', tagBg: '#D1FAE5' },
   book:    { icon: '📚', label: 'Book',    tagColor: '#7C3AED', tagBg: '#EDE9FE' },
   tool:    { icon: '🔧', label: 'Tool',    tagColor: '#D97706', tagBg: '#FEF3C7' },
 };
@@ -554,10 +554,10 @@ const ROLE_TRACKS = {
 
 // ============ EOY REVIEW DATA ============
 const EOY_RATING_CONFIG = {
-  1: { label: 'Does Not Meet',       short: 'Does Not Meet',  color: '#DC2626', bg: '#FEF2F2', border: '#FECACA' },
+  1: { label: 'Does Not Meet',       short: 'Does Not Meet',  color: 'var(--red)',   bg: '#FEF2F2', border: '#FECACA' },
   2: { label: 'Partially Meets',     short: 'Partially Meets',color: '#EA580C', bg: '#FFF7ED', border: '#FED7AA' },
   3: { label: 'Meets Expectations',  short: 'Meets',          color: '#2563EB', bg: '#EFF6FF', border: '#BFDBFE' },
-  4: { label: 'Exceeds Expectations',short: 'Exceeds',        color: '#16A34A', bg: '#F0FDF4', border: '#BBF7D0' },
+  4: { label: 'Exceeds Expectations',short: 'Exceeds',        color: 'var(--green)', bg: '#F0FDF4', border: '#BBF7D0' },
   5: { label: 'Truly Outstanding',   short: 'Outstanding',    color: '#7C3AED', bg: '#F5F3FF', border: '#DDD6FE' },
 };
 
@@ -2087,7 +2087,7 @@ function renderManagerHome() {
               </div>
               <div style="display:flex;gap:16px">
                 ${gaps > 0 ? `<span style="font-size:11px;color:#B45309;font-weight:600">${gaps} gap${gaps !== 1 ? 's' : ''}</span>` : ''}
-                ${over > 0 ? `<span style="font-size:11px;color:#065F46;font-weight:600">${over} overperforming</span>` : ''}
+                ${over > 0 ? `<span style="font-size:11px;color:var(--green);font-weight:600">${over} overperforming</span>` : ''}
                 ${topGap ? `<span style="font-size:11px;color:var(--text-muted)">Top gap: ${escHtml(topGap)}</span>` : ''}
                 ${lastUpdated ? `<span style="font-size:11px;color:var(--text-muted);margin-left:auto">Updated ${formatDate(lastUpdated)}</span>` : ''}
               </div>
@@ -4494,7 +4494,7 @@ function renderGrowthThemeDetail() {
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
         ${scoreCol('Today',  s0, '#FFFFFF', 'var(--text-muted)', t.today,  t.todayHowTo)}
         ${scoreCol('Better', s1, '#EFF6FF', '#3B82F6',           t.better, t.betterHowTo)}
-        ${scoreCol('Best',   s2, '#F0FDF4', '#16A34A',           t.best,   t.bestHowTo)}
+        ${scoreCol('Best',   s2, '#F0FDF4', 'var(--green)',       t.best,   t.bestHowTo)}
       </div>
 
       <!-- Indicators / Dependencies / Collaborators -->
@@ -5107,7 +5107,7 @@ function renderGrowthThemeLevelModal() {
   const items = Array.isArray(t[howToKey]) ? t[howToKey] : [];
 
   const labelMap = { today: 'Today', better: 'Better', best: 'Best' };
-  const colorMap = { today: 'var(--text-muted)', better: '#3B82F6', best: '#16A34A' };
+  const colorMap = { today: 'var(--text-muted)', better: '#3B82F6', best: 'var(--green)' };
   const bgMap = { today: '#F8FAFC', better: '#EFF6FF', best: '#F0FDF4' };
 
   const label = labelMap[level] || level;
@@ -5951,7 +5951,7 @@ function renderPinModal() {
             style="width:100%;box-sizing:border-box;font-size:24px;text-align:center;letter-spacing:0.3em;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);outline:none"
           />
         </div>
-        <div id="pin-error" style="display:none;color:#DC2626;font-size:13px;margin-bottom:12px;font-weight:500"></div>
+        <div id="pin-error" style="display:none;color:var(--red);font-size:13px;margin-bottom:12px;font-weight:500"></div>
         <div style="display:flex;gap:8px;justify-content:center">
           <button class="btn btn-secondary" onclick="closePinModal()">Cancel</button>
           <button class="btn btn-primary" onclick="submitPin()">Unlock</button>
@@ -6384,7 +6384,7 @@ function renderEOYReview() {
             <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${escHtml(review.manager.name)}'s Take</div>
             <div style="display:flex;gap:24px">
               <div style="flex:1;min-width:0">
-                <div style="font-size:10px;font-weight:700;color:#065F46;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Strengths</div>
+                <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Strengths</div>
                 <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px">
                   ${review.manager.accomplishments.slice(0,2).map(a => `<li style="font-size:12px;color:var(--text-secondary);line-height:1.45;padding-left:12px;position:relative"><span style="position:absolute;left:0;top:5px;width:5px;height:5px;border-radius:50%;background:#D1D5DB"></span>${escHtml(a.headline)}</li>`).join('')}
                 </ul>
