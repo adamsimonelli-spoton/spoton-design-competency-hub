@@ -2558,11 +2558,13 @@ function renderHome() {
                 ${themes.length ? `
                   <div style="padding-bottom:14px">
                     ${subHeader('Growth Themes')}
-                    <div style="display:flex;flex-direction:column;gap:6px">
+                    <div class="dash-quick-wins-list">
                       ${themes.map(t => `
-                        <div onclick="navigate('goals')" style="cursor:pointer;display:flex;align-items:baseline;gap:7px;padding:3px 0" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
-                          <span style="font-size:16px;line-height:1;color:var(--text-muted);flex-shrink:0">•</span>
-                          <span style="font-size:12px;font-weight:500;color:var(--text)">${escHtml(t.theme)}</span>
+                        <div class="dash-qw-item" onclick="navigate('goals')">
+                          <div class="dash-qw-body">
+                            <div class="dash-qw-title">${escHtml(t.theme)}</div>
+                          </div>
+                          <svg class="dash-qw-arrow" width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
                         </div>`).join('')}
                     </div>
                   </div>` : ''}
