@@ -1111,7 +1111,7 @@ function renderRadarChart(size, layers) {
     return scores.map((s, i) => {
       const r = maxR * Math.max(s, 0.04); const p = pt(i, r);
       const click = clickFn ? ` onclick="${clickFn(i)}"` : '';
-      const tip = tooltips?.[i] ? ` onmouseenter="showRadarTooltip(event,${JSON.stringify(tooltips[i])})" onmouseleave="hideRadarTooltip()"` : '';
+      const tip = tooltips?.[i] ? ` onmouseenter='showRadarTooltip(event,${JSON.stringify(tooltips[i])})' onmouseleave='hideRadarTooltip()'` : '';
       return `<circle cx="${p.x}" cy="${p.y}" r="${clickFn ? 6 : 4}" fill="${color}" stroke="white" stroke-width="1.5" style="cursor:pointer"${click}${tip}/>`;
     }).join('');
   }
@@ -1246,7 +1246,7 @@ function renderValuesRadarChart(size) {
     const rating = getValueRating(cv.id).managerRating;
     const levelLabels = ['', 'Developing', 'Emerging', 'Practicing', 'Exemplifying', 'Mastering'];
     const tipText = rating ? `${cv.label.split('.')[0].trim()}: ${levelLabels[rating] || rating + '/5'}` : `${cv.label.split('.')[0].trim()}: Not rated`;
-    return `<circle cx="${p.x}" cy="${p.y}" r="6" fill="${color}" stroke="white" stroke-width="1.5" style="cursor:pointer" onclick="navigate('value','${cv.id}')" onmouseenter="showRadarTooltip(event,${JSON.stringify(tipText)})" onmouseleave="hideRadarTooltip()"/>`;
+    return `<circle cx="${p.x}" cy="${p.y}" r="6" fill="${color}" stroke="white" stroke-width="1.5" style="cursor:pointer" onclick="navigate('value','${cv.id}')" onmouseenter='showRadarTooltip(event,${JSON.stringify(tipText)})' onmouseleave='hideRadarTooltip()'/>`;
   }).join('');
 
   const labelsHTML = CORE_VALUES_DATA.map((cv, i) => {
