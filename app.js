@@ -1360,6 +1360,11 @@ function getExpectedLevelForSkillAndRole(skillId, role) {
 }
 function getLevelOrder(level) { return (LEVEL_CONFIG[level] || {}).order || 0; }
 function getExpectedLevelForSkill(skillId) {
+  // Check for imported expected levels first
+  try {
+    const custom = JSON.parse(localStorage.getItem('dch_expected_' + state.profile) || 'null');
+    if (custom && custom[skillId]) return custom[skillId];
+  } catch(e) {}
   const profiles = getProfiles();
   const prof = profiles.find(p => p.id === state.profile);
   if (!prof?.role) return null;
@@ -6452,16 +6457,19 @@ function canAdvanceToProcess() {
   return Object.keys(state.importFiles).length > 0;
 }
 
-function startImportProcessing() {
+async function startImportProcessing() {
   if (!canAdvanceToProcess()) return;
   state.importTypes = Object.keys(state.importFiles);
   state.importStep = 2;
   render();
-  setTimeout(() => {
-    state.importPreview = generateImportPreview();
-    state.importStep = 3;
-    render();
-  }, 2800);
+  // Parse skill matrix file if present
+  let parsedMatrix = null;
+  const smFile = window._importFiles?.['skill-matrix'];
+  if (smFile) parsedMatrix = await parseSkillMatrixFile(smFile);
+  await new Promise(r => setTimeout(r, 2800));
+  state.importPreview = generateImportPreview(parsedMatrix);
+  state.importStep = 3;
+  render();
 }
 
 function seededRnd(seed) {
@@ -6469,29 +6477,100 @@ function seededRnd(seed) {
   return x - Math.floor(x);
 }
 
-function generateImportPreview() {
+function normalizeLevel(val) {
+  if (val === null || val === undefined || val === '') return null;
+  const s = String(val).trim().toLowerCase();
+  if (s === '1' || s === 'learner' || s.includes('learn') || s === 'l1') return 'Learner';
+  if (s === '2' || s === 'contributor' || s.includes('contrib') || s === 'l2' || s.includes('develop')) return 'Contributor';
+  if (s === '3' || s === 'independent' || s.includes('indep') || s === 'l3' || s.includes('profic') || s.includes('intermedi')) return 'Independent';
+  if (s === '4' || s === 'expert' || s.includes('expert') || s === 'l4' || s.includes('advanc') || s.includes('senior')) return 'Expert';
+  return null;
+}
+
+function matchSkillByName(name) {
+  if (!name) return null;
+  const n = String(name).toLowerCase().trim();
+  if (!n) return null;
+  return SKILLS_DATA.skills.find(s => s.name.toLowerCase() === n)
+    || SKILLS_DATA.skills.find(s => s.name.toLowerCase().includes(n))
+    || SKILLS_DATA.skills.find(s => n.includes(s.name.toLowerCase()));
+}
+
+async function parseSkillMatrixFile(file) {
+  return new Promise((resolve) => {
+    if (typeof XLSX === 'undefined') { resolve(null); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+        // Find header row containing "Manager Assessment"
+        let headerRow = -1, mgrCol = -1, roleCol = 2;
+        for (let r = 0; r < Math.min(rows.length, 15); r++) {
+          for (let c = 0; c < rows[r].length; c++) {
+            if (/manager\s*assessment/i.test(String(rows[r][c]))) {
+              headerRow = r; mgrCol = c; break;
+            }
+          }
+          if (headerRow !== -1) break;
+        }
+        if (headerRow === -1 || mgrCol === -1) { resolve(null); return; }
+
+        // Also look for a "Role" column header if it's not literally col C
+        for (let c = 0; c < rows[headerRow].length; c++) {
+          if (/^role$/i.test(String(rows[headerRow][c]).trim())) { roleCol = c; break; }
+        }
+
+        const skills = {}, expectedLevels = {};
+        for (let r = headerRow + 1; r < rows.length; r++) {
+          const row = rows[r];
+          const skillName = row[0]; // Skill name in col A
+          if (!skillName) continue;
+          const skill = matchSkillByName(skillName);
+          if (!skill) continue;
+          const selfLvl = normalizeLevel(row[mgrCol]);
+          const expLvl  = normalizeLevel(row[roleCol]);
+          if (selfLvl) {
+            skills[skill.id] = { selfLevel: selfLvl, managerLevel: selfLvl, notes: '', evidence: '', lastUpdated: new Date().toISOString() };
+          }
+          if (expLvl) expectedLevels[skill.id] = expLvl;
+        }
+        resolve(Object.keys(skills).length > 0 ? { skills, expectedLevels } : null);
+      } catch(err) { resolve(null); }
+    };
+    reader.onerror = () => resolve(null);
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function generateImportPreview(parsedMatrix) {
   const profiles = getProfiles();
   const currentProfile = profiles.find(p => p.id === state.profile);
   const nameHash = (currentProfile?.name || 'User').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
   const result = {};
 
   if (state.importTypes.includes('skill-matrix')) {
-    const allLevels = ['Learner', 'Learner', 'Contributor', 'Contributor', 'Contributor', 'Independent', 'Independent', 'Expert'];
-    const skills = {};
-    SKILLS_DATA.skills.forEach((s, i) => {
-      const seed = nameHash + i * 37;
-      const selfIdx = Math.floor(seededRnd(seed) * allLevels.length);
-      const delta = Math.floor(seededRnd(seed + 7) * 3) - 1;
-      const mgrIdx = Math.max(0, Math.min(allLevels.length - 1, selfIdx + delta));
-      skills[s.id] = {
-        selfLevel: allLevels[selfIdx],
-        managerLevel: allLevels[mgrIdx],
-        notes: '',
-        evidence: '',
-        lastUpdated: new Date().toISOString(),
-      };
-    });
-    result.skills = skills;
+    if (parsedMatrix?.skills && Object.keys(parsedMatrix.skills).length > 0) {
+      result.skills = parsedMatrix.skills;
+      if (parsedMatrix.expectedLevels && Object.keys(parsedMatrix.expectedLevels).length > 0) {
+        result.expectedLevels = parsedMatrix.expectedLevels;
+      }
+    } else {
+      // Fallback: simulated data
+      const allLevels = ['Learner', 'Learner', 'Contributor', 'Contributor', 'Contributor', 'Independent', 'Independent', 'Expert'];
+      const skills = {};
+      SKILLS_DATA.skills.forEach((s, i) => {
+        const seed = nameHash + i * 37;
+        const selfIdx = Math.floor(seededRnd(seed) * allLevels.length);
+        const delta = Math.floor(seededRnd(seed + 7) * 3) - 1;
+        const mgrIdx = Math.max(0, Math.min(allLevels.length - 1, selfIdx + delta));
+        skills[s.id] = { selfLevel: allLevels[selfIdx], managerLevel: allLevels[mgrIdx], notes: '', evidence: '', lastUpdated: new Date().toISOString() };
+      });
+      result.skills = skills;
+    }
   }
 
   if (state.importTypes.includes('perf-review')) {
@@ -6542,6 +6621,10 @@ function applyImportedData() {
 
   if (state.importPreview.review) {
     localStorage.setItem('dch_review_' + state.profile, JSON.stringify(state.importPreview.review));
+  }
+
+  if (state.importPreview.expectedLevels) {
+    localStorage.setItem('dch_expected_' + state.profile, JSON.stringify(state.importPreview.expectedLevels));
   }
 
   saveData(d);
