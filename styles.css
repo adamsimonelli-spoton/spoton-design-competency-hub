@@ -359,7 +359,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
   margin-bottom: 24px;
 }
 .home-header-text { flex: 1; min-width: 0; }

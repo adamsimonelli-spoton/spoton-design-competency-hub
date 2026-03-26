@@ -1659,7 +1659,7 @@ function renderValuesRadarCard() {
 
 // ============ NOTE CTA ============
 function renderNoteInputCard() {
-  return `<button class="note-cta-btn btn btn-primary" onclick="openNoteInput()">Log a Growth Update</button>`;
+  return `<button class="note-cta-btn btn btn-primary" onclick="openNoteInput()">Log an Update</button>`;
 }
 
 function openNoteInput() {
