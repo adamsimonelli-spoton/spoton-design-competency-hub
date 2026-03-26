@@ -1008,7 +1008,7 @@ body {
   margin-bottom: 16px;
 }
 .section-title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text);
 }
@@ -3396,7 +3396,7 @@ body {
   margin-bottom: 12px;
 }
 .goals-section-title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text);
 }
