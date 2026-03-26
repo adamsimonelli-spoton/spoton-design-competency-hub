@@ -2412,9 +2412,8 @@ function renderHome() {
     <div class="home-header">
       <div class="home-header-text">
         <h1>Welcome back, ${escHtml((currentProfile?.name || 'Designer').split(' ')[0])}${currentProfile?.role ? ` <span style="font-size:13px;font-weight:600;color:var(--primary);background:var(--primary-light);border:1px solid rgba(99,102,241,.2);border-radius:20px;padding:4px 8px;vertical-align:middle;position:relative;top:-2px;margin-left:16px">${escHtml(shortRole(currentProfile.role))}</span>` : ''}</h1>
-        <p>Track your design skill growth and prepare for your next performance review.</p>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;margin-top:4px">
+      <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
         <button class="btn btn-secondary" onclick="openImportModal()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import Documents</button>
         ${renderNoteInputCard()}
       </div>
@@ -2439,7 +2438,8 @@ function renderHome() {
             </button>
             ${(() => {
               const _firstName = (currentProfile?.name || '').split(' ')[0].toLowerCase();
-              const er = EOY_REVIEWS[_firstName] || null;
+              const _saved = (() => { try { return JSON.parse(localStorage.getItem('dch_review_' + state.profile)); } catch(e) { return null; } })();
+              const er = _saved || EOY_REVIEWS[_firstName] || null;
               if (!er) return '';
               const vals = Object.values(er.manager.ratings);
               const avgNum = vals.reduce((a, b) => a + b, 0) / vals.length;
