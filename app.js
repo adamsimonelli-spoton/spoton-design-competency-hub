@@ -1,6 +1,7 @@
 /* ===================================================
    SpotOn Design Competency Hub — Application
    =================================================== */
+console.log('[DCH] app.js v33 loaded');
 
 // ============ ICON SYSTEM ============
 const LUCIDE_PATHS = {
@@ -6461,6 +6462,7 @@ function canAdvanceToProcess() {
 async function startImportProcessing() {
   if (!canAdvanceToProcess()) return;
   state.importTypes = Object.keys(state.importFiles);
+  console.log('[DCH] startImportProcessing, importTypes:', state.importTypes, 'importFiles:', Object.keys(state.importFiles));
   state.importStep = 2;
   render();
   // Parse skill matrix file if present
@@ -6501,7 +6503,8 @@ function matchSkillByName(name) {
 
 async function parseSkillMatrixFile(file) {
   return new Promise((resolve) => {
-    if (typeof XLSX === 'undefined') { resolve(null); return; }
+    console.log('[parseSkillMatrix] called, XLSX defined:', typeof XLSX !== 'undefined', 'file:', file?.name);
+    if (typeof XLSX === 'undefined') { console.warn('[parseSkillMatrix] XLSX not loaded!'); resolve(null); return; }
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -6510,39 +6513,83 @@ async function parseSkillMatrixFile(file) {
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
-        // Find header row containing "Manager Assessment"
-        let headerRow = -1, mgrCol = -1, roleCol = 2;
-        for (let r = 0; r < Math.min(rows.length, 15); r++) {
+        // Find header row — look for any column matching "manager" + "assess"
+        let headerRow = -1, mgrCol = -1, roleCol = -1, skillCol = 0;
+        for (let r = 0; r < Math.min(rows.length, 20); r++) {
           for (let c = 0; c < rows[r].length; c++) {
-            if (/manager\s*assessment/i.test(String(rows[r][c]))) {
+            const cell = String(rows[r][c]).trim();
+            if (/(manager|mgr)[\s']*s?[\s]*assess/i.test(cell)) {
               headerRow = r; mgrCol = c; break;
             }
           }
           if (headerRow !== -1) break;
         }
+
+        // If still not found, try a looser pass (any cell containing both "manager" and "assess")
+        if (headerRow === -1) {
+          for (let r = 0; r < Math.min(rows.length, 20); r++) {
+            for (let c = 0; c < rows[r].length; c++) {
+              const cell = String(rows[r][c]).toLowerCase();
+              if (cell.includes('manager') && cell.includes('assess')) {
+                headerRow = r; mgrCol = c; break;
+              }
+            }
+            if (headerRow !== -1) break;
+          }
+        }
+
         if (headerRow === -1 || mgrCol === -1) { resolve(null); return; }
 
-        // Also look for a "Role" column header if it's not literally col C
-        for (let c = 0; c < rows[headerRow].length; c++) {
-          if (/^role$/i.test(String(rows[headerRow][c]).trim())) { roleCol = c; break; }
+        const headerCells = rows[headerRow].map(c => String(c).trim().toLowerCase());
+
+        // Find "Role" / "Expected" column
+        for (let c = 0; c < headerCells.length; c++) {
+          if (/^role$/.test(headerCells[c]) || /expected/i.test(headerCells[c])) {
+            roleCol = c; break;
+          }
         }
+        if (roleCol === -1) roleCol = 2; // fall back to column C
+
+        // Detect skill name column: prefer a header like "skill", "competency", "ability"
+        for (let c = 0; c < headerCells.length; c++) {
+          if (/skill|competency|ability|name/i.test(headerCells[c])) {
+            skillCol = c; break;
+          }
+        }
+
+        // If no header match, find the first column in data rows that matches any skill name
+        if (skillCol === 0 && !/skill|competency|ability|name/i.test(headerCells[0])) {
+          outer: for (let c = 0; c < Math.min(headerCells.length, 5); c++) {
+            for (let r = headerRow + 1; r < Math.min(rows.length, headerRow + 10); r++) {
+              if (matchSkillByName(rows[r][c])) { skillCol = c; break outer; }
+            }
+          }
+        }
+
+        console.log('[parseSkillMatrix] headerRow:', headerRow, 'mgrCol:', mgrCol, 'roleCol:', roleCol, 'skillCol:', skillCol);
+        console.log('[parseSkillMatrix] Header cells:', rows[headerRow]);
 
         const skills = {}, expectedLevels = {};
         for (let r = headerRow + 1; r < rows.length; r++) {
           const row = rows[r];
-          const skillName = row[0]; // Skill name in col A
-          if (!skillName) continue;
+          const skillName = row[skillCol];
+          if (!skillName || String(skillName).trim() === '') continue;
           const skill = matchSkillByName(skillName);
           if (!skill) continue;
-          const selfLvl = normalizeLevel(row[mgrCol]);
+          const rawMgr = row[mgrCol];
+          const selfLvl = normalizeLevel(rawMgr);
           const expLvl  = normalizeLevel(row[roleCol]);
+          if (selfLvl === 'Unknown' || selfLvl === null) {
+            console.log(`[parseSkillMatrix] row ${r} skill="${skillName}" rawMgr=${JSON.stringify(rawMgr)} → selfLvl=${selfLvl}`);
+          }
           if (selfLvl) {
             skills[skill.id] = { selfLevel: selfLvl, managerLevel: selfLvl, notes: '', evidence: '', lastUpdated: new Date().toISOString() };
           }
           if (expLvl) expectedLevels[skill.id] = expLvl;
         }
+        console.log('[parseSkillMatrix] Total skills parsed:', Object.keys(skills).length);
         resolve(Object.keys(skills).length > 0 ? { skills, expectedLevels } : null);
-      } catch(err) { resolve(null); }
+      } catch(err) { console.error('[parseSkillMatrix]', err); resolve(null); }
     };
     reader.onerror = () => resolve(null);
     reader.readAsArrayBuffer(file);
@@ -6562,17 +6609,8 @@ function generateImportPreview(parsedMatrix) {
         result.expectedLevels = parsedMatrix.expectedLevels;
       }
     } else {
-      // Fallback: simulated data
-      const allLevels = ['Learner', 'Learner', 'Contributor', 'Contributor', 'Contributor', 'Independent', 'Independent', 'Expert'];
-      const skills = {};
-      SKILLS_DATA.skills.forEach((s, i) => {
-        const seed = nameHash + i * 37;
-        const selfIdx = Math.floor(seededRnd(seed) * allLevels.length);
-        const delta = Math.floor(seededRnd(seed + 7) * 3) - 1;
-        const mgrIdx = Math.max(0, Math.min(allLevels.length - 1, selfIdx + delta));
-        skills[s.id] = { selfLevel: allLevels[selfIdx], managerLevel: allLevels[mgrIdx], notes: '', evidence: '', lastUpdated: new Date().toISOString() };
-      });
-      result.skills = skills;
+      // Parsing failed — flag it so the preview can show a warning
+      result.skillParseError = true;
     }
   }
 
@@ -6754,7 +6792,14 @@ function renderImportStep3() {
       <h2 class="import-step-heading">Here's what we found</h2>
       <p class="import-step-sub">Review the extracted data before applying it to your profile.</p>
       <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:28px;max-height:300px;overflow-y:auto">
-        ${skillCount > 0 ? `
+        ${preview.skillParseError ? `
+          <div class="import-preview-section" style="border-color:#FCA5A5;background:#FFF5F5">
+            <div class="import-preview-section-header" style="color:#DC2626">${icon('alert-triangle',14,'#DC2626')} Skill Matrix — could not read file</div>
+            <div style="font-size:13px;color:#7F1D1D;margin-top:4px">
+              The file format wasn't recognized. Make sure the spreadsheet has a column header containing "Manager Assessment" and skill names in a separate column. No data will be imported.
+            </div>
+          </div>
+        ` : skillCount > 0 ? `
           <div class="import-preview-section">
             <div class="import-preview-section-header">${icon('layers',14,'var(--primary)')} Skill Matrix — ${skillCount} skills detected</div>
             ${sampleSkills.map(s => {
