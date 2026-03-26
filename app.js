@@ -589,8 +589,9 @@ const EOY_CATEGORY_GROUPS = [
   },
 ];
 
+// Keyed by lowercase first name of the profile. 'adam' holds real data; others are mock.
 const EOY_REVIEWS = {
-  '2025': {
+  'adam': {
     year: '2025',
     self: {
       ratings: { technical:3, quality:3, accountability:4, we_lead:4, we_deliver:4, we_learn:3, we_care:5, engagement:5, team_performance:4, feedback_coaching:4 },
@@ -682,6 +683,335 @@ const EOY_REVIEWS = {
           'Designers want clearer, tighter guidance as new tools and processes emerge.',
           'This includes when and how to use AI, as well as stronger follow-through during organizational change.',
           'In 2026, pair empathy with clearer guardrails and more explicit expectations.',
+        ]},
+      ],
+    },
+  },
+
+  // ---- MOCK DATA FOR TEAM PROFILES ----
+
+  'elena': {
+    year: '2025',
+    self: {
+      ratings: { technical:4, quality:5, accountability:3, we_lead:3, we_deliver:4, we_learn:4, we_care:4, engagement:4, team_performance:3, feedback_coaching:3 },
+      accomplishments: [
+        { headline: 'Elevated visual craft standards across multiple product areas', bullets: [
+          'Redesigned the onboarding flow with a motion-forward approach that reduced drop-off by 18% in usability testing.',
+          'Introduced a consistent iconography system adopted by three other product teams without additional design effort.',
+          'Consistently praised by engineers for pixel-precise specs that reduced implementation back-and-forth.',
+        ]},
+        { headline: 'Drove end-to-end ownership of the Reporting dashboard redesign', bullets: [
+          'Took a fragmented, inconsistent dashboard from concept to ship in under 6 weeks despite scope changes.',
+          'Balanced stakeholder requests with user needs, pushing back effectively on feature additions that would have hurt clarity.',
+          'PM noted: "Elena was the calm center of a chaotic project — she kept quality high when everything else was on fire."',
+        ]},
+        { headline: 'Strengthened design handoff practices for the broader team', bullets: [
+          'Built a shared Figma annotation template now used as the team default.',
+          'Ran a 30-minute lunch-and-learn on component documentation that generated immediate adoption.',
+        ]},
+      ],
+      improvements: [
+        { headline: 'Build influence and visibility with senior stakeholders', bullets: [
+          'Continue developing comfort presenting to VP-level audiences — the work is strong, but framing it for business impact will amplify reach.',
+          'Practice narrating design rationale in terms of outcomes, not just craft decisions.',
+        ]},
+        { headline: 'Expand systems thinking beyond visual layer', bullets: [
+          'Deepen involvement in IA and flow architecture early in projects, not just after structure is set.',
+          'Partner with PMs earlier to shape problem framing before diving into solutions.',
+        ]},
+        { headline: 'Take on more formal mentorship responsibilities', bullets: [
+          'Your craft expertise is a team asset — formalizing knowledge-sharing through structured critiques or pairing sessions would compound impact.',
+          'Consider owning a craft competency area (e.g., motion, visual systems) as a team resource.',
+        ]},
+      ],
+    },
+    manager: {
+      name: 'David',
+      ratings: { technical:4, quality:4, accountability:3, we_lead:2, we_deliver:4, we_learn:3, we_care:4, engagement:4, team_performance:3, feedback_coaching:2 },
+      accomplishments: [
+        { headline: 'Consistently produced some of the highest-quality visual work on the team', bullets: [
+          'Elena\'s design output sets a visible quality bar — detailed, intentional, and clearly user-centered.',
+          'Cross-functional partners frequently cite her work as a reference point when discussing what "good" looks like.',
+          'Handles ambiguity at the execution layer exceptionally well — given a direction, she always finds the best path.',
+        ]},
+        { headline: 'Reliable delivery partner in high-stakes projects', bullets: [
+          'Delivered the Reporting dashboard end-to-end with minimal guidance — proactive, accountable, and calm under pressure.',
+          'One of the few designers I trust to own a workstream completely when bandwidth is limited.',
+        ]},
+      ],
+      improvements: [
+        { headline: 'Develop a stronger strategic voice in project shaping', bullets: [
+          'Elena\'s instincts are strong, but she tends to wait to be invited into strategy conversations rather than inserting herself.',
+          'The next growth level requires proactively shaping the problem space, not just executing within it.',
+          'Begin scheduling time with PMs at project kickoff, not after scoping is done.',
+        ]},
+        { headline: 'Grow comfort with ambiguity at a higher altitude', bullets: [
+          'When the brief is clear, Elena thrives. When it\'s not, she sometimes stalls.',
+          'In 2026, practice making a first move with explicit assumptions rather than waiting for the problem to crystallize.',
+        ]},
+        { headline: 'Invest in peer relationships across functions', bullets: [
+          'Elena works well with her immediate pod but has limited visibility with stakeholders outside her team.',
+          'Building relationships with Engineering leads and Product leadership will unlock more influence and trust.',
+        ]},
+      ],
+    },
+  },
+
+  'marcus': {
+    year: '2025',
+    self: {
+      ratings: { technical:5, quality:4, accountability:5, we_lead:3, we_deliver:5, we_learn:4, we_care:3, engagement:4, team_performance:3, feedback_coaching:3 },
+      accomplishments: [
+        { headline: 'Built and shipped the Design System v2 foundation used by the entire product org', bullets: [
+          'Led the token architecture migration from scratch, unblocking 4 product teams from a fragmented component dependency.',
+          'Coordinated with 6 engineers across 2 squads to align on implementation without slowing any active sprint.',
+          'Reduced design-to-dev handoff friction by an estimated 30% based on team retrospective feedback.',
+        ]},
+        { headline: 'Defined interaction patterns that became org-wide standards', bullets: [
+          'Authored the form validation and error state guidelines now embedded in the component library.',
+          'Presented at a cross-functional design review — work was adopted without modification, which is rare.',
+        ]},
+        { headline: 'Shipped 3 high-complexity features on time despite mid-cycle scope changes', bullets: [
+          'Inventory redesign, Bulk Actions overhaul, and the new Analytics entry point all shipped within original timelines.',
+          'Navigated stakeholder changes and engineering constraints by maintaining tight feedback loops and clear scope documentation.',
+        ]},
+      ],
+      improvements: [
+        { headline: 'Invest more in team relationship-building', bullets: [
+          'Strong individual output but sometimes operates in isolation — more proactive collaboration would amplify impact.',
+          'Share work earlier and more often, even when not finished, to invite input and catch blind spots.',
+        ]},
+        { headline: 'Develop facilitation and workshop leadership skills', bullets: [
+          'The next tier of influence involves bringing others along, not just producing the best artifact.',
+          'Lead at least one discovery workshop per quarter to build comfort with collaborative problem-solving.',
+        ]},
+        { headline: 'Balance precision with speed', bullets: [
+          'Marcus sometimes spends extra cycles on details that don\'t move the needle. Learning when "good enough" unlocks the next step is a key senior skill.',
+          'Timebox exploration phases and time-cap polish iterations on lower-priority workstreams.',
+        ]},
+      ],
+    },
+    manager: {
+      name: 'Nicole',
+      ratings: { technical:5, quality:4, accountability:4, we_lead:3, we_deliver:4, we_learn:4, we_care:3, engagement:3, team_performance:3, feedback_coaching:3 },
+      accomplishments: [
+        { headline: 'Strongest systems thinker on the team — a force multiplier when fully engaged', bullets: [
+          'The Design System v2 initiative would not have happened at this quality or speed without Marcus.',
+          'He sees structural problems three steps ahead and builds solutions that outlast the immediate need.',
+          'Cross-functional credibility with Engineering is among the highest I\'ve seen for a designer at this level.',
+        ]},
+        { headline: 'Consistent, reliable delivery without hand-holding', bullets: [
+          'I never have to follow up on Marcus\' work — he manages his own quality bar and usually exceeds it.',
+          'Sets and keeps commitments even when external factors shift.',
+        ]},
+      ],
+      improvements: [
+        { headline: 'Show up more fully as a team contributor, not just an individual producer', bullets: [
+          'Marcus\' biggest unlock in 2026 is making his expertise more available to others — through pairing, critique, or just being present in team conversations.',
+          'Currently his impact ceiling is limited to his own workstreams; expanding influence requires more visible collaboration.',
+        ]},
+        { headline: 'Grow warmth and approachability in cross-functional relationships', bullets: [
+          'Task-oriented and highly effective, but can read as distant in ambiguous or emotionally charged situations.',
+          'The most effective senior ICs build trust beyond outputs — lean into relationship investment.',
+        ]},
+      ],
+    },
+  },
+
+  'priya': {
+    year: '2025',
+    self: {
+      ratings: { technical:3, quality:4, accountability:4, we_lead:3, we_deliver:3, we_learn:5, we_care:5, engagement:5, team_performance:4, feedback_coaching:4 },
+      accomplishments: [
+        { headline: 'Led the most rigorous generative research initiative the team has run', bullets: [
+          'Designed and ran a 3-month longitudinal study with 24 participants across 4 merchant segments.',
+          'Synthesized findings into a merchant mental model framework now used as the baseline for roadmap decisions.',
+          'Research directly influenced two roadmap pivots, saving an estimated 6 weeks of build work on features that wouldn\'t have landed.',
+        ]},
+        { headline: 'Championed a user-first culture in cross-functional planning', bullets: [
+          'Brought customer evidence into every product review meeting, consistently raising the quality of decision-making.',
+          'PM leadership recognized the shift in team conversations: "Priya has made user data a first-class input, not an afterthought."',
+        ]},
+        { headline: 'Mentored two junior designers through their first end-to-end research projects', bullets: [
+          'Structured a research apprenticeship model that gave juniors hands-on experience with moderation and synthesis.',
+          'Both mentees ran independent studies by Q4, doubling team research throughput.',
+        ]},
+      ],
+      improvements: [
+        { headline: 'Build executive presence and strategic narrative skills', bullets: [
+          'Research impact is clear at the team level but not always visible to senior leadership.',
+          'Invest in packaging insights for VP-level consumption — more visual, more opinionated, less hedged.',
+          'Practice presenting "so what" before "what we found."',
+        ]},
+        { headline: 'Accelerate from insight to recommendation', bullets: [
+          'Synthesis is thorough but sometimes slow — the window where insights drive decisions is short.',
+          'Introduce faster read-out formats (1-pagers, async video walkthroughs) to increase agility.',
+        ]},
+        { headline: 'Deepen product design craft to complement research expertise', bullets: [
+          'Strengthening wireframing and interaction design skills will make Priya\'s research recommendations land more concretely.',
+          'Partner with an IC designer on one project to build shared intuition for design constraints.',
+        ]},
+      ],
+    },
+    manager: {
+      name: 'Lisa',
+      ratings: { technical:3, quality:3, accountability:4, we_lead:3, we_deliver:3, we_learn:5, we_care:5, engagement:4, team_performance:4, feedback_coaching:3 },
+      accomplishments: [
+        { headline: 'Transformed the team\'s relationship with user research in 2025', bullets: [
+          'Priya fundamentally shifted how we make product decisions — from intuition-led to evidence-led.',
+          'Her longitudinal study work is the most rigorous we\'ve produced, and it\'s already preventing expensive mistakes.',
+          'Cross-functional partners seek her out proactively, which is a rare sign of true research impact.',
+        ]},
+        { headline: 'A genuine team builder who invests in others without being asked', bullets: [
+          'Both junior researchers she mentored grew measurably faster under her guidance than their previous trajectories suggested.',
+          'Priya creates a team culture of curiosity and rigor that is contagious.',
+        ]},
+      ],
+      improvements: [
+        { headline: 'Translate research depth into faster, sharper executive storytelling', bullets: [
+          'Priya\'s insights are rich, but they sometimes arrive after the decision window has closed.',
+          'The skill to develop in 2026 is "minimum viable insight" — enough signal, fast enough, to influence the decision in the room.',
+        ]},
+        { headline: 'Grow scope of influence beyond the research function', bullets: [
+          'Priya is highly respected within the design org but less visible in cross-functional leadership settings.',
+          'Owning a strategic narrative — not just research outputs — would unlock a path to senior individual contributor.',
+        ]},
+      ],
+    },
+  },
+
+  'jordan': {
+    year: '2025',
+    self: {
+      ratings: { technical:3, quality:3, accountability:4, we_lead:3, we_deliver:3, we_learn:4, we_care:5, engagement:4, team_performance:3, feedback_coaching:3 },
+      accomplishments: [
+        { headline: 'Grew significantly in end-to-end design ownership across two product areas', bullets: [
+          'Took the Checkout flow redesign from problem brief through handoff with increasing independence over the year.',
+          'By Q3, required minimal check-ins to deliver well-structured, thoughtful work that reflected user needs.',
+          'Engineering gave direct positive feedback on the clarity of specs and design intent documentation.',
+        ]},
+        { headline: 'Built strong collaborative relationships with PM and Engineering counterparts', bullets: [
+          'Consistently described by cross-functional partners as easy to work with, communicative, and reliable.',
+          'Created a shared working rhythm with Engineering that reduced mid-sprint surprises.',
+          'PM cited Jordan as "the designer I most want on a complex feature because I know they\'ll flag problems early."',
+        ]},
+        { headline: 'Stepped up during team capacity crunch to absorb additional scope', bullets: [
+          'Covered design needs on the Mobile Notifications project while primary designer was on leave.',
+          'Delivered at a higher quality level than expected given the context switch and compressed timeline.',
+        ]},
+      ],
+      improvements: [
+        { headline: 'Develop stronger visual and interaction design craft', bullets: [
+          'Core competency gap to close in 2026 — consistently polished, principle-grounded visual execution.',
+          'Audit work against design principles before reviews; invest time in studying craft details of best-in-class products.',
+          'Consider dedicating time each week to deliberate craft practice outside of project deliverables.',
+        ]},
+        { headline: 'Build confidence presenting and defending design decisions', bullets: [
+          'Jordan sometimes defers too quickly when stakeholders push back, even when the design is right.',
+          'Practice framing rationale clearly before reviews so pushback feels like a prompt to explain, not a reason to change.',
+          'Strength of conviction in the room will grow faster with more repetitions in low-stakes settings.',
+        ]},
+        { headline: 'Increase speed from brief to first concept', bullets: [
+          'Stronger upfront synthesis of constraints and user needs will shorten the ramp to first draft.',
+          'Build a personal pattern library and reduce time spent re-solving common design problems from scratch.',
+        ]},
+      ],
+    },
+    manager: {
+      name: 'Adam',
+      ratings: { technical:2, quality:3, accountability:4, we_lead:2, we_deliver:3, we_learn:4, we_care:5, engagement:4, team_performance:3, feedback_coaching:2 },
+      accomplishments: [
+        { headline: 'A collaborative, accountable team member who makes cross-functional work better', bullets: [
+          'Jordan is consistently praised by PMs and engineers — not just for outputs, but for how they show up in the process.',
+          'Follows through on commitments, communicates proactively, and rarely drops balls.',
+          'The care and attention they bring to relationships is a genuine asset for team culture.',
+        ]},
+        { headline: 'Demonstrated meaningful growth in ownership and independence this year', bullets: [
+          'Early in the year, Jordan needed structured guidance on scope and problem framing. By Q4, they were navigating projects with much more autonomy.',
+          'The trajectory is strong — each project they take on, the ceiling gets a bit higher.',
+        ]},
+      ],
+      improvements: [
+        { headline: 'Close the craft gap — this is the primary focus for 2026', bullets: [
+          'Collaboration and reliability are real strengths, but visual and interaction design quality needs to reach a consistently higher level.',
+          'Invest deliberately in craft outside of project work — reference analysis, redesign challenges, critique participation.',
+          'The promotion path to Mid-level requires demonstrable craft mastery alongside the soft skills already present.',
+        ]},
+        { headline: 'Build point of view and design conviction', bullets: [
+          'Jordan is too quick to accommodate feedback without interrogating whether it improves the design.',
+          'In 2026, the goal is to develop a reliable, defensible voice — "here\'s my recommendation and why" rather than "what do you prefer?"',
+        ]},
+        { headline: 'Grow comfort with ambiguity and incomplete briefs', bullets: [
+          'Currently most effective when requirements are clear. The next tier requires making confident first moves with partial information.',
+          'Practice making and documenting assumptions explicitly at the start of every project.',
+        ]},
+      ],
+    },
+  },
+
+  'sarah': {
+    year: '2025',
+    self: {
+      ratings: { technical:3, quality:4, accountability:4, we_lead:4, we_deliver:4, we_learn:3, we_care:4, engagement:5, team_performance:4, feedback_coaching:4 },
+      accomplishments: [
+        { headline: 'Drove alignment across a complex, multi-team initiative through strong communication', bullets: [
+          'Ran biweekly design reviews for the Platform Unification project with stakeholders across 4 product teams.',
+          'Created a decision log and shared design rationale document adopted as the project\'s source of truth.',
+          'Reduced duplicate work and misaligned assumptions by creating structured visibility into design direction.',
+        ]},
+        { headline: 'Delivered the Help Center redesign that became a measurable business win', bullets: [
+          'Redesigned search and navigation architecture, contributing to a 22% reduction in support ticket volume.',
+          'Worked closely with Support and Content teams to map the full customer journey before touching layouts.',
+          'Received a company-wide shout-out at the quarterly all-hands from the Support VP.',
+        ]},
+        { headline: 'Grew into a visible, trusted voice for the design org', bullets: [
+          'Invited to represent Design in two executive strategy sessions — one of the few ICs included in those conversations.',
+          'Described by Product leadership as "someone who makes every room she\'s in more productive."',
+        ]},
+      ],
+      improvements: [
+        { headline: 'Accelerate technical depth in interaction design and prototyping', bullets: [
+          'High-fidelity prototyping and motion design are growth areas that would make ideas more testable earlier.',
+          'Invest in Figma advanced prototyping and explore tools like Principle or Framer for higher-fidelity explorations.',
+          'Technical depth would complement strong communication skills and make Sarah a more complete senior IC.',
+        ]},
+        { headline: 'Increase velocity on solo design work', bullets: [
+          'Thrives in collaborative, high-communication contexts but sometimes moves slower when working independently.',
+          'Building personal systems for solo workstreams (templates, starting points, decision frameworks) will compress cycles.',
+        ]},
+        { headline: 'Invest in continuous learning beyond current comfort zone', bullets: [
+          'The learning cadence has plateaued — actively seek out new methods, domains, and challenges.',
+          'A structured quarterly learning goal (read, apply, share) would keep the growth rate ahead of scope expansion.',
+        ]},
+      ],
+    },
+    manager: {
+      name: 'David',
+      ratings: { technical:3, quality:4, accountability:4, we_lead:4, we_deliver:3, we_learn:3, we_care:4, engagement:5, team_performance:4, feedback_coaching:4 },
+      accomplishments: [
+        { headline: 'One of the strongest communicators in the design org — a genuine force multiplier', bullets: [
+          'Sarah doesn\'t just design well — she makes the work legible and trustworthy to every audience.',
+          'Her influence in cross-functional settings is unusual at her level; she moves rooms.',
+          'The Platform Unification project would have fractured without her coordination.',
+        ]},
+        { headline: 'Built and maintained stakeholder trust at scale', bullets: [
+          'Multiple PMs and Engineering leads listed Sarah as the designer they most want on complex, high-visibility work.',
+          'She earns trust quickly and holds it — follow-through is consistent and communication is always clear.',
+        ]},
+        { headline: 'Delivered measurable business impact through the Help Center redesign', bullets: [
+          'Rare ability to connect design decisions to business outcomes and then actually achieve them.',
+          'This is the type of result that gets noticed at the leadership level.',
+        ]},
+      ],
+      improvements: [
+        { headline: 'Close the technical craft gap to match communication and leadership strengths', bullets: [
+          'Sarah\'s strategic and communication abilities are senior-level. Her technical design execution is still catching up.',
+          'In 2026, the path to Staff IC requires demonstrating that the craft can carry without a strong collaborator.',
+          'Prioritize at least one project where technical depth is the primary constraint to stretch against.',
+        ]},
+        { headline: 'Increase comfort and speed with independent execution', bullets: [
+          'Most effective in collaborative, well-scoped environments. Higher-altitude roles will require solo velocity.',
+          'Practice reducing check-ins on lower-stakes projects to build independence and decision-making muscle.',
         ]},
       ],
     },
@@ -1926,12 +2256,13 @@ function renderHome() {
   const insightBullets = [];
 
   // EOY Performance Review — thematic cross-referenced insights (surfaced first, only for the profile the review belongs to)
-  const isAdamProfile = /adam/i.test(currentProfile?.name || '');
-  const eoyReview = isAdamProfile ? EOY_REVIEWS['2025'] : null;
+  const profileFirstName = (currentProfile?.name || '').split(' ')[0].toLowerCase();
+  const eoyReview = EOY_REVIEWS[profileFirstName] || null;
   if (eoyReview && assessedSkills.length >= 4) {
     const allEoyCats = EOY_CATEGORY_GROUPS.flatMap(g => g.categories);
     const mgrR = eoyReview.manager.ratings;
     const selfR = eoyReview.self.ratings;
+    const mgrName = eoyReview.manager.name;
 
     // Theme 1: Cross-reference review standouts with top skill category
     const outstandingByMgr = allEoyCats.filter(cat => mgrR[cat.id] === 5);
@@ -1939,9 +2270,9 @@ function renderHome() {
       const reviewLabels = outstandingByMgr.map(c => c.label).join(' and ');
       const skillAligned = topCat.cat === 'Collaboration' && outstandingByMgr.some(c => ['we_care','engagement'].includes(c.id));
       if (skillAligned) {
-        insightBullets.push(`People leadership is your most confirmed strength — Nicole rated ${reviewLabels} Truly Outstanding, and Collaboration leads your skill categories. Two independent sources pointing the same direction.`);
+        insightBullets.push(`People leadership is your most confirmed strength — ${mgrName} rated ${reviewLabels} Truly Outstanding, and Collaboration leads your skill categories. Two independent sources pointing the same direction.`);
       } else {
-        insightBullets.push(`Standout confirmed — Nicole rated ${reviewLabels} Truly Outstanding, aligning with your top skill area.`);
+        insightBullets.push(`Standout confirmed — ${mgrName} rated ${reviewLabels} Truly Outstanding, aligning with your top skill area.`);
       }
     }
 
@@ -1950,19 +2281,19 @@ function renderHome() {
       selfR[cat.id] - mgrR[cat.id] >= 1 && ['team_performance','feedback_coaching','we_deliver'].includes(cat.id)
     );
     if (perceptionGaps.length >= 2) {
-      insightBullets.push(`Perception gap to close — you rate ${perceptionGaps.map(c => c.label).join(', ')} higher than Nicole does. This is a signal to make your impact more visible, or to have a direct conversation about where expectations differ.`);
+      insightBullets.push(`Perception gap to close — you rate ${perceptionGaps.map(c => c.label).join(', ')} higher than ${mgrName} does. This is a signal to make your impact more visible, or to have a direct conversation about where expectations differ.`);
     }
 
     // Theme 3: User advocacy as growth edge
     if (eoyReview.manager.improvements.some(i => /user|merchant|customer|empathy/i.test(i.headline))) {
-      insightBullets.push(`Strategic growth edge — Nicole calls out a tendency to weigh aesthetics and feasibility over user advocacy. At the manager level, pushing harder for the user when PM or engineering pressure mounts is the mark of the next tier.`);
+      insightBullets.push(`Strategic growth edge — ${mgrName} calls out a tendency to weigh aesthetics and feasibility over user advocacy. At the manager level, pushing harder for the user when PM or engineering pressure mounts is the mark of the next tier.`);
     }
 
     // Theme 4: Speed as a shared, high-signal priority
     const selfSpeed = eoyReview.self.improvements.some(i => /speed|faster|velocity|cycle/i.test(i.headline));
     const mgrSpeed = eoyReview.manager.improvements.some(i => /decisiv|speed|urgency|faster|turnaround/i.test(i.headline));
     if (selfSpeed && mgrSpeed) {
-      insightBullets.push(`High-signal priority — speed and decisiveness appear in both your self-assessment and Nicole's feedback independently. When two sources flag the same theme without coordination, it earns the top of your 2026 focus list.`);
+      insightBullets.push(`High-signal priority — speed and decisiveness appear in both your self-assessment and ${mgrName}'s feedback independently. When two sources flag the same theme without coordination, it earns the top of your focus list.`);
     }
   }
 
@@ -2066,7 +2397,8 @@ function renderHome() {
               <span class="analysis-count-num">${allOverperforming.length}</span>
             </button>
             ${(() => {
-              const er = EOY_REVIEWS['2025'];
+              const _firstName = (currentProfile?.name || '').split(' ')[0].toLowerCase();
+              const er = EOY_REVIEWS[_firstName] || null;
               if (!er) return '';
               const vals = Object.values(er.manager.ratings);
               const avgNum = vals.reduce((a, b) => a + b, 0) / vals.length;
@@ -5995,7 +6327,11 @@ function closeQuickWinModal() { state.quickWinModal = null; render(); }
 
 // ============ EOY REVIEW VIEW ============
 function renderEOYReview() {
-  const review = EOY_REVIEWS['2025'];
+  const profiles = getProfiles();
+  const currentProfile = profiles.find(p => p.id === state.profile);
+  const profileFirstName = (currentProfile?.name || '').split(' ')[0].toLowerCase();
+  const review = EOY_REVIEWS[profileFirstName] || null;
+  if (!review) return `<div style="padding:48px;text-align:center;color:var(--text-muted);font-size:14px">No performance review data available for this profile.</div>`;
   const tab = state.eoyTextTab || 'self';
   const tabData = tab === 'self' ? review.self : review.manager;
 
@@ -6030,8 +6366,8 @@ function renderEOYReview() {
     <div style="max-width:960px">
       <div style="margin-bottom:24px">
         <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
-          <h2 style="font-size:22px;font-weight:800;color:var(--text);margin:0">2025 Performance Review</h2>
-          <span style="font-size:13px;color:var(--text-muted)">Adam Simonelli · Product Design Manager</span>
+          <h2 style="font-size:22px;font-weight:800;color:var(--text);margin:0">${escHtml(review.year)} Performance Review</h2>
+          <span style="font-size:13px;color:var(--text-muted)">${escHtml(currentProfile?.name || '')}${currentProfile?.role ? ' · ' + escHtml(shortRole(currentProfile.role)) : ''}</span>
         </div>
         <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap">
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 16px">
@@ -6043,13 +6379,13 @@ function renderEOYReview() {
               </div>
               <div style="width:1px;background:var(--border)"></div>
               <div>
-                <div style="font-size:10px;font-weight:600;color:var(--text-secondary);margin-bottom:4px">Nicole</div>
+                <div style="font-size:10px;font-weight:600;color:var(--text-secondary);margin-bottom:4px">${escHtml(review.manager.name)}</div>
                 <div style="font-size:24px;font-weight:800;color:#5B21B6;line-height:1">${mgrAvg}<span style="font-size:12px;font-weight:500;color:var(--text-muted)">/5</span></div>
               </div>
             </div>
           </div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 16px;flex:1;min-width:0">
-            <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Nicole's Take</div>
+            <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${escHtml(review.manager.name)}'s Take</div>
             <div style="display:flex;gap:24px">
               <div style="flex:1;min-width:0">
                 <div style="font-size:10px;font-weight:700;color:#065F46;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Strengths</div>
@@ -6073,7 +6409,7 @@ function renderEOYReview() {
         <div style="display:grid;grid-template-columns:1fr 170px 170px 90px;padding:8px 16px;background:var(--bg);border-bottom:2px solid var(--border)">
           <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Category</span>
           <span style="font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.05em">Self</span>
-          <span style="font-size:11px;font-weight:700;color:#5B21B6;text-transform:uppercase;letter-spacing:.05em">Nicole</span>
+          <span style="font-size:11px;font-weight:700;color:#5B21B6;text-transform:uppercase;letter-spacing:.05em">${escHtml(review.manager.name)}</span>
           <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;text-align:center">Delta</span>
         </div>
         ${EOY_CATEGORY_GROUPS.map((group, gi) => `
@@ -6106,7 +6442,7 @@ function renderEOYReview() {
             ${renderItems(review.self.accomplishments)}
           </div>
           <div style="padding:20px 24px">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:14px">Nicole</div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:14px">${escHtml(review.manager.name)}</div>
             ${renderItems(review.manager.accomplishments)}
           </div>
         </div>
@@ -6123,7 +6459,7 @@ function renderEOYReview() {
             ${renderItems(review.self.improvements)}
           </div>
           <div style="padding:20px 24px">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:14px">Nicole</div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:14px">${escHtml(review.manager.name)}</div>
             ${renderItems(review.manager.improvements)}
           </div>
         </div>
