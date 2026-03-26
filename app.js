@@ -2956,24 +2956,37 @@ function renderResources() {
     })()}
 
     ${sections.map(({ cat, skillsWithResources }) => {
-      const cc = CATEGORY_CONFIG[cat] || {};
+      const allRows = skillsWithResources.flatMap(({ skill, resources }) => resources.map(r => ({ r, skill })));
       return `
         <div class="review-category-section">
           <div class="review-cat-header">
             <span class="review-cat-title">${escHtml(cat)}</span>
+            <span class="review-cat-stats">${allRows.length} resource${allRows.length !== 1 ? 's' : ''}</span>
           </div>
-          <div style="display:flex;flex-direction:column;gap:12px">
-            ${skillsWithResources.map(({ skill, resources }) => `
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
-                <div style="padding:8px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;cursor:pointer" onclick="navigate('skill','${skill.id}')">
-                  <span style="font-size:13px;font-weight:600;color:var(--text);flex:1">${escHtml(skill.name)}</span>
-                  <span style="font-size:11px;color:var(--text-muted)">${resources.length} resource${resources.length !== 1 ? 's' : ''}</span>
-                </div>
-                <div class="resource-list" style="padding:4px 0">
-                  ${resources.map(r => resourceItemHtml(r, false, true)).join('')}
-                </div>
-              </div>
-            `).join('')}
+          <div class="review-table-wrap">
+            <table class="review-table resources-table">
+              <thead><tr>
+                <th>Resource</th>
+                <th>Skill</th>
+                <th>Type</th>
+                <th></th>
+              </tr></thead>
+              <tbody>
+                ${allRows.map(({ r, skill }) => {
+                  const rt = RESOURCE_TYPES[r.type] || RESOURCE_TYPES.article;
+                  const hasUrl = !!r.url;
+                  return `<tr ${hasUrl ? `onclick="window.open('${escHtml(r.url)}','_blank','noopener')" style="cursor:pointer"` : ''}>
+                    <td>
+                      <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.3">${escHtml(r.title)}</div>
+                      ${r.desc ? `<div style="font-size:12px;color:var(--text-muted);margin-top:3px;line-height:1.4">${escHtml(r.desc)}</div>` : ''}
+                    </td>
+                    <td><button onclick="event.stopPropagation();navigate('skill','${skill.id}')" style="background:none;border:none;cursor:pointer;font-size:12px;font-weight:500;color:var(--primary);padding:0;text-align:left;line-height:1.4;font-family:inherit">${escHtml(skill.name)}</button></td>
+                    <td><span class="resource-type-tag" style="color:${rt.tagColor};background:${rt.tagBg}">${rt.label}</span></td>
+                    <td style="text-align:center">${hasUrl ? `<svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="color:var(--text-muted)" aria-hidden="true"><path d="M224,104a8,8,0,0,1-16,0V59.32l-82.34,82.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"/></svg>` : ''}</td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
           </div>
         </div>
       `;
@@ -2984,19 +2997,32 @@ function renderResources() {
         <div class="review-cat-header">
           <span style="font-size:18px">💛</span>
           <span class="review-cat-title">Core Values</span>
+          <span class="review-cat-stats">${cvSections.reduce((s, x) => s + x.resources.length, 0)} resource${cvSections.reduce((s, x) => s + x.resources.length, 0) !== 1 ? 's' : ''}</span>
         </div>
-        <div style="display:flex;flex-direction:column;gap:12px">
-          ${cvSections.map(({ cv, resources }) => `
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
-              <div style="padding:8px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;cursor:pointer" onclick="navigate('value','${cv.id}')">
-                <span style="font-size:13px;font-weight:600;color:var(--text);flex:1">${escHtml(cv.label)}</span>
-                <span style="font-size:11px;color:var(--text-muted)">${resources.length} resource${resources.length !== 1 ? 's' : ''}</span>
-              </div>
-              <div class="resource-list" style="padding:4px 0">
-                ${resources.map(r => resourceItemHtml(r, false, true)).join('')}
-              </div>
-            </div>
-          `).join('')}
+        <div class="review-table-wrap">
+          <table class="review-table resources-table">
+            <thead><tr>
+              <th>Resource</th>
+              <th>Core Value</th>
+              <th>Type</th>
+              <th></th>
+            </tr></thead>
+            <tbody>
+              ${cvSections.flatMap(({ cv, resources }) => resources.map(r => {
+                const rt = RESOURCE_TYPES[r.type] || RESOURCE_TYPES.article;
+                const hasUrl = !!r.url;
+                return `<tr ${hasUrl ? `onclick="window.open('${escHtml(r.url)}','_blank','noopener')" style="cursor:pointer"` : ''}>
+                  <td>
+                    <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.3">${escHtml(r.title)}</div>
+                    ${r.desc ? `<div style="font-size:12px;color:var(--text-muted);margin-top:3px;line-height:1.4">${escHtml(r.desc)}</div>` : ''}
+                  </td>
+                  <td><button onclick="event.stopPropagation();navigate('value','${cv.id}')" style="background:none;border:none;cursor:pointer;font-size:12px;font-weight:500;color:var(--primary);padding:0;text-align:left;line-height:1.4;font-family:inherit">${escHtml(cv.label.split('.')[0].trim())}</button></td>
+                  <td><span class="resource-type-tag" style="color:${rt.tagColor};background:${rt.tagBg}">${rt.label}</span></td>
+                  <td style="text-align:center">${hasUrl ? `<svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="color:var(--text-muted)" aria-hidden="true"><path d="M224,104a8,8,0,0,1-16,0V59.32l-82.34,82.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"/></svg>` : ''}</td>
+                </tr>`;
+              })).join('')}
+            </tbody>
+          </table>
         </div>
       </div>
     ` : ''}
