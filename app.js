@@ -6372,12 +6372,12 @@ function renderEOYReview() {
         <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap">
           <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;padding:14px 20px 12px;gap:2px;background:var(--surface);box-shadow:var(--shadow-sm);min-width:90px">
             <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Self</span>
-            <span style="font-size:36px;font-weight:800;line-height:1;color:var(--primary)">${selfAvg}</span>
-            <span style="font-size:10px;font-weight:600;color:var(--text-muted)">out of 5</span>
+            <span style="font-size:36px;font-weight:800;line-height:1;color:var(--text)">${selfAvg}</span>
+            <div style="display:flex;gap:1px;margin-top:2px">${Array.from({length:5},(_,i)=>`<span style="color:${i<Math.round(parseFloat(selfAvg))?'#F59E0B':'#CBD5E1'};font-size:11px;line-height:1">★</span>`).join('')}</div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;padding:14px 20px 12px;gap:2px;background:var(--surface);box-shadow:var(--shadow-sm);min-width:90px">
             <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">${escHtml(review.manager.name)}</span>
-            <span style="font-size:36px;font-weight:800;line-height:1;color:#5B21B6">${mgrAvg}</span>
+            <span style="font-size:36px;font-weight:800;line-height:1;color:var(--text)">${mgrAvg}</span>
             <div style="display:flex;gap:1px;margin-top:2px">${Array.from({length:5},(_,i)=>`<span style="color:${i<Math.round(parseFloat(mgrAvg))?'#F59E0B':'#CBD5E1'};font-size:11px;line-height:1">★</span>`).join('')}</div>
           </div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 16px;flex:1;min-width:0">
