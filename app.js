@@ -6575,6 +6575,11 @@ async function parseSkillMatrixFile(file) {
 
         console.log('[parseSkillMatrix] headerRow:', headerRow, 'mgrCol:', mgrCol, 'roleCol:', roleCol, 'skillCol:', skillCol);
         console.log('[parseSkillMatrix] Header cells:', rows[headerRow]);
+        // Log first 8 data rows to see actual CSV structure
+        console.log('[parseSkillMatrix] First 8 data rows:');
+        for (let r = headerRow + 1; r < Math.min(rows.length, headerRow + 9); r++) {
+          console.log(`  row ${r}:`, rows[r]);
+        }
 
         const skills = {}, expectedLevels = {};
         for (let r = headerRow + 1; r < rows.length; r++) {
