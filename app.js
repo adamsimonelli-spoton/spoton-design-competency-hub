@@ -6481,9 +6481,9 @@ function seededRnd(seed) {
 }
 
 function normalizeLevel(val) {
-  if (val === null || val === undefined || val === '') return null;
+  if (val === null || val === undefined || val === '') return 'Unknown';
   const s = String(val).trim().toLowerCase();
-  if (!s) return null;
+  if (!s) return 'Unknown';
   if (s === '0' || s === 'unknown' || s === 'n/a' || s === '-' || s === 'none') return 'Unknown';
   if (s === '1' || s === 'learner' || s.includes('learn') || s === 'l1') return 'Learner';
   if (s === '2' || s === 'contributor' || s.includes('contrib') || s === 'l2' || s.includes('develop')) return 'Contributor';
@@ -6594,10 +6594,8 @@ async function parseSkillMatrixFile(file) {
           if (selfLvl === 'Unknown' || selfLvl === null) {
             console.log(`[parseSkillMatrix] row ${r} skill="${skillName}" rawMgr=${JSON.stringify(rawMgr)} → selfLvl=${selfLvl}`);
           }
-          if (selfLvl) {
-            skills[skill.id] = { selfLevel: selfLvl, managerLevel: selfLvl, notes: '', evidence: '', lastUpdated: new Date().toISOString() };
-          }
-          if (expLvl) expectedLevels[skill.id] = expLvl;
+          skills[skill.id] = { selfLevel: selfLvl, managerLevel: selfLvl, notes: '', evidence: '', lastUpdated: new Date().toISOString() };
+          if (expLvl && expLvl !== 'Unknown') expectedLevels[skill.id] = expLvl;
         }
         console.log('[parseSkillMatrix] Total skills parsed:', Object.keys(skills).length);
         resolve(Object.keys(skills).length > 0 ? { skills, expectedLevels } : null);
