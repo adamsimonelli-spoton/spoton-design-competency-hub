@@ -2414,7 +2414,7 @@ function renderHome() {
         <h1>Welcome back, ${escHtml((currentProfile?.name || 'Designer').split(' ')[0])}${currentProfile?.role ? ` <span style="font-size:13px;font-weight:600;color:var(--primary);background:var(--primary-light);border:1px solid rgba(99,102,241,.2);border-radius:20px;padding:4px 8px;vertical-align:middle;position:relative;top:-2px;margin-left:16px">${escHtml(shortRole(currentProfile.role))}</span>` : ''}</h1>
         <p>Track your design skill growth and prepare for your next performance review.</p>
       </div>
-      <div style="display:flex;flex-direction:row;gap:8px;align-items:center">
+      <div style="display:flex;flex-direction:row;gap:8px;align-items:center;flex-shrink:0">
         <button class="btn btn-secondary" onclick="openImportModal()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import Documents</button>
         ${renderNoteInputCard()}
       </div>
