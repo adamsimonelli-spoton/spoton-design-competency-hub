@@ -2333,7 +2333,7 @@ body {
 .review-table td:nth-child(7) { width: 100px; min-width: 80px; max-width: 120px; }
 /* Resources table column overrides */
 .resources-table th:nth-child(1),
-.resources-table td:nth-child(1) { width: auto; min-width: 180px; }
+.resources-table td:nth-child(1) { width: auto; min-width: 140px; max-width: 340px; }
 .resources-table th:nth-child(2),
 .resources-table td:nth-child(2) { width: 100px; min-width: 90px; max-width: 120px; white-space: nowrap; }
 .resources-table th:nth-child(3),
