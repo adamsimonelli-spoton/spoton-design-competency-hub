@@ -2079,7 +2079,6 @@ function renderHome() {
                 <span class="analysis-count-label">Review Score</span>
                 <span class="analysis-count-num">${avg}</span>
                 <div style="display:flex;gap:1px;margin-top:2px">${stars}</div>
-                <span style="font-size:10px;color:var(--text-muted);margin-top:1px">out of 5</span>
               </button>`;
             })()}
           </div>

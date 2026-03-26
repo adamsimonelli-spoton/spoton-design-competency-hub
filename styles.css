@@ -535,8 +535,6 @@ body {
 }
 .analysis-count-chip:hover { filter: brightness(0.97); transform: translateY(-1px); }
 .analysis-count-chip:active { transform: translateY(0); }
-.analysis-count-gap { border-color: #FECACA; }
-.analysis-count-over { border-color: #BBF7D0; }
 .analysis-count-num {
   font-size: 36px;
   font-weight: 800;
@@ -553,9 +551,6 @@ body {
 }
 .analysis-count-gap .analysis-count-label { color: #B91C1C; }
 .analysis-count-over .analysis-count-label { color: #065F46; }
-.analysis-count-review { border-color: #DDD6FE; }
-.analysis-count-review .analysis-count-num { color: #6D28D9; }
-.analysis-count-review .analysis-count-label { color: #6D28D9; }
 .analysis-empty {
   display: flex;
   flex-direction: column;
