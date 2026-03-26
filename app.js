@@ -6394,7 +6394,7 @@ function render() {
 function openImportModal() {
   state.importModal = true;
   state.importStep = 1;
-  state.importTypes = ['skill-matrix', 'perf-review'];
+  state.importTypes = [];
   state.importFiles = {};
   state.importPreview = null;
   window._importFiles = {};
@@ -6449,16 +6449,17 @@ function removeImportFile(type) {
 }
 
 function canAdvanceToProcess() {
-  return state.importTypes.length > 0 && state.importTypes.every(t => state.importFiles[t]);
+  return Object.keys(state.importFiles).length > 0;
 }
 
 function startImportProcessing() {
   if (!canAdvanceToProcess()) return;
-  state.importStep = 3;
+  state.importTypes = Object.keys(state.importFiles);
+  state.importStep = 2;
   render();
   setTimeout(() => {
     state.importPreview = generateImportPreview();
-    state.importStep = 4;
+    state.importStep = 3;
     render();
   }, 2800);
 }
@@ -6544,18 +6545,18 @@ function applyImportedData() {
   }
 
   saveData(d);
-  state.importStep = 5;
+  state.importStep = 4;
   render();
   setTimeout(() => closeImportModal(), 2000);
 }
 
 function renderImportModal() {
   if (!state.importModal) return '';
-  const closeable = state.importStep !== 3 && state.importStep !== 5;
+  const closeable = state.importStep !== 2 && state.importStep !== 4;
   return `
     <div class="import-modal-overlay" onclick="if(event.target===this && ${closeable})closeImportModal()">
       <div class="import-modal">
-        ${state.importStep === 5 ? `
+        ${state.importStep === 4 ? `
           <div style="text-align:center;padding:48px 32px">
             ${icon('check-circle', 52, 'var(--green)')}
             <div style="font-size:20px;font-weight:700;color:var(--text);margin-top:16px">Profile updated!</div>
@@ -6569,8 +6570,8 @@ function renderImportModal() {
             <div>
               <div class="import-modal-title">Import Documents</div>
               <div class="import-step-indicator">
-                ${[1,2,3,4].map(n => `<span class="import-step-dot ${n < state.importStep ? 'done' : n === state.importStep ? 'active' : ''}"></span>`).join('')}
-                <span style="font-size:12px;color:var(--text-muted)">Step ${Math.min(state.importStep,4)} of 4</span>
+                ${[1,2,3].map(n => `<span class="import-step-dot ${n < state.importStep ? 'done' : n === state.importStep ? 'active' : ''}"></span>`).join('')}
+                <span style="font-size:12px;color:var(--text-muted)">Step ${Math.min(state.importStep,3)} of 3</span>
               </div>
             </div>
             ${closeable ? `<button class="import-close-btn" onclick="closeImportModal()">✕</button>` : ''}
@@ -6579,7 +6580,6 @@ function renderImportModal() {
             ${state.importStep === 1 ? renderImportStep1() : ''}
             ${state.importStep === 2 ? renderImportStep2() : ''}
             ${state.importStep === 3 ? renderImportStep3() : ''}
-            ${state.importStep === 4 ? renderImportStep4() : ''}
           </div>
         `}
       </div>
@@ -6589,67 +6589,35 @@ function renderImportModal() {
 
 function renderImportStep1() {
   const types = [
-    { id: 'skill-matrix', title: 'Skill Matrix', desc: 'Your skill assessment spreadsheet or PDF showing current competency levels.', iconName: 'layers' },
-    { id: 'perf-review',  title: 'Performance Review', desc: 'Your end-of-year review document with ratings, accomplishments, and feedback.', iconName: 'bar-chart-2' },
+    { id: 'skill-matrix', label: 'Skill Matrix',        iconName: 'layers' },
+    { id: 'perf-review',  label: 'Performance Review',  iconName: 'bar-chart-2' },
   ];
   return `
     <div>
-      <h2 class="import-step-heading">What would you like to import?</h2>
-      <p class="import-step-sub">Select one or both. We'll extract the data and update your profile automatically.</p>
-      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px">
-        ${types.map(t => {
-          const sel = state.importTypes.includes(t.id);
-          return `
-            <div class="import-type-card ${sel ? 'selected' : ''}" onclick="toggleImportType('${t.id}')">
-              <div class="import-type-icon">${icon(t.iconName, 20, sel ? 'var(--primary)' : 'var(--text-muted)')}</div>
-              <div style="flex:1">
-                <div style="font-size:14px;font-weight:600;color:var(--text)">${t.title}</div>
-                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${t.desc}</div>
-              </div>
-              ${sel ? icon('check-circle', 20, 'var(--primary)') : `<div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border)"></div>`}
-            </div>
-          `;
-        }).join('')}
-      </div>
-      <div style="display:flex;justify-content:flex-end">
-        <button class="btn btn-primary" onclick="importGoToUpload()" ${state.importTypes.length === 0 ? 'disabled' : ''}>Continue →</button>
-      </div>
-    </div>
-  `;
-}
-
-function renderImportStep2() {
-  const meta = {
-    'skill-matrix': { label: 'Skill Matrix',        iconName: 'layers' },
-    'perf-review':  { label: 'Performance Review',  iconName: 'bar-chart-2' },
-  };
-  return `
-    <div>
-      <h2 class="import-step-heading">Upload your files</h2>
-      <p class="import-step-sub">Drag and drop or click to browse. Accepts PDF, XLSX, CSV, PNG, or JPG.</p>
+      <h2 class="import-step-heading">Upload your documents</h2>
+      <p class="import-step-sub">Upload one or both. We'll extract the data and update your profile automatically. Accepts PDF, XLSX, CSV, PNG, or JPG.</p>
       <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px">
-        ${state.importTypes.map(type => {
-          const m = meta[type];
-          const file = state.importFiles[type];
+        ${types.map(({ id, label, iconName: iName }) => {
+          const file = state.importFiles[id];
           return `
             <div>
-              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:6px">${m.label}</div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:6px">${label}</div>
               ${file ? `
                 <div class="import-file-uploaded">
                   ${icon('check-circle', 16, 'var(--green)')}
                   <span style="font-size:13px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(file.name)}</span>
-                  <button style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:12px;padding:0;flex-shrink:0" onclick="removeImportFile('${type}')">Remove</button>
+                  <button style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:12px;padding:0;flex-shrink:0" onclick="removeImportFile('${id}')">Remove</button>
                 </div>
               ` : `
                 <div class="import-dropzone"
                      ondragover="event.preventDefault();event.currentTarget.classList.add('import-dz-over')"
                      ondragleave="event.currentTarget.classList.remove('import-dz-over')"
-                     ondrop="handleImportDrop(event,'${type}')"
-                     onclick="document.getElementById('import-file-${type}').click()">
-                  <input type="file" id="import-file-${type}" style="display:none"
+                     ondrop="handleImportDrop(event,'${id}')"
+                     onclick="document.getElementById('import-file-${id}').click()">
+                  <input type="file" id="import-file-${id}" style="display:none"
                          accept=".pdf,.xlsx,.csv,.png,.jpg,.jpeg"
-                         onchange="handleImportFileSelect(event,'${type}')">
-                  ${icon(m.iconName, 28, 'var(--text-muted)')}
+                         onchange="handleImportFileSelect(event,'${id}')">
+                  ${icon(iName, 28, 'var(--text-muted)')}
                   <div style="font-size:13px;color:var(--text-secondary);margin-top:10px">
                     Drag & drop or <span style="color:var(--primary);font-weight:600">browse files</span>
                   </div>
@@ -6660,15 +6628,14 @@ function renderImportStep2() {
           `;
         }).join('')}
       </div>
-      <div style="display:flex;justify-content:space-between">
-        <button class="btn btn-secondary" onclick="state.importStep=1;render()">← Back</button>
+      <div style="display:flex;justify-content:flex-end">
         <button class="btn btn-primary" onclick="startImportProcessing()" ${!canAdvanceToProcess() ? 'disabled' : ''}>Analyze Documents →</button>
       </div>
     </div>
   `;
 }
 
-function renderImportStep3() {
+function renderImportStep2() {
   return `
     <div style="text-align:center;padding:44px 24px">
       <div class="import-spinner"></div>
@@ -6684,7 +6651,7 @@ function renderImportStep3() {
   `;
 }
 
-function renderImportStep4() {
+function renderImportStep3() {
   const preview = state.importPreview;
   if (!preview) return '';
 
@@ -6725,7 +6692,7 @@ function renderImportStep4() {
         ` : ''}
       </div>
       <div style="display:flex;justify-content:space-between">
-        <button class="btn btn-secondary" onclick="state.importStep=2;render()">← Back</button>
+        <button class="btn btn-secondary" onclick="state.importStep=1;render()">← Back</button>
         <button class="btn btn-primary" onclick="applyImportedData()">Apply to Profile →</button>
       </div>
     </div>
