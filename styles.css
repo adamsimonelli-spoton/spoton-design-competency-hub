@@ -530,7 +530,7 @@ body {
   transition: filter 0.15s, transform 0.1s;
   text-decoration: none;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: none;
   box-shadow: var(--shadow-sm);
 }
 .analysis-count-chip:hover { filter: brightness(0.97); transform: translateY(-1px); }
