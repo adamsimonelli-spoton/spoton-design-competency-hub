@@ -6370,19 +6370,15 @@ function renderEOYReview() {
           <span style="font-size:13px;color:var(--text-muted)">${escHtml(currentProfile?.name || '')}${currentProfile?.role ? ' · ' + escHtml(shortRole(currentProfile.role)) : ''}</span>
         </div>
         <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 16px">
-            <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Average Score</div>
-            <div style="display:flex;gap:24px">
-              <div>
-                <div style="font-size:10px;font-weight:600;color:var(--text-secondary);margin-bottom:4px">Self</div>
-                <div style="font-size:24px;font-weight:800;color:var(--primary);line-height:1">${selfAvg}<span style="font-size:12px;font-weight:500;color:var(--text-muted)">/5</span></div>
-              </div>
-              <div style="width:1px;background:var(--border)"></div>
-              <div>
-                <div style="font-size:10px;font-weight:600;color:var(--text-secondary);margin-bottom:4px">${escHtml(review.manager.name)}</div>
-                <div style="font-size:24px;font-weight:800;color:#5B21B6;line-height:1">${mgrAvg}<span style="font-size:12px;font-weight:500;color:var(--text-muted)">/5</span></div>
-              </div>
-            </div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;padding:14px 20px 12px;gap:2px;background:var(--surface);box-shadow:var(--shadow-sm);min-width:90px">
+            <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Self</span>
+            <span style="font-size:36px;font-weight:800;line-height:1;color:var(--primary)">${selfAvg}</span>
+            <span style="font-size:10px;font-weight:600;color:var(--text-muted)">out of 5</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;padding:14px 20px 12px;gap:2px;background:var(--surface);box-shadow:var(--shadow-sm);min-width:90px">
+            <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">${escHtml(review.manager.name)}</span>
+            <span style="font-size:36px;font-weight:800;line-height:1;color:#5B21B6">${mgrAvg}</span>
+            <div style="display:flex;gap:1px;margin-top:2px">${Array.from({length:5},(_,i)=>`<span style="color:${i<Math.round(parseFloat(mgrAvg))?'#F59E0B':'#CBD5E1'};font-size:11px;line-height:1">★</span>`).join('')}</div>
           </div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 16px;flex:1;min-width:0">
             <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${escHtml(review.manager.name)}'s Take</div>
