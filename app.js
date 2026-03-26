@@ -37,12 +37,13 @@ function icon(name, size = 16, color = 'currentColor', extraStyle = '') {
 
 // ============ CONSTANTS ============
 const LEVEL_CONFIG = {
+  Unknown:     { emoji: '?',  iconName: 'search',  color: '#94A3B8', bg: '#F1F5F9', cls: 'level-unknown',     order: 0 },
   Learner:     { emoji: '🌱', iconName: 'sprout',  color: '#10B981', bg: '#D1FAE5', cls: 'level-learner',     order: 1 },
   Contributor: { emoji: '🛠️', iconName: 'hammer',  color: '#3B82F6', bg: '#DBEAFE', cls: 'level-contributor', order: 2 },
   Independent: { emoji: '🚀', iconName: 'zap',     color: '#8B5CF6', bg: '#EDE9FE', cls: 'level-independent', order: 3 },
   Expert:      { emoji: '🏆', iconName: 'trophy',  color: '#BE185D', bg: '#FCE7F3', cls: 'level-expert',      order: 4 },
 };
-const LEVELS = ['Learner', 'Contributor', 'Independent', 'Expert'];
+const LEVELS = ['Unknown', 'Learner', 'Contributor', 'Independent', 'Expert'];
 
 const CATEGORY_CONFIG = {
   'Design Skills':           { color: '#6366F1', bg: '#EEF2FF', icon: '🎨' },
@@ -2759,7 +2760,7 @@ function renderSkillDetail() {
           <div class="tabs-header">
             ${(() => {
               const expectedLevel = getExpectedLevelForSkill(skill.id);
-              return LEVELS.map(level => {
+              return LEVELS.filter(l => l !== 'Unknown').map(level => {
                 const tlc = LEVEL_CONFIG[level];
                 const isExpected = expectedLevel === level;
                 return `<button class="tab-btn ${level === activeLevel ? 'active' : ''} ${tlc.cls}" onclick="setLevelTab('${level}')">${icon(tlc.iconName, 12, tlc.color)} <span>${level}</span>${isExpected ? '<span class="tab-expected-badge">expected</span>' : ''}</button>`;
@@ -6480,11 +6481,13 @@ function seededRnd(seed) {
 function normalizeLevel(val) {
   if (val === null || val === undefined || val === '') return null;
   const s = String(val).trim().toLowerCase();
+  if (!s) return null;
+  if (s === '0' || s === 'unknown' || s === 'n/a' || s === '-' || s === 'none') return 'Unknown';
   if (s === '1' || s === 'learner' || s.includes('learn') || s === 'l1') return 'Learner';
   if (s === '2' || s === 'contributor' || s.includes('contrib') || s === 'l2' || s.includes('develop')) return 'Contributor';
   if (s === '3' || s === 'independent' || s.includes('indep') || s === 'l3' || s.includes('profic') || s.includes('intermedi')) return 'Independent';
   if (s === '4' || s === 'expert' || s.includes('expert') || s === 'l4' || s.includes('advanc') || s.includes('senior')) return 'Expert';
-  return null;
+  return 'Unknown'; // Non-empty but unrecognized → Unknown
 }
 
 function matchSkillByName(name) {
