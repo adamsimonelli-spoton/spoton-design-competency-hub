@@ -6815,7 +6815,7 @@ function renderEOYReview() {
         <div style="display:grid;grid-template-columns:1fr 170px 170px 90px;padding:8px 16px;background:var(--bg);border-bottom:2px solid var(--border)">
           <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Category</span>
           <span style="font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.05em">Self</span>
-          <span style="font-size:11px;font-weight:700;color:#5B21B6;text-transform:uppercase;letter-spacing:.05em">${escHtml(review.manager.name)}</span>
+          <span style="font-size:11px;font-weight:700;color:#5B21B6;text-transform:uppercase;letter-spacing:.05em">${escHtml(review.manager.name)} <span style="font-weight:500;opacity:.65">(mgr)</span></span>
           <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;text-align:center">Delta</span>
         </div>
         ${EOY_CATEGORY_GROUPS.map((group, gi) => `
