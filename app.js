@@ -2568,7 +2568,7 @@ function renderHome() {
                         </div>`).join('')}
                     </div>
                   </div>` : ''}
-                <div style="${themes.length ? 'border-top:1px solid var(--border);padding-top:14px' : ''}">
+                <div style="${themes.length ? 'padding-top:14px' : ''}">
                   ${subHeader('Personal Goals')}
                   ${personalGoals.length === 0
                     ? `<div style="font-size:13px;color:var(--text-muted)">No personal goals created yet.</div>`
