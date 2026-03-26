@@ -6790,7 +6790,7 @@ function renderEOYReview() {
             <span style="font-size:36px;font-weight:800;line-height:1;color:var(--text)">${mgrAvg}</span>
             <div style="display:flex;gap:1px;margin-top:2px">${Array.from({length:5},(_,i)=>`<span style="color:${i<Math.round(parseFloat(mgrAvg))?'#F59E0B':'#CBD5E1'};font-size:11px;line-height:1">★</span>`).join('')}</div>
           </div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 16px;flex:1;min-width:0">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px;flex:1;min-width:0">
             <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${escHtml(review.manager.name)}'s Take</div>
             <div style="display:flex;gap:24px">
               <div style="flex:1;min-width:0">
