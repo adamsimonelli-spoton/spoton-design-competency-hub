@@ -2281,7 +2281,7 @@ body {
   margin-bottom: 8px;
 }
 .review-cat-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text);
   flex: 1;
@@ -2963,7 +2963,7 @@ body {
   margin-bottom: 16px;
 }
 .outreach-widget-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text);
 }

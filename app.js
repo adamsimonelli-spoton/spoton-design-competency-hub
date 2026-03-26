@@ -3208,7 +3208,7 @@ function renderQuickWinsSection() {
   return `
     <div style="margin-bottom:24px">
       <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
-        <span style="font-size:15px;font-weight:700;color:var(--text)">Quick Wins</span>
+        <span style="font-size:16px;font-weight:700;color:var(--text)">Quick Wins</span>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px">
         ${quickWins.map((w, i) => renderQuickWinCard(w, i)).join('')}
@@ -6434,7 +6434,7 @@ function renderEOYReview() {
       <!-- Recognition & Accomplishments: side-by-side -->
       <div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:16px;overflow:hidden">
         <div style="padding:16px 24px;border-bottom:1px solid var(--border)">
-          <div style="font-size:14px;font-weight:700;color:var(--text)">Recognition &amp; Accomplishments</div>
+          <div style="font-size:16px;font-weight:700;color:var(--text)">Recognition &amp; Accomplishments</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr">
           <div style="padding:20px 24px;border-right:1px solid var(--border)">
@@ -6451,7 +6451,7 @@ function renderEOYReview() {
       <!-- Areas for Development: side-by-side -->
       <div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:32px;overflow:hidden">
         <div style="padding:16px 24px;border-bottom:1px solid var(--border)">
-          <div style="font-size:14px;font-weight:700;color:var(--text)">Areas for Development</div>
+          <div style="font-size:16px;font-weight:700;color:var(--text)">Areas for Development</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr">
           <div style="padding:20px 24px;border-right:1px solid var(--border)">
