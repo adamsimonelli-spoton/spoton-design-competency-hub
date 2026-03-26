@@ -2,12 +2,44 @@
    SpotOn Design Competency Hub — Application
    =================================================== */
 
+// ============ ICON SYSTEM ============
+const LUCIDE_PATHS = {
+  'layout-dashboard': '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="3" y="15" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/>',
+  'layers':       '<path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>',
+  'heart':        '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+  'target':       '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  'bar-chart-2':  '<line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/>',
+  'store':        '<path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2 2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/>',
+  'book-open':    '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  'users':        '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  'sprout':       '<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 1 1.9 4c0 2.5-1 3.7-2.5 4.7-1-1.5-1.5-3.3-1.3-5.2.2-1.5.8-3.1 1.9-3.5z"/>',
+  'hammer':       '<path d="m15 12-8.373 8.373a1 1 0 1 1-3-3L12 9"/><path d="m18 15 4-4"/><path d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172V7l-2.26-2.26a6 6 0 0 0-4.202-1.756L9 2.96l.92.82A6.18 6.18 0 0 1 12 8.4V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14l3-2.5"/>',
+  'zap':          '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
+  'trophy':       '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+  'graduation-cap':'<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>',
+  'book':         '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/>',
+  'file-text':    '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+  'video':        '<path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/>',
+  'wrench':       '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  'pencil':       '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>',
+  'trash-2':      '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>',
+  'search':       '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  'check-circle': '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>',
+  'plus':         '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  'external-link':'<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+};
+function icon(name, size = 16, color = 'currentColor', extraStyle = '') {
+  const paths = LUCIDE_PATHS[name] || '';
+  if (!paths) return '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0${extraStyle ? ';' + extraStyle : ''}">${paths}</svg>`;
+}
+
 // ============ CONSTANTS ============
 const LEVEL_CONFIG = {
-  Learner:     { emoji: '🌱', color: '#10B981', bg: '#D1FAE5', cls: 'level-learner',     order: 1 },
-  Contributor: { emoji: '🛠️', color: '#3B82F6', bg: '#DBEAFE', cls: 'level-contributor', order: 2 },
-  Independent: { emoji: '🚀', color: '#8B5CF6', bg: '#EDE9FE', cls: 'level-independent', order: 3 },
-  Expert:      { emoji: '🏆', color: '#BE185D', bg: '#FCE7F3', cls: 'level-expert',      order: 4 },
+  Learner:     { emoji: '🌱', iconName: 'sprout',  color: '#10B981', bg: '#D1FAE5', cls: 'level-learner',     order: 1 },
+  Contributor: { emoji: '🛠️', iconName: 'hammer',  color: '#3B82F6', bg: '#DBEAFE', cls: 'level-contributor', order: 2 },
+  Independent: { emoji: '🚀', iconName: 'zap',     color: '#8B5CF6', bg: '#EDE9FE', cls: 'level-independent', order: 3 },
+  Expert:      { emoji: '🏆', iconName: 'trophy',  color: '#BE185D', bg: '#FCE7F3', cls: 'level-expert',      order: 4 },
 };
 const LEVELS = ['Learner', 'Contributor', 'Independent', 'Expert'];
 
@@ -166,11 +198,11 @@ const CV_RATING_CONFIG = {
 };
 
 const RESOURCE_TYPES = {
-  article: { icon: '📄', label: 'Article', tagColor: '#1D4ED8', tagBg: '#DBEAFE' },
-  video:   { icon: '▶️', label: 'Video',   tagColor: 'var(--red)',   tagBg: '#FEE2E2' },
-  course:  { icon: '🎓', label: 'Course',  tagColor: 'var(--green)', tagBg: '#D1FAE5' },
-  book:    { icon: '📚', label: 'Book',    tagColor: '#7C3AED', tagBg: '#EDE9FE' },
-  tool:    { icon: '🔧', label: 'Tool',    tagColor: '#D97706', tagBg: '#FEF3C7' },
+  article: { icon: '📄', iconName: 'file-text',      label: 'Article', tagColor: '#1D4ED8', tagBg: '#DBEAFE' },
+  video:   { icon: '▶️', iconName: 'video',           label: 'Video',   tagColor: 'var(--red)',   tagBg: '#FEE2E2' },
+  course:  { icon: '🎓', iconName: 'graduation-cap',  label: 'Course',  tagColor: 'var(--green)', tagBg: '#D1FAE5' },
+  book:    { icon: '📚', iconName: 'book',             label: 'Book',    tagColor: '#7C3AED', tagBg: '#EDE9FE' },
+  tool:    { icon: '🔧', iconName: 'wrench',           label: 'Tool',    tagColor: '#D97706', tagBg: '#FEF3C7' },
 };
 
 // Pre-curated resources per skill ID
@@ -1347,7 +1379,7 @@ function levelBadge(level, opts = {}) {
   const lc = LEVEL_CONFIG[level];
   if (!lc) return '';
   const size = opts.small ? 'font-size:10px;padding:4px 8px;' : '';
-  return `<span class="level-badge ${lc.cls}" style="${size}">${lc.emoji} ${level}</span>`;
+  return `<span class="level-badge ${lc.cls}" style="${size}">${icon(lc.iconName, 11, lc.color)} ${level}</span>`;
 }
 function catBadge(category) {
   const cc = CATEGORY_CONFIG[category] || {};
@@ -2482,7 +2514,7 @@ function renderHome() {
                   : `<span style="color:var(--text-muted);font-size:12px">—</span>`;
                 return `<div class="growth-table-row" onclick="navigate('skill','${s.id}')">
                   <span class="growth-col-skill">${escHtml(s.name)}</span>
-                  <span class="growth-col-level"><span class="level-badge ${lc.cls}">${lc.emoji} ${assessments[s.id].managerLevel}</span></span>
+                  <span class="growth-col-level"><span class="level-badge ${lc.cls}">${icon(lc.iconName, 11, lc.color)} ${assessments[s.id].managerLevel}</span></span>
                   <span class="growth-col-gap">${gapHtml}</span>
                 </div>`;
               }).join('')}
@@ -2624,7 +2656,7 @@ function renderSkills() {
               <div class="skill-card-body">
                 <div class="skill-card-top">
                   <div class="skill-number">${escHtml(skill.category)}</div>
-                  ${mgrLevel ? `<span class="level-badge ${lc.cls}" style="font-size:10px;padding:4px 8px">${lc.emoji} ${mgrLevel}</span>` : '<span class="not-assessed">Not assessed</span>'}
+                  ${mgrLevel ? `<span class="level-badge ${lc.cls}" style="font-size:10px;padding:4px 8px">${icon(lc.iconName, 10, lc.color)} ${mgrLevel}</span>` : '<span class="not-assessed">Not assessed</span>'}
                 </div>
                 <h3>${escHtml(skill.name)}</h3>
                 ${assessment?.evidence ? '<div class="skill-card-footer"><span style="font-size:10px;color:var(--green)">📝 Has notes</span></div>' : ''}
@@ -2714,7 +2746,7 @@ function renderSkillDetail() {
               return LEVELS.map(level => {
                 const tlc = LEVEL_CONFIG[level];
                 const isExpected = expectedLevel === level;
-                return `<button class="tab-btn ${level === activeLevel ? 'active' : ''} ${tlc.cls}" onclick="setLevelTab('${level}')">${tlc.emoji} <span>${level}</span>${isExpected ? '<span class="tab-expected-badge">expected</span>' : ''}</button>`;
+                return `<button class="tab-btn ${level === activeLevel ? 'active' : ''} ${tlc.cls}" onclick="setLevelTab('${level}')">${icon(tlc.iconName, 12, tlc.color)} <span>${level}</span>${isExpected ? '<span class="tab-expected-badge">expected</span>' : ''}</button>`;
               }).join('');
             })()}
           </div>
@@ -2818,7 +2850,7 @@ function renderSkillDetail() {
                   const rt = RESOURCE_TYPES[r.type] || RESOURCE_TYPES.article;
                   return `
                     <div class="resource-item ${r.url ? 'resource-item-clickable' : ''}" ${r.url ? `onclick="window.open('${escHtml(r.url)}','_blank','noopener')"` : ''}>
-                      <div class="resource-type-icon resource-type-${r.type}">${rt.icon}</div>
+                      <div class="resource-type-icon resource-type-${r.type}">${icon(rt.iconName, 15, rt.tagColor)}</div>
                       <div class="resource-info">
                         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
                           <div style="flex:1;min-width:0">
@@ -3408,7 +3440,7 @@ function renderReview() {
                       </select>
                     </td>
                     <td>
-                      ${expLc ? `<span class="level-badge ${expLc.cls}">${expLc.emoji} ${expectedLevel}</span>` : '<span style="color:var(--text-muted);font-size:12px">—</span>'}
+                      ${expLc ? `<span class="level-badge ${expLc.cls}">${icon(expLc.iconName, 11, expLc.color)} ${expectedLevel}</span>` : '<span style="color:var(--text-muted);font-size:12px">—</span>'}
                     </td>
                     <td style="text-align:center">
                       ${isGap ? `<span class="review-gap-badge review-gap-under-${gapDiff}">−${gapDiff}</span>` : isOver ? `<span class="review-gap-badge review-gap-over-${gapDiff}">+${gapDiff}</span>` : '<span style="color:var(--text-muted);font-size:12px">—</span>'}
@@ -3838,8 +3870,8 @@ function renderOutreachPage() {
                       : '<span style="color:var(--text-muted)">—</span>'}
                   </td>
                   <td class="outreach-col-actions">
-                    <button class="btn-icon-sm" onclick="openOutreachModal('${e.id}')" title="Edit">✏️</button>
-                    <button class="btn-icon-sm" onclick="deleteOutreachEntry('${e.id}')" title="Delete">🗑️</button>
+                    <button class="btn-icon-sm" onclick="openOutreachModal('${e.id}')" title="Edit">${icon('pencil', 14)}</button>
+                    <button class="btn-icon-sm" onclick="deleteOutreachEntry('${e.id}')" title="Delete">${icon('trash-2', 14)}</button>
                   </td>
                 </tr>
               `).join('')}
@@ -4099,7 +4131,7 @@ function renderCoreValueDetail() {
                     const rt = RESOURCE_TYPES[r.type] || RESOURCE_TYPES.article;
                     return `
                       <div class="resource-item ${r.url ? 'resource-item-clickable' : ''}" ${r.url ? `onclick="window.open('${escHtml(r.url)}','_blank','noopener')"` : ''}>
-                        <div class="resource-type-icon resource-type-${r.type}">${rt.icon}</div>
+                        <div class="resource-type-icon resource-type-${r.type}">${icon(rt.iconName, 15, rt.tagColor)}</div>
                         <div class="resource-info">
                           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
                             <div style="flex:1;min-width:0">
@@ -6190,45 +6222,45 @@ function render() {
 
       <nav class="sidebar-nav">
         <button class="nav-item ${state.view === 'home' ? 'active' : ''}" onclick="navigate('home')">
-          <span class="nav-icon">🏠</span>
+          <span class="nav-icon">${icon('layout-dashboard', 18)}</span>
           <span>Dashboard</span>
         </button>
 
         <button class="nav-item ${state.view === 'review' || state.view === 'skill' ? 'active' : ''}" onclick="navigate('review')">
-          <span class="nav-icon">📋</span>
+          <span class="nav-icon">${icon('layers', 18)}</span>
           <span>Skills</span>
         </button>
 
         <button class="nav-item ${state.view === 'values' || state.view === 'value' ? 'active' : ''}" onclick="navigate('values')">
-          <span class="nav-icon">💛</span>
+          <span class="nav-icon">${icon('heart', 18)}</span>
           <span>Core Values</span>
         </button>
 
         <button class="nav-item ${['goals','personal-goal','design-goal','growth-theme'].includes(state.view) ? 'active' : ''}" onclick="navigate('goals')">
-          <span class="nav-icon">🎯</span>
+          <span class="nav-icon">${icon('target', 18)}</span>
           <span>Goals</span>
         </button>
 
         <button class="nav-item ${state.view === 'eoy' ? 'active' : ''}" onclick="navigate('eoy')">
-          <span class="nav-icon">📊</span>
+          <span class="nav-icon">${icon('bar-chart-2', 18)}</span>
           <span>Performance Review</span>
         </button>
 
         <button class="nav-item ${state.view === 'outreach' ? 'active' : ''}" onclick="navigate('outreach')">
-          <span class="nav-icon">🏪</span>
+          <span class="nav-icon">${icon('store', 18)}</span>
           <span>Merchant Outreach</span>
         </button>
 
         <div class="nav-section-label" style="margin-top:12px">Learn</div>
         <button class="nav-item ${state.view === 'resources' ? 'active' : ''}" onclick="navigate('resources')">
-          <span class="nav-icon">📚</span>
+          <span class="nav-icon">${icon('book-open', 18)}</span>
           <span>Resources</span>
         </button>
       </nav>
 
       <div class="sidebar-footer">
         <button class="nav-item" onclick="manageTeam()" style="width:100%">
-            <span class="nav-icon">👥</span>
+            <span class="nav-icon">${icon('users', 18)}</span>
             <span style="font-size:12.5px">Manage Team</span>
           </button>
         <div class="sidebar-footer-text">
