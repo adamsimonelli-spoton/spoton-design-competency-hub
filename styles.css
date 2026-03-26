@@ -2333,9 +2333,9 @@ body {
 .review-table td:nth-child(7) { width: 100px; min-width: 80px; max-width: 120px; }
 /* Resources table column overrides */
 .resources-table th:nth-child(1),
-.resources-table td:nth-child(1) { width: 200px; min-width: 160px; max-width: 220px; white-space: normal; }
+.resources-table td:nth-child(1) { width: auto; min-width: 220px; }
 .resources-table th:nth-child(2),
-.resources-table td:nth-child(2) { width: auto; min-width: 220px; }
+.resources-table td:nth-child(2) { width: 200px; min-width: 160px; max-width: 220px; white-space: normal; }
 .resources-table th:nth-child(3),
 .resources-table td:nth-child(3) { width: 90px; min-width: 80px; max-width: 110px; white-space: nowrap; }
 .resources-table th:nth-child(4),
