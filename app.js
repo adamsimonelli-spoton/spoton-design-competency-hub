@@ -2967,8 +2967,8 @@ function renderResources() {
             <table class="review-table resources-table">
               <thead><tr>
                 <th>Resource</th>
-                <th>Skill</th>
                 <th>Type</th>
+                <th>Skill</th>
                 <th></th>
               </tr></thead>
               <tbody>
@@ -2980,8 +2980,8 @@ function renderResources() {
                       <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.3">${escHtml(r.title)}</div>
                       ${r.desc ? `<div style="font-size:12px;color:var(--text-muted);margin-top:3px;line-height:1.4">${escHtml(r.desc)}</div>` : ''}
                     </td>
-                    <td><button onclick="event.stopPropagation();navigate('skill','${skill.id}')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:400;color:var(--text-secondary);padding:0;text-align:left;line-height:1.4;font-family:inherit">${escHtml(skill.name)}</button></td>
                     <td><span class="resource-type-tag" style="color:${rt.tagColor};background:${rt.tagBg}">${rt.label}</span></td>
+                    <td><button onclick="event.stopPropagation();navigate('skill','${skill.id}')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:400;color:var(--text-secondary);padding:0;text-align:left;line-height:1.4;font-family:inherit">${escHtml(skill.name)}</button></td>
                     <td style="text-align:center">${hasUrl ? `<svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="color:var(--text-muted)" aria-hidden="true"><path d="M224,104a8,8,0,0,1-16,0V59.32l-82.34,82.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"/></svg>` : ''}</td>
                   </tr>`;
                 }).join('')}
@@ -3003,8 +3003,8 @@ function renderResources() {
           <table class="review-table resources-table">
             <thead><tr>
               <th>Resource</th>
-              <th>Core Value</th>
               <th>Type</th>
+              <th>Core Value</th>
               <th></th>
             </tr></thead>
             <tbody>
@@ -3016,8 +3016,8 @@ function renderResources() {
                     <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.3">${escHtml(r.title)}</div>
                     ${r.desc ? `<div style="font-size:12px;color:var(--text-muted);margin-top:3px;line-height:1.4">${escHtml(r.desc)}</div>` : ''}
                   </td>
-                  <td><button onclick="event.stopPropagation();navigate('value','${cv.id}')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:400;color:var(--text-secondary);padding:0;text-align:left;line-height:1.4;font-family:inherit">${escHtml(cv.label.split('.')[0].trim())}</button></td>
                   <td><span class="resource-type-tag" style="color:${rt.tagColor};background:${rt.tagBg}">${rt.label}</span></td>
+                  <td><button onclick="event.stopPropagation();navigate('value','${cv.id}')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:400;color:var(--text-secondary);padding:0;text-align:left;line-height:1.4;font-family:inherit">${escHtml(cv.label.split('.')[0].trim())}</button></td>
                   <td style="text-align:center">${hasUrl ? `<svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="color:var(--text-muted)" aria-hidden="true"><path d="M224,104a8,8,0,0,1-16,0V59.32l-82.34,82.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"/></svg>` : ''}</td>
                 </tr>`;
               })).join('')}
