@@ -3482,11 +3482,13 @@ function renderQuickWinCard(w, idx) {
     <div class="quick-win-card" onclick="openQuickWinModal(${idx})">
       <div style="flex:1;min-width:0">
         ${typeLabel ? `<div style="margin-bottom:4px">${typeLabel}</div>` : ''}
-        <div style="font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:4px">${escHtml(w.title)}</div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px">
+          <div style="font-size:13.5px;font-weight:600;color:var(--text);line-height:1.4">${escHtml(w.title)}</div>
+          <span style="font-size:13px;color:var(--primary);opacity:.4;transition:opacity .12s;flex-shrink:0;margin-top:1px">→</span>
+        </div>
         <div style="font-size:12px;color:var(--text-muted);line-height:1.5">${escHtml(w.desc)}</div>
-        <div class="qw-covers-badge" data-skills="${escHtml(w.matchingNames.join(' · '))}" onmouseenter="showQwTooltip(event,this)" onmouseleave="hideQwTooltip()" style="margin-top:6px;font-size:11px;color:var(--text-muted);cursor:default">Covers ${w.score} skill${w.score !== 1 ? 's' : ''}</div>
       </div>
-      <span style="font-size:13px;color:var(--primary);opacity:.4;transition:opacity .12s;flex-shrink:0;align-self:center">→</span>
+      <div class="qw-covers-badge" data-skills="${escHtml(w.matchingNames.join(' · '))}" onmouseenter="showQwTooltip(event,this)" onmouseleave="hideQwTooltip()" style="margin-top:12px;font-size:12px;color:var(--text-muted);cursor:default"><strong style="color:var(--text)">${w.score}</strong> skill${w.score !== 1 ? 's' : ''} covered</div>
     </div>
   `;
 }
