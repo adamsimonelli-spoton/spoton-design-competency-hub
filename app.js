@@ -7373,7 +7373,11 @@ function parseColumnText(rawCol) {
   const extractBullets = (pattern) => {
     const m = rawCol.match(pattern);
     if (!m?.[1]) return [];
-    return m[1].split(/\n|(?:•|–|-)(?=\s)/).map(l => l.trim()).filter(l => l.length > 20 && l.length < 600).slice(0, 40);
+    return m[1]
+      .split(/\n|(?:[•●○*]|-{1,2}|—)(?=\s)/)
+      .map(l => l.replace(/[^\w\s.,!?'"();:\-–—@#$%&]/g, ' ').replace(/\s{2,}/g, ' ').trim())
+      .filter(l => l.length > 20 && l.length < 600)
+      .slice(0, 30);
   };
   const accomplishments = extractBullets(/recognition\s*[&and]+\s*accomplishments[^\n]*([\s\S]{10,3000}?)(?:areas for|$)/i);
   const improvements    = extractBullets(/areas for (?:improvement|development)[^\n]*([\s\S]{10,2000}?)(?:$)/i);
@@ -7410,23 +7414,30 @@ async function parsePerfReviewPDF(file) {
     const isImage = /\.(png|jpe?g)$/i.test(file.name) || file.type.startsWith('image/');
     if (isImage) {
       if (!window.Tesseract) { console.warn('[DCH] Tesseract.js not loaded'); return null; }
-      // Split image into left (self) and right (manager) halves before OCR
-      // so each column is parsed independently — avoids interleaved OCR output issues
-      const bitmap = await createImageBitmap(file);
-      const half = Math.floor(bitmap.width / 2);
-      const makeCanvas = (sx, sw) => {
-        const c = document.createElement('canvas');
-        c.width = sw; c.height = bitmap.height;
-        c.getContext('2d').drawImage(bitmap, sx, 0, sw, bitmap.height, 0, 0, sw, bitmap.height);
-        return c;
-      };
-      const [leftCanvas, rightCanvas] = [makeCanvas(0, half), makeCanvas(half, bitmap.width - half)];
-      const [{ data: { text: selfText } }, { data: { text: mgrText } }] = await Promise.all([
-        Tesseract.recognize(leftCanvas, 'eng', { logger: () => {} }),
-        Tesseract.recognize(rightCanvas, 'eng', { logger: () => {} }),
-      ]);
-      console.log('[DCH] OCR self len:', selfText.length, 'mgr len:', mgrText.length);
-      return parseSplitPerfReviewText(selfText, mgrText);
+      // Single OCR pass; use word bounding boxes to split left (self) vs right (manager) column.
+      // More reliable than canvas-splitting because it uses actual character positions.
+      const { data } = await Tesseract.recognize(file, 'eng', { logger: () => {} });
+      const words = data.words || [];
+      if (words.length > 0) {
+        const maxX = words.reduce((m, w) => Math.max(m, w.bbox.x1), 0);
+        const midX = maxX * 0.5;
+        // Reconstruct line-aware text from word bboxes (words on same line → space, new line → \n)
+        const wordsToText = (ws) => {
+          ws.sort((a, b) => a.bbox.y0 !== b.bbox.y0 ? a.bbox.y0 - b.bbox.y0 : a.bbox.x0 - b.bbox.x0);
+          let out = '', prevY = -1;
+          for (const w of ws) {
+            out += (prevY < 0 ? '' : (w.bbox.y0 - prevY > 15 ? '\n' : ' ')) + w.text;
+            prevY = w.bbox.y0;
+          }
+          return out;
+        };
+        const selfText = wordsToText(words.filter(w => (w.bbox.x0 + w.bbox.x1) / 2 < midX));
+        const mgrText  = wordsToText(words.filter(w => (w.bbox.x0 + w.bbox.x1) / 2 >= midX));
+        console.log('[DCH] Word-split: left', selfText.length, 'right', mgrText.length, 'midX', midX);
+        return parseSplitPerfReviewText(selfText, mgrText);
+      }
+      // Fallback: full text single-column parse
+      return parsePerfReviewText(data.text);
     }
     // PDF path — split items by x-coordinate into left (self) and right (manager) columns
     if (!window.pdfjsLib) { console.warn('[DCH] pdf.js not loaded'); return null; }
