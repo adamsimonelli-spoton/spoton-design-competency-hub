@@ -7396,14 +7396,17 @@ const PERF_CAT_ANCHORS = {
   feedback_coaching: ['feedback and coaching', 'feedback & coaching', 'provide regular feedback'],
 };
 
-// Find the first rating keyword within `lookahead` chars starting at `startPos` in `lower`
-function findRatingAt(lower, startPos, lookahead = 900) {
+// Find the rating keyword that appears EARLIEST in the text within `lookahead` chars.
+// Using earliest-position (not priority-order) prevents a higher-priority keyword from
+// a later question bleeding in and overriding the correct closer answer.
+function findRatingAt(lower, startPos, lookahead = 500) {
   const chunk = lower.slice(startPos, startPos + lookahead);
+  let bestPos = Infinity, bestVal = null;
   for (const kw of PERF_RATING_KEYWORDS) {
     const ki = chunk.indexOf(kw);
-    if (ki !== -1) return PERF_RATING_VALUES[kw];
+    if (ki !== -1 && ki < bestPos) { bestPos = ki; bestVal = PERF_RATING_VALUES[kw]; }
   }
-  return null;
+  return bestVal;
 }
 
 // For each category, collect every position where an anchor phrase appears (sorted asc).
@@ -7443,7 +7446,9 @@ function extractBothRatings(lower) {
 
 function parsePerfReviewText(rawText) {
   const text = rawText;
-  const lower = text.toLowerCase();
+  // Normalize OCR whitespace — Tesseract can split badge text (e.g. "Exceeds\nExpectations")
+  // across lines, which would prevent keyword matching. Collapse all whitespace to single spaces.
+  const lower = text.replace(/\r?\n/g, ' ').replace(/\s{2,}/g, ' ').toLowerCase();
 
   // Extract all "Total Weighted Average" values
   const twaPattern = /total\s+weighted\s+average\s*[:\s]+(\d+\.\d+)/gi;
