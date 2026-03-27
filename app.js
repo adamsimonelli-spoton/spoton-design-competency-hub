@@ -3418,7 +3418,7 @@ function renderQuickWinsSection() {
       <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
         <span style="font-size:16px;font-weight:700;color:var(--text)">Quick Wins</span>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px">
+      <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;-ms-overflow-style:none">
         ${quickWins.map((w, i) => renderQuickWinCard(w, i)).join('')}
       </div>
     </div>
