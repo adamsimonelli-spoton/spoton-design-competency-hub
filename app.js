@@ -7482,16 +7482,17 @@ function applyImportedData() {
   const d = getData();
 
   if (state.importPreview.skills) {
-    Object.entries(state.importPreview.skills).forEach(([skillId, assessment]) => {
-      d.assessments[skillId] = assessment;
-    });
+    // Full replace — imported file is the source of truth
+    d.assessments = { ...state.importPreview.skills };
   }
 
   if (state.importPreview.review) {
+    // Full replace
     localStorage.setItem('dch_review_' + state.profile, JSON.stringify(state.importPreview.review));
   }
 
   if (state.importPreview.expectedLevels) {
+    // Full replace
     localStorage.setItem('dch_expected_' + state.profile, JSON.stringify(state.importPreview.expectedLevels));
   }
 
