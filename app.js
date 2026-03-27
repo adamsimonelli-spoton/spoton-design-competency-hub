@@ -3636,7 +3636,7 @@ function renderReview() {
                       ${expLc ? `<span class="level-badge ${expLc.cls}">${icon(expLc.iconName, 11, expLc.color)} ${expectedLevel}</span>` : '<span style="color:var(--text-muted);font-size:12px">—</span>'}
                     </td>
                     <td style="text-align:center">
-                      ${isGap ? `<span class="review-gap-badge review-gap-under-${gapDiff}">−${gapDiff}</span>` : isOver ? `<span class="review-gap-badge review-gap-over-${gapDiff}">+${gapDiff}</span>` : '<span style="color:var(--text-muted);font-size:12px">—</span>'}
+                      ${isGap ? `<span class="review-gap-badge review-gap-under-${gapDiff}">−${gapDiff}</span>` : isOver ? `<span class="review-gap-badge review-gap-over-${gapDiff}">+${gapDiff}</span>` : (a.managerLevel && a.managerLevel !== 'Unknown' ? `<span class="review-gap-badge review-gap-met">0</span>` : '<span style="color:var(--text-muted);font-size:12px">—</span>')}
                     </td>
                     <td><span style="font-size:11px;color:var(--text-muted)">${formatDate(a.lastUpdated) || '—'}</span></td>
                   </tr>
