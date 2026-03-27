@@ -6495,10 +6495,28 @@ function normalizeLevel(val) {
 function matchSkillByName(name) {
   if (!name) return null;
   const n = String(name).toLowerCase().trim();
-  if (!n) return null;
-  return SKILLS_DATA.skills.find(s => s.name.toLowerCase() === n)
-    || SKILLS_DATA.skills.find(s => s.name.toLowerCase().includes(n))
-    || SKILLS_DATA.skills.find(s => n.includes(s.name.toLowerCase()));
+  if (!n || n.length < 4) return null;
+  // Exact match
+  const exact = SKILLS_DATA.skills.find(s => s.name.toLowerCase() === n);
+  if (exact) return exact;
+  // Substring match
+  const sub1 = SKILLS_DATA.skills.find(s => s.name.toLowerCase().includes(n));
+  if (sub1) return sub1;
+  const sub2 = SKILLS_DATA.skills.find(s => n.includes(s.name.toLowerCase()));
+  if (sub2) return sub2;
+  // Word-overlap fallback: ≥60% of significant words in common
+  const sig = w => w.length > 3 && !/^(and|the|for|with|from|that|this|into)$/.test(w);
+  const nWords = n.split(/\W+/).filter(sig);
+  if (nWords.length < 2) return null;
+  const nSet = new Set(nWords);
+  let bestMatch = null, bestScore = 0;
+  for (const s of SKILLS_DATA.skills) {
+    const sWords = s.name.toLowerCase().split(/\W+/).filter(sig);
+    const overlap = sWords.filter(w => nSet.has(w)).length;
+    const score = overlap / Math.max(sWords.length, nSet.size);
+    if (score >= 0.6 && score > bestScore) { bestScore = score; bestMatch = s; }
+  }
+  return bestMatch;
 }
 
 async function parseSkillMatrixFile(file) {
@@ -6576,9 +6594,12 @@ async function parseSkillMatrixFile(file) {
         console.log('[parseSkillMatrix] headerRow:', headerRow, 'mgrCol:', mgrCol, 'roleCol:', roleCol, 'skillCol:', skillCol);
         console.log('[parseSkillMatrix] Header cells:', rows[headerRow]);
         // Log first 8 data rows to see actual CSV structure
-        console.log('[parseSkillMatrix] First 8 data rows:');
+        console.log('[parseSkillMatrix] First 8 data rows (skillCol=' + skillCol + '):');
         for (let r = headerRow + 1; r < Math.min(rows.length, headerRow + 9); r++) {
-          console.log(`  row ${r}:`, rows[r]);
+          const row = rows[r];
+          const nameVal = row[skillCol];
+          const matched = matchSkillByName(nameVal);
+          console.log(`  row ${r}: col0=${JSON.stringify(row[0])} col1=${JSON.stringify(row[1])} skillCol[${skillCol}]=${JSON.stringify(nameVal)} → match:${matched ? matched.id : 'null'} | mgrVal=${JSON.stringify(row[mgrCol])}`);
         }
 
         const skills = {}, expectedLevels = {};
