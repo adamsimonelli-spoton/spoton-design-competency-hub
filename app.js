@@ -3755,55 +3755,63 @@ function renderTeamModal() {
   const profiles = getProfiles();
   return `
     <div class="modal-overlay" id="team-modal" onclick="if(event.target===this)closeTeamModal()">
-      <div class="modal" style="width:540px;max-width:95vw">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div class="modal-title" style="margin-bottom:0">Manage Team</div>
-          <button onclick="closeTeamModal()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);padding:4px">✕</button>
-        </div>
-        <div class="modal-subtitle">Add team members and assign roles to set expected skill levels.</div>
+      <div class="modal" style="width:540px;max-width:95vw;max-height:90vh;display:flex;flex-direction:column;padding:0;overflow:hidden">
 
-        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
-          ${profiles.map(p => `
-            <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm)">
-              <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
-                ${avatarHtml(p, 40, 14)}
-                <label for="photo-upload-${p.id}" style="font-size:10px;color:var(--primary);font-weight:600;cursor:pointer;white-space:nowrap">${p.photo ? 'Change' : 'Add photo'}</label>
-                <input type="file" id="photo-upload-${p.id}" accept="image/*" style="display:none" onchange="handleProfilePhotoUpload('${p.id}',this)" />
+        <!-- Fixed header -->
+        <div style="padding:24px 24px 16px;flex-shrink:0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <div class="modal-title" style="margin-bottom:0">Manage Team</div>
+            <button onclick="closeTeamModal()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);padding:4px">✕</button>
+          </div>
+          <div class="modal-subtitle" style="margin:0">Add team members and assign roles to set expected skill levels.</div>
+        </div>
+
+        <!-- Scrollable body -->
+        <div style="flex:1;overflow-y:auto;padding:20px 24px">
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+            ${profiles.map(p => `
+              <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm)">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+                  ${avatarHtml(p, 40, 14)}
+                  <label for="photo-upload-${p.id}" style="font-size:10px;color:var(--primary);font-weight:600;cursor:pointer;white-space:nowrap">${p.photo ? 'Change' : 'Add photo'}</label>
+                  <input type="file" id="photo-upload-${p.id}" accept="image/*" style="display:none" onchange="handleProfilePhotoUpload('${p.id}',this)" />
+                </div>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">
+                  <input class="modal-input" style="margin:0;padding:4px 8px;font-size:13px;font-weight:600" id="name-edit-${p.id}" value="${escHtml(p.name)}" placeholder="Name" />
+                  ${renderRoleSelect('role-select-'+p.id, p.role || '', true)}
+                </div>
+                <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0">
+                  <button onclick="deleteProfileFromTeam('${p.id}')" title="Remove member" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:16px;padding:4px;line-height:1">✕</button>
+                  <button onclick="promptSetProfilePin('${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--primary);font-size:11px;font-weight:600;padding:2px 4px;white-space:nowrap">${p.pin ? '🔒 Change PIN' : 'Set PIN'}</button>
+                </div>
               </div>
-              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">
-                <input class="modal-input" style="margin:0;padding:4px 8px;font-size:13px;font-weight:600" id="name-edit-${p.id}" value="${escHtml(p.name)}" placeholder="Name" />
-                ${renderRoleSelect('role-select-'+p.id, p.role || '', true)}
-              </div>
-              <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0">
-                <button onclick="deleteProfileFromTeam('${p.id}')" title="Remove member" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:16px;padding:4px;line-height:1">✕</button>
-                <button onclick="promptSetProfilePin('${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--primary);font-size:11px;font-weight:600;padding:2px 4px;white-space:nowrap">${p.pin ? '🔒 Change PIN' : 'Set PIN'}</button>
-              </div>
+            `).join('')}
+            ${profiles.length === 0 ? `<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:16px 0">No team members yet.</div>` : ''}
+          </div>
+
+          <hr class="modal-divider" style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Add New Member</div>
+          <div style="display:flex;gap:8px;align-items:flex-end">
+            <div style="flex:1">
+              <label class="modal-label">Name</label>
+              <input class="modal-input" id="new-profile-name" placeholder="e.g. Jamie Chen" style="margin:0" />
             </div>
-          `).join('')}
-          ${profiles.length === 0 ? `<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:16px 0">No team members yet.</div>` : ''}
+            <div style="flex:1">
+              <label class="modal-label">Role</label>
+              ${renderRoleSelect('new-profile-role', '', true)}
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="createProfileFromTeam()" style="white-space:nowrap;flex-shrink:0">+ Add another</button>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer">
+            <input type="checkbox" id="new-profile-manager-team" style="width:15px;height:15px;accent-color:var(--primary);cursor:pointer" />
+            <span style="font-size:12px;color:var(--text-secondary)">Manager — can switch profiles and manage team</span>
+          </label>
         </div>
 
-        <hr class="modal-divider" style="margin-bottom:16px">
-        <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">Add New Member</div>
-        <div style="display:flex;gap:8px;align-items:flex-end">
-          <div style="flex:1">
-            <label class="modal-label">Name</label>
-            <input class="modal-input" id="new-profile-name" placeholder="e.g. Jamie Chen" style="margin:0" />
-          </div>
-          <div style="flex:1">
-            <label class="modal-label">Role</label>
-            ${renderRoleSelect('new-profile-role', '', true)}
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="createProfileFromTeam()" style="white-space:nowrap;flex-shrink:0">Add Member</button>
-        </div>
-        <label style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer">
-          <input type="checkbox" id="new-profile-manager-team" style="width:15px;height:15px;accent-color:var(--primary);cursor:pointer" />
-          <span style="font-size:12px;color:var(--text-secondary)">Manager — can switch profiles and manage team</span>
-        </label>
-
-        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:24px">
+        <!-- Sticky footer -->
+        <div style="flex-shrink:0;padding:16px 24px;border-top:1px solid var(--border);background:var(--surface);display:flex;justify-content:flex-end;gap:8px">
           <button class="btn btn-secondary" onclick="closeTeamModal()">Cancel</button>
-          <button class="btn btn-primary" onclick="saveTeamRoles()">Save Changes</button>
+          <button class="btn btn-primary" onclick="saveTeamRoles()">Save</button>
         </div>
       </div>
     </div>
@@ -3820,6 +3828,14 @@ function closeTeamModal() {
   if (m) m.remove();
 }
 function saveTeamRoles() {
+  // Auto-create any pending new member if a name is filled in
+  const pendingName = document.getElementById('new-profile-name')?.value?.trim();
+  if (pendingName) {
+    const role = document.getElementById('new-profile-role')?.value?.trim();
+    const isManager = document.getElementById('new-profile-manager-team')?.checked || false;
+    addProfile(pendingName, role, isManager);
+  }
+  // Save edits to existing members
   const profiles = getProfiles();
   profiles.forEach(p => {
     const nameInput = document.getElementById('name-edit-' + p.id);
