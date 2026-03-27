@@ -7393,23 +7393,49 @@ const PERF_CAT_ANCHORS = {
   feedback_coaching: ['feedback and coaching', 'feedback & coaching', 'provide regular feedback'],
 };
 
-function extractCategoryRatings(sectionLower) {
-  const result = {};
+// Find the first rating keyword within `lookahead` chars starting at `startPos` in `lower`
+function findRatingAt(lower, startPos, lookahead = 900) {
+  const chunk = lower.slice(startPos, startPos + lookahead);
+  for (const kw of PERF_RATING_KEYWORDS) {
+    const ki = chunk.indexOf(kw);
+    if (ki !== -1) return PERF_RATING_VALUES[kw];
+  }
+  return null;
+}
+
+// For each category, collect every position where an anchor phrase appears (sorted asc).
+// 1st occurrence → self rating, 2nd occurrence → manager rating.
+// This works for both column-by-column AND interleaved OCR output.
+function extractBothRatings(lower) {
+  const self = {}, mgr = {};
   for (const [cat, anchors] of Object.entries(PERF_CAT_ANCHORS)) {
-    let anchorPos = -1;
+    // Collect all positions of any anchor for this category
+    const positions = [];
     for (const anchor of anchors) {
-      const idx = sectionLower.indexOf(anchor);
-      if (idx !== -1 && (anchorPos === -1 || idx < anchorPos)) anchorPos = idx;
+      let search = 0;
+      while (true) {
+        const idx = lower.indexOf(anchor, search);
+        if (idx === -1) break;
+        positions.push(idx);
+        search = idx + anchor.length;
+      }
     }
-    if (anchorPos === -1) continue;
-    // Search for first rating keyword within 800 chars after the anchor
-    const window = sectionLower.slice(anchorPos, anchorPos + 800);
-    for (const kw of PERF_RATING_KEYWORDS) {
-      const idx = window.indexOf(kw);
-      if (idx !== -1) { result[cat] = PERF_RATING_VALUES[kw]; break; }
+    if (positions.length === 0) continue;
+    positions.sort((a, b) => a - b);
+
+    // 1st occurrence → self
+    const selfRating = findRatingAt(lower, positions[0]);
+    if (selfRating !== null) self[cat] = selfRating;
+
+    // 2nd occurrence → manager (fall back to self if only one occurrence)
+    if (positions.length >= 2) {
+      const mgrRating = findRatingAt(lower, positions[1]);
+      if (mgrRating !== null) mgr[cat] = mgrRating;
+    } else {
+      if (selfRating !== null) mgr[cat] = selfRating;
     }
   }
-  return result;
+  return { self, mgr };
 }
 
 function parsePerfReviewText(rawText) {
@@ -7422,16 +7448,10 @@ function parsePerfReviewText(rawText) {
   let m;
   while ((m = twaPattern.exec(lower)) !== null) twaMatches.push(parseFloat(m[1]));
 
-  // Split into self-review and manager-review sections
-  const mgrHeaderIdx = lower.search(/manager[\s\-]employee\s+review|manager'?s?\s+review/);
-  const selfSection = mgrHeaderIdx > 100 ? lower.slice(0, mgrHeaderIdx) : lower;
-  const mgrSection  = mgrHeaderIdx > 100 ? lower.slice(mgrHeaderIdx)   : lower;
+  // Dual-occurrence anchor extraction (handles both interleaved and column-by-column OCR)
+  let { self: selfRatings, mgr: mgrRatings } = extractBothRatings(lower);
 
-  // Anchor-based extraction per section
-  let selfRatings = extractCategoryRatings(selfSection);
-  let mgrRatings  = extractCategoryRatings(mgrSection);
-
-  // Fallback: positional scan if anchor-based gets < 5 categories
+  // Fallback: positional scan if < 5 categories found
   const positionalRatings = [];
   let pos = 0;
   while (pos < lower.length) {
@@ -7441,10 +7461,9 @@ function parsePerfReviewText(rawText) {
     }
     if (!found) pos++;
   }
-  console.log('[DCH] Anchor selfRatings:', selfRatings, 'mgrRatings:', mgrRatings, 'positional:', positionalRatings, 'TWA:', twaMatches);
+  console.log('[DCH] selfRatings:', selfRatings, 'mgrRatings:', mgrRatings, 'positional:', positionalRatings, 'TWA:', twaMatches);
 
   if (Object.keys(selfRatings).length < 5) {
-    // Fall back to positional
     if (positionalRatings.length < 10) return null;
     PERF_CATS.forEach((cat, i) => { selfRatings[cat] = positionalRatings[i] ?? 3; });
     PERF_CATS.forEach((cat, i) => { mgrRatings[cat]  = positionalRatings[positionalRatings.length >= 20 ? i + 10 : i] ?? 3; });
