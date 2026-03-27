@@ -7570,7 +7570,7 @@ function renderEOYReview() {
         </div>
         <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;align-items:stretch">
           <!-- Combined scores tile -->
-          <div class="analysis-card" style="min-width:0;flex-shrink:0">
+          <div class="analysis-card" style="min-width:0;flex-shrink:0;height:auto">
             <div class="analysis-card-header">
               <div class="analysis-card-title">Review Scores</div>
             </div>
@@ -7589,7 +7589,7 @@ function renderEOYReview() {
             </div>
           </div>
           <!-- Manager's Take tile -->
-          <div class="analysis-card" style="flex:1;min-width:0">
+          <div class="analysis-card" style="flex:1;min-width:0;height:auto">
             <div class="analysis-card-header">
               <div class="analysis-card-title">${escHtml(review.manager.name)}'s Take</div>
             </div>
