@@ -2624,14 +2624,14 @@ function renderHome() {
                   ${subHeader('Personal Goals')}
                   ${personalGoals.length === 0
                     ? `<div style="font-size:13px;color:var(--text-muted)">No personal goals created yet.</div>`
-                    : `<div style="display:flex;flex-direction:column;gap:10px">
+                    : `<div style="display:flex;flex-direction:column;gap:14px">
                         ${personalGoals.map(g => {
                           const sc = GOAL_STATUS_CONFIG[g.status || 'not_started'] || GOAL_STATUS_CONFIG['not_started'];
                           const pct = statusPct[g.status] ?? 0;
                           return `
                             <div onclick="navigate('goals')" style="cursor:pointer" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
-                              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px">
-                                <span style="font-size:12px;color:var(--text);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(g.goal)}</span>
+                              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px">
+                                <span style="font-size:12px;color:var(--text);font-weight:500;flex:1;min-width:0;line-height:1.5">${escHtml(g.goal)}</span>
                                 <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:${sc.bg};color:${sc.color};white-space:nowrap;flex-shrink:0">${sc.label}</span>
                               </div>
                               <div style="height:5px;background:var(--border);border-radius:99px;overflow:hidden">
@@ -3964,8 +3964,8 @@ function renderOutreachWidget() {
           </div>
         </div>
         <div class="outreach-widget-compact-footer" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
-          <div style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:${hveOk ? 'var(--green)' : 'var(--text-muted)'}">
-            ${hveOk ? `${icon('check', 13, 'var(--green)')} HVE done this month` : `<span style="font-size:14px">○</span> HVE due this month`}
+          <div style="font-size:13px;font-weight:600;color:${hveOk ? 'var(--green)' : 'var(--text-muted)'}">
+            ${hveOk ? '✓ HVE done!' : '○ HVE due this month'}
           </div>
           <button class="btn btn-primary btn-sm" onclick="openOutreachModal(null)">Log Outreach</button>
         </div>
