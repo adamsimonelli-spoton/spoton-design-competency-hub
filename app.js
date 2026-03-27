@@ -6778,8 +6778,7 @@ function render() {
           <span>Resources</span>
         </button>
 
-        <div class="nav-section-label" style="margin-top:12px">Work</div>
-        <button class="nav-item ${state.view === 'outreach' ? 'active' : ''}" onclick="navigate('outreach')">
+        <button class="nav-item ${state.view === 'outreach' ? 'active' : ''}" onclick="navigate('outreach')" style="margin-top:12px">
           <span class="nav-icon">${icon('store', 18)}</span>
           <span>Merchant Outreach</span>
         </button>
