@@ -2579,9 +2579,9 @@ function renderHome() {
                 <button class="section-link" onclick="navigate('goals')">View all →</button>
               </div>
               <div style="display:flex;flex-direction:column;gap:0">
-                ${themes.length ? `
-                  <div style="padding-bottom:14px">
-                    ${subHeader('Growth Themes')}
+                <div style="padding-bottom:14px">
+                  ${subHeader('Growth Themes')}
+                  ${themes.length ? `
                     <div class="dash-quick-wins-list">
                       ${themes.map(t => `
                         <div class="dash-qw-item" onclick="navigate('goals')">
@@ -2590,8 +2590,8 @@ function renderHome() {
                           </div>
                           <svg class="dash-qw-arrow" width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
                         </div>`).join('')}
-                    </div>
-                  </div>` : ''}
+                    </div>` : `<div style="font-size:13px;color:var(--text-muted)">No growth themes created yet.</div>`}
+                </div>
                 <div style="${themes.length ? 'padding-top:14px' : ''}">
                   ${subHeader('Personal Goals')}
                   ${personalGoals.length === 0
@@ -4650,7 +4650,17 @@ function renderGrowthThemeDetail() {
 function renderGrowthThemes() {
   const d = getData();
   const themes = d.growthThemes || [];
-  if (!themes.length) return '';
+
+  if (!themes.length) return `
+    <div class="goals-section">
+      <div class="goals-section-header">
+        <div>
+          <div class="goals-section-title">Growth Themes</div>
+        </div>
+      </div>
+      <div style="font-size:13px;color:var(--text-muted)">No growth themes created yet.</div>
+    </div>
+  `;
 
   const base = typeof d.growthThemeScore === 'number' ? d.growthThemeScore : null;
 
