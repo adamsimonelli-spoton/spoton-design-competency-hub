@@ -7355,27 +7355,96 @@ const PERF_RATING_VALUES = {
 };
 const PERF_CATS = ['technical','quality','accountability','we_lead','we_deliver','we_learn','we_care','engagement','team_performance','feedback_coaching'];
 
+function parseColumnText(rawCol) {
+  const lower = rawCol.replace(/\r?\n/g, ' ').replace(/\s{2,}/g, ' ').toLowerCase();
+  const ratings = {};
+  for (const [cat, anchors] of Object.entries(PERF_CAT_ANCHORS)) {
+    for (const anchor of anchors) {
+      const idx = lower.indexOf(anchor);
+      if (idx !== -1) {
+        const r = findRatingAt(lower, idx);
+        if (r !== null) { ratings[cat] = r; break; }
+      }
+    }
+    if (!ratings[cat]) ratings[cat] = 3;
+  }
+  const twaMatch = lower.match(/total\s+weighted\s+average\s*[:\s]+(\d+\.\d+)/);
+  const totalWeightedAvg = twaMatch ? parseFloat(twaMatch[1]) : null;
+  const extractBullets = (pattern) => {
+    const m = rawCol.match(pattern);
+    if (!m?.[1]) return [];
+    return m[1].split(/\n|(?:•|–|-)(?=\s)/).map(l => l.trim()).filter(l => l.length > 20 && l.length < 600).slice(0, 40);
+  };
+  const accomplishments = extractBullets(/recognition\s*[&and]+\s*accomplishments[^\n]*([\s\S]{10,3000}?)(?:areas for|$)/i);
+  const improvements    = extractBullets(/areas for (?:improvement|development)[^\n]*([\s\S]{10,2000}?)(?:$)/i);
+  return { ratings, totalWeightedAvg, accomplishments, improvements };
+}
+
+function parseSplitPerfReviewText(selfRaw, mgrRaw) {
+  const self = parseColumnText(selfRaw);
+  const mgr  = parseColumnText(mgrRaw);
+  const yearMatch = (selfRaw + mgrRaw).match(/20(\d\d)/);
+  const year = yearMatch ? yearMatch[0] : new Date().getFullYear().toString();
+  const wrapBullets = (bullets, fallback) =>
+    bullets.length ? [{ headline: fallback, bullets }] : [{ headline: fallback, bullets: [] }];
+  return {
+    year,
+    self: {
+      totalWeightedAvg: self.totalWeightedAvg,
+      ratings: self.ratings,
+      accomplishments: wrapBullets(self.accomplishments, 'Key contributions'),
+      improvements:    wrapBullets(self.improvements,    'Development areas'),
+    },
+    manager: {
+      name: 'Manager',
+      totalWeightedAvg: mgr.totalWeightedAvg,
+      ratings: mgr.ratings,
+      accomplishments: wrapBullets(mgr.accomplishments, 'Key contributions'),
+      improvements:    wrapBullets(mgr.improvements,    'Development areas'),
+    },
+  };
+}
+
 async function parsePerfReviewPDF(file) {
   try {
     const isImage = /\.(png|jpe?g)$/i.test(file.name) || file.type.startsWith('image/');
     if (isImage) {
       if (!window.Tesseract) { console.warn('[DCH] Tesseract.js not loaded'); return null; }
-      const { data: { text } } = await Tesseract.recognize(file, 'eng', { logger: () => {} });
-      console.log('[DCH] OCR text extracted, length:', text.length);
-      return parsePerfReviewText(text);
+      // Split image into left (self) and right (manager) halves before OCR
+      // so each column is parsed independently — avoids interleaved OCR output issues
+      const bitmap = await createImageBitmap(file);
+      const half = Math.floor(bitmap.width / 2);
+      const makeCanvas = (sx, sw) => {
+        const c = document.createElement('canvas');
+        c.width = sw; c.height = bitmap.height;
+        c.getContext('2d').drawImage(bitmap, sx, 0, sw, bitmap.height, 0, 0, sw, bitmap.height);
+        return c;
+      };
+      const [leftCanvas, rightCanvas] = [makeCanvas(0, half), makeCanvas(half, bitmap.width - half)];
+      const [{ data: { text: selfText } }, { data: { text: mgrText } }] = await Promise.all([
+        Tesseract.recognize(leftCanvas, 'eng', { logger: () => {} }),
+        Tesseract.recognize(rightCanvas, 'eng', { logger: () => {} }),
+      ]);
+      console.log('[DCH] OCR self len:', selfText.length, 'mgr len:', mgrText.length);
+      return parseSplitPerfReviewText(selfText, mgrText);
     }
-    // PDF path
+    // PDF path — split items by x-coordinate into left (self) and right (manager) columns
     if (!window.pdfjsLib) { console.warn('[DCH] pdf.js not loaded'); return null; }
     const buffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-    let fullText = '';
+    let selfText = '', mgrText = '';
     for (let p = 1; p <= pdf.numPages; p++) {
       const page = await pdf.getPage(p);
+      const viewport = page.getViewport({ scale: 1 });
+      const midX = viewport.width / 2;
       const content = await page.getTextContent();
-      fullText += content.items.map(i => i.str).join(' ') + '\n';
+      const left  = content.items.filter(i => i.transform[4] <  midX).sort((a, b) => b.transform[5] - a.transform[5]);
+      const right = content.items.filter(i => i.transform[4] >= midX).sort((a, b) => b.transform[5] - a.transform[5]);
+      selfText += left.map(i => i.str).join(' ') + '\n';
+      mgrText  += right.map(i => i.str).join(' ') + '\n';
     }
-    console.log('[DCH] PDF text extracted, length:', fullText.length);
-    return parsePerfReviewText(fullText);
+    console.log('[DCH] PDF self len:', selfText.length, 'mgr len:', mgrText.length);
+    return parseSplitPerfReviewText(selfText, mgrText);
   } catch(e) {
     console.warn('[DCH] parsePerfReviewPDF error:', e);
     return null;
