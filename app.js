@@ -4573,9 +4573,9 @@ function renderGrowthThemeDetail() {
           ${score !== null ? `<span style="font-size:16px;font-weight:800;color:${color};line-height:1">${score}</span><span style="font-size:10px;font-weight:600;color:${color};opacity:.6">/5</span>` : ''}
           <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${color}${score !== null ? ';margin-left:2px' : ''}">${label}</span>
         </div>
-        <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px;flex:1">
-          ${list.map(i => `<li style="position:relative;padding-left:13px;font-size:13px;color:var(--text-secondary);line-height:1.5"><span style="position:absolute;left:1px;top:8px;width:5px;height:5px;border-radius:50%;background:${color};opacity:.5"></span>${escHtml(i)}</li>`).join('')}
-        </ul>
+        <div style="display:flex;flex-direction:column;gap:6px;flex:1">
+          ${list.map(i => `<div style="font-size:13px;color:var(--text-secondary);line-height:1.5">${escHtml(i)}</div>`).join('')}
+        </div>
         ${hw.length ? `<button onclick="openGrowthThemeLevelModal('${t.id}','${label.toLowerCase()}')" style="margin-top:12px;background:none;border:none;padding:0;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;text-align:left">How to get here →</button>` : ''}
       </div>`;
   };
