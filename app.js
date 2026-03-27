@@ -7487,7 +7487,7 @@ function renderImportStep1() {
                 <tr>
                   <td style="padding:5px 8px 5px 0;font-weight:600">Expected level</td>
                   <td style="padding:5px 8px;color:#475569">Role, Expected, or any header containing <em>Expected</em></td>
-                  <td style="padding:5px 0"><span style="background:#F1F5F9;color:#64748B;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:600">Optional</span></td>
+                  <td style="padding:5px 0"><span style="background:#DCFCE7;color:#166534;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:600">Yes</span></td>
                 </tr>
               </tbody>
             </table>
