@@ -5552,120 +5552,151 @@ function renderGoals() {
   `;
 }
 
+function saveGrowthPlanField(field, value) {
+  const d = getData();
+  if (!d.growthPlan) d.growthPlan = {};
+  d.growthPlan[field] = value;
+  saveData(d);
+}
+
 function renderGrowthPlan() {
   const d = getData();
-  const profiles = getProfiles();
-  const currentProfile = profiles.find(p => p.id === state.profile);
-  const themes = d.growthThemes || [];
-  const personalGoals = getPersonalGoals();
-  const hasContent = themes.length > 0 || personalGoals.length > 0;
+  const gp = d.growthPlan || {};
 
-  const scoreCol = (label, bg, color, items) => {
-    const list = Array.isArray(items) ? items : [];
-    return `
-      <div style="background:${bg};border-radius:8px;padding:14px 16px;flex:1;box-shadow:var(--shadow-sm)">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${color};margin-bottom:10px">${label}</div>
-        <div style="display:flex;flex-direction:column;gap:6px">
-          ${list.length
-            ? list.map(i => `<div style="font-size:13px;color:var(--text-secondary);line-height:1.5">${escHtml(i)}</div>`).join('')
-            : `<div style="font-size:13px;color:var(--text-muted);font-style:italic">Not defined</div>`}
-        </div>
-      </div>`;
-  };
+  const TA_BASE = 'width:100%;border:none;outline:none;resize:none;font-size:13px;color:var(--text);line-height:1.6;font-family:inherit;background:transparent;';
+
+  const sectionNum = (n) =>
+    `<div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:6px">0${n}</div>`;
+  const sectionTitle = (t) =>
+    `<div style="font-size:20px;font-weight:800;color:var(--text);margin-bottom:8px">${t}</div>`;
+  const sectionDesc = (t) =>
+    `<div style="font-size:14px;color:var(--text-muted);font-style:italic;line-height:1.65;margin-bottom:22px">${t}</div>`;
+
+  const sweetCard = (field, label, placeholder, bg, border, labelColor) => `
+    <div style="background:${bg};border:1.5px solid ${border};border-radius:10px;padding:16px 18px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${labelColor};margin-bottom:10px">${label}</div>
+      <textarea oninput="saveGrowthPlanField('${field}',this.value)" placeholder="${placeholder}"
+        style="${TA_BASE}min-height:86px">${escHtml(gp[field] || '')}</textarea>
+    </div>`;
+
+  const headlineRow = (n, field, placeholder) => `
+    <div style="display:flex;align-items:center;gap:14px;padding:14px 0;${n < 3 ? 'border-bottom:1px solid var(--border)' : ''}">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--primary-light);border:1.5px solid rgba(99,102,241,.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--primary);flex-shrink:0">${n}</div>
+      <input oninput="saveGrowthPlanField('${field}',this.value)" placeholder="${placeholder}" value="${escHtml(gp[field] || '')}"
+        style="flex:1;border:none;outline:none;font-size:13px;color:var(--text);background:transparent;font-family:inherit;padding:2px 0" />
+    </div>`;
+
+  const supportCell = (field, placeholder) => `
+    <textarea oninput="saveGrowthPlanField('${field}',this.value)" placeholder="${placeholder}"
+      style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;resize:none;font-size:13px;color:var(--text);line-height:1.6;min-height:74px;font-family:inherit;outline:none;box-sizing:border-box;background:var(--bg)">${escHtml(gp[field] || '')}</textarea>`;
 
   return `
-    <div style="max-width:900px">
+    <div style="max-width:800px">
+
       <!-- Page header -->
-      <div class="review-header" style="margin-bottom:28px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:32px">
         <div>
-          <h1 style="margin:0 0 6px">${escHtml(currentProfile?.name || 'Designer')}${currentProfile?.role ? ` <span style="font-size:13px;font-weight:600;color:var(--primary);background:var(--primary-light);border:1px solid rgba(99,102,241,.2);border-radius:20px;padding:4px 8px;vertical-align:middle;position:relative;top:-2px;margin-left:12px">${escHtml(shortRole(currentProfile.role))}</span>` : ''}</h1>
-          <div style="font-size:13px;color:var(--text-muted)">2026 Growth Plan</div>
+          <h1 style="font-size:24px;font-weight:800;color:var(--text);margin:0 0 8px">Growth plan</h1>
+          <div style="font-size:13.5px;color:var(--text-muted);line-height:1.6;max-width:540px">Your space to think about where you're going. Write honestly. Bring it to your 1:1. Update it when things shift.</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <div style="display:flex;gap:10px">
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;text-align:center">
-              <div style="font-size:18px;font-weight:800;color:var(--primary)">${themes.length}</div>
-              <div style="font-size:11px;color:var(--text-muted);font-weight:500">Theme${themes.length !== 1 ? 's' : ''}</div>
-            </div>
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;text-align:center">
-              <div style="font-size:18px;font-weight:800;color:var(--primary)">${personalGoals.length}</div>
-              <div style="font-size:11px;color:var(--text-muted);font-weight:500">Goal${personalGoals.length !== 1 ? 's' : ''}</div>
-            </div>
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;text-align:center">
-              <div style="font-size:18px;font-weight:800;color:var(--green)">${personalGoals.filter(g => g.status === 'completed').length}</div>
-              <div style="font-size:11px;color:var(--text-muted);font-weight:500">Completed</div>
-            </div>
-          </div>
-          <button class="btn btn-secondary btn-sm" onclick="window.print()" style="margin-left:8px">${icon('download',13)} Export</button>
+        <div style="font-size:12px;font-weight:600;color:var(--text-muted);white-space:nowrap;padding-top:6px;flex-shrink:0">Bring this to your next 1:1</div>
+      </div>
+
+      <!-- 01 Your sweet spot -->
+      <div style="margin-bottom:40px">
+        ${sectionNum(1)}
+        ${sectionTitle('Your sweet spot')}
+        ${sectionDesc("There are things you're good at, things you love, and things you want to drop. Where do they overlap? That overlap is where you do your best work.")}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          ${sweetCard('loveDoing',   'What I love doing',          "The work you'd do even if no one asked…",    '#EFF6FF', '#BFDBFE', '#3B82F6')}
+          ${sweetCard('goodAt',      "What I'm good at",           'Where you do your best work effortlessly…',  '#F0FDF4', '#BBF7D0', '#22C55E')}
+        </div>
+        ${sweetCard('leaveBehind', 'What I want to leave behind', 'Work you want to stop or do less of…',        '#FFF7ED', '#FED7AA', '#F97316')}
+      </div>
+
+      <!-- 02 Three career headlines -->
+      <div style="margin-bottom:40px">
+        ${sectionNum(2)}
+        ${sectionTitle('Three career headlines')}
+        ${sectionDesc("Imagine a colleague writing about your work one year from now. What would their three headlines be? Write them as if they already happened — specific, ambitious, real.")}
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:0 18px">
+          ${headlineRow(1, 'headline1', 'e.g. Shipped the feature that reduced support tickets by 30%…')}
+          ${headlineRow(2, 'headline2', 'e.g. Became the go-to designer for end-to-end hospitality workflows…')}
+          ${headlineRow(3, 'headline3', "What's the third thing you want to be known for this year?")}
         </div>
       </div>
 
-      ${!hasContent ? `
-        <div class="goals-empty" style="text-align:center;padding:40px 24px">
-          <div style="font-size:32px;margin-bottom:12px">🌱</div>
-          <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px">Your growth plan is empty</div>
-          <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px">Add growth themes and personal goals to build your development plan.</div>
-          <button class="btn btn-primary btn-sm" onclick="navigate('goals')">Go to Goals →</button>
-        </div>
-      ` : ''}
+      <!-- 03 Strengths and growth areas -->
+      <div style="margin-bottom:40px">
+        ${sectionNum(3)}
+        ${sectionTitle('Defining your strengths and growth areas')}
+        ${sectionDesc("Think about the skills you need to reach those headlines. Which are genuine strengths? Which need investment? Which just need to hold steady? Be specific — this is for you and your manager, not for scoring.")}
+        <textarea oninput="saveGrowthPlanField('strengthsGrowth',this.value)"
+          placeholder="Where are you strong? Where do you want to grow? What do you just need to stabilise?"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;resize:none;font-size:13px;color:var(--text);line-height:1.6;min-height:120px;font-family:inherit;outline:none;box-sizing:border-box"
+        >${escHtml(gp.strengthsGrowth || '')}</textarea>
+      </div>
 
-      ${themes.length > 0 ? `
-        <!-- Growth Trajectory -->
-        <div style="margin-bottom:32px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-            <div class="goals-section-title">Growth Trajectory</div>
-            <button class="btn btn-secondary btn-sm" onclick="navigate('goals')" style="font-size:12px">Manage →</button>
+      <!-- 04 What I need to get there -->
+      <div style="margin-bottom:40px">
+        ${sectionNum(4)}
+        ${sectionTitle('What I need to get there')}
+        ${sectionDesc("What do you need from yourself, and from your manager — now, soon, and further out? Be honest about where you need support.")}
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+          <!-- Column headers -->
+          <div style="display:grid;grid-template-columns:90px 1fr 1fr;border-bottom:1px solid var(--border);padding:10px 16px 10px 18px;gap:12px">
+            <div></div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);text-align:center">From Myself</div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);text-align:center">From My Manager</div>
           </div>
-          <div style="display:flex;flex-direction:column;gap:16px">
-            ${themes.map(t => {
-              const evidenceCount = (d.growthThemeEvidence?.[t.id] || []).length;
-              return `
-                <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow-sm)">
-                  <div style="padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)">
-                    <div style="font-size:15px;font-weight:700;color:var(--text)">${escHtml(t.theme)}</div>
-                    <div style="display:flex;align-items:center;gap:10px">
-                      ${evidenceCount > 0 ? `<span style="font-size:11px;font-weight:700;color:var(--primary);background:var(--primary-light);padding:2px 8px;border-radius:20px">${evidenceCount} piece${evidenceCount !== 1 ? 's' : ''}</span>` : ''}
-                      <button onclick="navigateToGrowthTheme('${t.id}')" style="background:none;border:none;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;padding:0">View →</button>
-                    </div>
-                  </div>
-                  <div style="padding:14px 18px;display:flex;gap:10px">
-                    ${scoreCol('Today',  '#FFFFFF', 'var(--text-muted)', t.today)}
-                    ${scoreCol('Better', '#EFF6FF', '#3B82F6',           t.better)}
-                    ${scoreCol('Best',   '#F0FDF4', 'var(--green)',       t.best)}
-                  </div>
-                </div>`;
-            }).join('')}
+          <!-- Now -->
+          <div style="display:grid;grid-template-columns:90px 1fr 1fr;border-bottom:1px solid var(--border);padding:14px 16px 14px 18px;gap:12px;align-items:start">
+            <div><div style="font-size:13px;font-weight:700;color:var(--text)">Now</div><div style="font-size:11px;color:var(--text-muted)">0–6 mo</div></div>
+            ${supportCell('supportNow_self',    'What can you do independently right now?')}
+            ${supportCell('supportNow_manager', 'What do you need from your manager now?')}
+          </div>
+          <!-- Near -->
+          <div style="display:grid;grid-template-columns:90px 1fr 1fr;border-bottom:1px solid var(--border);padding:14px 16px 14px 18px;gap:12px;align-items:start">
+            <div><div style="font-size:13px;font-weight:700;color:var(--text)">Near</div><div style="font-size:11px;color:var(--text-muted)">6–12 mo</div></div>
+            ${supportCell('supportNear_self',    'What will you take on in the next year?')}
+            ${supportCell('supportNear_manager', 'What support do you need over the next year?')}
+          </div>
+          <!-- Far -->
+          <div style="display:grid;grid-template-columns:90px 1fr 1fr;padding:14px 16px 14px 18px;gap:12px;align-items:start">
+            <div><div style="font-size:13px;font-weight:700;color:var(--text)">Far</div><div style="font-size:11px;color:var(--text-muted)">1 yr+</div></div>
+            ${supportCell('supportFar_self',    'Longer-term ambitions…')}
+            ${supportCell('supportFar_manager', 'What will you need further out?')}
           </div>
         </div>
-      ` : ''}
+      </div>
 
-      ${personalGoals.length > 0 ? `
-        <!-- Personal Goals -->
-        <div style="margin-bottom:32px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-            <div class="goals-section-title">Personal Goals</div>
-            <button class="btn btn-secondary btn-sm" onclick="navigate('goals')" style="font-size:12px">Manage →</button>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:10px">
-            ${personalGoals.map(g => {
-              const sc = GOAL_STATUS_CONFIG[g.status || 'not_started'];
-              const evidenceCount = (d.personalGoalEvidence?.[g.id] || []).length;
-              return `
-                <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;box-shadow:var(--shadow-sm);cursor:pointer" onclick="navigateToPersonalGoal('${g.id}')">
-                  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:${g.kpi ? '10px' : '0'}">
-                    <div style="font-size:14px;font-weight:700;color:var(--text);line-height:1.4;flex:1">${escHtml(g.goal)}</div>
-                    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-                      ${g.timeFrame ? `<span style="font-size:11px;color:var(--text-muted);font-weight:500">${escHtml(g.timeFrame)}</span>` : ''}
-                      <span style="font-size:11px;font-weight:700;color:${sc.color};background:${sc.bg};border:1px solid ${sc.border};padding:3px 10px;border-radius:20px;white-space:nowrap">${sc.label}</span>
-                      ${evidenceCount > 0 ? `<span style="font-size:11px;font-weight:700;color:var(--primary);background:var(--primary-light);padding:2px 8px;border-radius:20px">${evidenceCount}</span>` : ''}
-                    </div>
-                  </div>
-                  ${g.kpi ? `<div style="font-size:12.5px;color:var(--text-muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escHtml(g.kpi)}</div>` : ''}
-                </div>`;
-            }).join('')}
-          </div>
+      <!-- 05 Your 1:1 relationship -->
+      <div style="margin-bottom:48px">
+        ${sectionNum(5)}
+        ${sectionTitle('Your 1:1 relationship')}
+        ${sectionDesc("Great designers don't happen by accident. Well-run 1:1s are one of the highest-leverage tools a PD team has. Use this space to be intentional about yours.")}
+        <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:14px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:12px">Good 1:1s answer questions like</div>
+          <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px">
+            ${[
+              'How is my work landing?',
+              'What should I do more of / less of?',
+              'Where am I growing? Where am I stuck?',
+              'What skills should I be developing next?',
+              "What's blocking me that you can help remove?"
+            ].map(q => `
+              <li style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text-secondary);line-height:1.5">
+                <span style="width:6px;height:6px;border-radius:50%;background:var(--primary);flex-shrink:0;margin-top:5px"></span>
+                ${escHtml(q)}
+              </li>`).join('')}
+          </ul>
         </div>
-      ` : ''}
+        <textarea oninput="saveGrowthPlanField('oneOnOne',this.value)"
+          placeholder="What does a good 1:1 look like for you? What do you need from your manager that you're not currently getting? What cadence and channel works best?"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;resize:none;font-size:13px;color:var(--text);line-height:1.6;min-height:100px;font-family:inherit;outline:none;box-sizing:border-box"
+        >${escHtml(gp.oneOnOne || '')}</textarea>
+      </div>
+
     </div>
   `;
 }
