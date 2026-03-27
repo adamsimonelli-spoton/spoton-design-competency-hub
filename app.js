@@ -7359,6 +7359,39 @@ async function parsePerfReviewPDF(file) {
   }
 }
 
+// Anchors for each perf category — first match in section wins
+const PERF_CAT_ANCHORS = {
+  technical:         ['technical expertise', 'specialized knowledge and skills', 'technical requirement'],
+  quality:           ['quality of your work products', 'quality of work products', 'quality work products'],
+  accountability:    ['accountable for results', 'accountability', 'achieve expected outcomes independently'],
+  we_lead:           ['we lead:', 'we: lead', 'we anticipate, prioritize', 'core value - we lead'],
+  we_deliver:        ['we deliver:', 'we: deliver', 'create solutions, not excuses', 'core value - we deliver'],
+  we_learn:          ['we learn:', 'we: learn', 'take risks to find better', 'core value - we learn'],
+  we_care:           ['we care:', 'we: care', 'hospitality mindset', 'core value - we care'],
+  engagement:        ['promote cultures of psychological safety', 'employee engagement', 'psychological safety and recognition'],
+  team_performance:  ['promote team performance', 'team performance', 'delegate to their teams'],
+  feedback_coaching: ['feedback and coaching', 'feedback & coaching', 'provide regular feedback'],
+};
+
+function extractCategoryRatings(sectionLower) {
+  const result = {};
+  for (const [cat, anchors] of Object.entries(PERF_CAT_ANCHORS)) {
+    let anchorPos = -1;
+    for (const anchor of anchors) {
+      const idx = sectionLower.indexOf(anchor);
+      if (idx !== -1 && (anchorPos === -1 || idx < anchorPos)) anchorPos = idx;
+    }
+    if (anchorPos === -1) continue;
+    // Search for first rating keyword within 800 chars after the anchor
+    const window = sectionLower.slice(anchorPos, anchorPos + 800);
+    for (const kw of PERF_RATING_KEYWORDS) {
+      const idx = window.indexOf(kw);
+      if (idx !== -1) { result[cat] = PERF_RATING_VALUES[kw]; break; }
+    }
+  }
+  return result;
+}
+
 function parsePerfReviewText(rawText) {
   const text = rawText;
   const lower = text.toLowerCase();
@@ -7369,34 +7402,36 @@ function parsePerfReviewText(rawText) {
   let m;
   while ((m = twaPattern.exec(lower)) !== null) twaMatches.push(parseFloat(m[1]));
 
-  // Find all rating occurrences in document order
-  const ratings = [];
+  // Split into self-review and manager-review sections
+  const mgrHeaderIdx = lower.search(/manager[\s\-]employee\s+review|manager'?s?\s+review/);
+  const selfSection = mgrHeaderIdx > 100 ? lower.slice(0, mgrHeaderIdx) : lower;
+  const mgrSection  = mgrHeaderIdx > 100 ? lower.slice(mgrHeaderIdx)   : lower;
+
+  // Anchor-based extraction per section
+  let selfRatings = extractCategoryRatings(selfSection);
+  let mgrRatings  = extractCategoryRatings(mgrSection);
+
+  // Fallback: positional scan if anchor-based gets < 5 categories
+  const positionalRatings = [];
   let pos = 0;
   while (pos < lower.length) {
     let found = false;
     for (const kw of PERF_RATING_KEYWORDS) {
-      if (lower.startsWith(kw, pos)) {
-        ratings.push(PERF_RATING_VALUES[kw]);
-        pos += kw.length;
-        found = true;
-        break;
-      }
+      if (lower.startsWith(kw, pos)) { positionalRatings.push(PERF_RATING_VALUES[kw]); pos += kw.length; found = true; break; }
     }
     if (!found) pos++;
   }
-  console.log('[DCH] PDF ratings found:', ratings, 'TWA matches:', twaMatches);
+  console.log('[DCH] Anchor selfRatings:', selfRatings, 'mgrRatings:', mgrRatings, 'positional:', positionalRatings, 'TWA:', twaMatches);
 
-  if (ratings.length < 10) return null;
-
-  // Determine self vs manager sets
-  // If 20+ ratings: first 10 = self, next 10 = manager
-  // If exactly 10: use for both (single-side PDF)
-  const selfRatings = {}, mgrRatings = {};
-  if (ratings.length >= 20) {
-    PERF_CATS.forEach((cat, i) => { selfRatings[cat] = ratings[i]; mgrRatings[cat] = ratings[i + 10]; });
-  } else {
-    PERF_CATS.forEach((cat, i) => { selfRatings[cat] = ratings[i] ?? 3; mgrRatings[cat] = ratings[i] ?? 3; });
+  if (Object.keys(selfRatings).length < 5) {
+    // Fall back to positional
+    if (positionalRatings.length < 10) return null;
+    PERF_CATS.forEach((cat, i) => { selfRatings[cat] = positionalRatings[i] ?? 3; });
+    PERF_CATS.forEach((cat, i) => { mgrRatings[cat]  = positionalRatings[positionalRatings.length >= 20 ? i + 10 : i] ?? 3; });
   }
+
+  // Fill any missing categories with 3
+  PERF_CATS.forEach(cat => { if (!selfRatings[cat]) selfRatings[cat] = 3; if (!mgrRatings[cat]) mgrRatings[cat] = 3; });
 
   // Extract year
   const yearMatch = rawText.match(/20(\d\d)/);
