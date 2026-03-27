@@ -3954,10 +3954,6 @@ function renderOutreachWidget() {
         <button class="section-link" onclick="navigate('outreach')">View all →</button>
       </div>
       <div class="outreach-widget-compact-body">
-        <div class="outreach-hve-badge${hveOk ? ' ok' : ' due'}" style="border-radius:6px;width:100%;margin-bottom:16px;justify-content:flex-start;padding:8px 12px">
-          <span>${hveOk ? '✓' : '!'}</span>
-          <span>HVE check-in ${hveOk ? 'done this month' : 'due this month'}</span>
-        </div>
         <div class="outreach-compact-progress">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
             <span style="font-size:13px;color:var(--text-secondary)">Q${q} touchpoints</span>
@@ -3967,7 +3963,10 @@ function renderOutreachWidget() {
             <div class="outreach-progress-fill${pct >= 100 ? ' complete' : ''}" style="width:${pct}%"></div>
           </div>
         </div>
-        <div class="outreach-widget-compact-footer">
+        <div class="outreach-widget-compact-footer" style="display:flex;align-items:center;justify-content:space-between;margin-top:14px">
+          <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:${hveOk ? 'var(--green)' : 'var(--text-muted)'}">
+            ${hveOk ? `${icon('check', 14, 'var(--green)')} HVE done this month` : `<span style="font-size:14px">○</span> HVE due this month`}
+          </div>
           <button class="btn btn-primary btn-sm" onclick="openOutreachModal(null)">+ Log Outreach</button>
         </div>
       </div>
