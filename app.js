@@ -5185,11 +5185,11 @@ function renderGrowthThemeModal() {
             <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:6px">Theme Name</label>
             <input id="gtm-theme" type="text" value="${escHtml(t.theme)}" style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:13px;font-family:inherit;border:1px solid var(--border);border-radius:6px;color:var(--text);background:var(--surface)"/>
           </div>
-          <div style="border-top:1px solid var(--border);margin:16px 0 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary)">Growth Trajectory</div>
+          <div style="margin:20px 0 14px;font-size:16px;font-weight:700;color:var(--text)">Growth Trajectory</div>
           ${field('today',   'Today',  t.today,  3)}
           ${field('better',  'Better', t.better, 3)}
           ${field('best',    'Best',   t.best,   3)}
-          <div style="border-top:1px solid var(--border);margin:16px 0 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary)">Supporting Context</div>
+          <div style="margin:20px 0 14px;font-size:16px;font-weight:700;color:var(--text)">Supporting Context</div>
           ${field('indicators',   'Indicators',   t.indicators,   3)}
           ${field('dependencies', 'Dependencies', t.dependencies, 3)}
           ${field('collaborators','Collaborators', t.collaborators,2)}
