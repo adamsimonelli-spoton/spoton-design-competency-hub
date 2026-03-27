@@ -6825,7 +6825,7 @@ function render() {
     <aside id="sidebar">
       <div class="sidebar-brand">
         <img src="brand-logo.svg" alt="SpotOn" style="height:22px;width:auto;display:block;margin-bottom:6px" />
-        <div style="font-size:11px;font-weight:600;color:#93C5FD;letter-spacing:.04em">Design Growth Hub</div>
+        <div style="font-size:14px;font-weight:600;color:#93C5FD;letter-spacing:.04em">Design Growth Hub</div>
       </div>
 
       <div class="sidebar-profile">
