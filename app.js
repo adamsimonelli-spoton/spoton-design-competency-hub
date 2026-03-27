@@ -7333,8 +7333,16 @@ const PERF_RATING_VALUES = {
 const PERF_CATS = ['technical','quality','accountability','we_lead','we_deliver','we_learn','we_care','engagement','team_performance','feedback_coaching'];
 
 async function parsePerfReviewPDF(file) {
-  if (!window.pdfjsLib) { console.warn('[DCH] pdf.js not loaded'); return null; }
   try {
+    const isImage = /\.(png|jpe?g)$/i.test(file.name) || file.type.startsWith('image/');
+    if (isImage) {
+      if (!window.Tesseract) { console.warn('[DCH] Tesseract.js not loaded'); return null; }
+      const { data: { text } } = await Tesseract.recognize(file, 'eng', { logger: () => {} });
+      console.log('[DCH] OCR text extracted, length:', text.length);
+      return parsePerfReviewText(text);
+    }
+    // PDF path
+    if (!window.pdfjsLib) { console.warn('[DCH] pdf.js not loaded'); return null; }
     const buffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
     let fullText = '';
