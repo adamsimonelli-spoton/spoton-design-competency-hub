@@ -34,6 +34,7 @@ const LUCIDE_PATHS = {
   'trending-up':  '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
   'chevron-left': '<path d="m15 18-6-6 6-6"/>',
   'chevron-right':'<path d="m9 18 6-6-6-6"/>',
+  'alert-triangle':'<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
 };
 function icon(name, size = 16, color = 'currentColor', extraStyle = '') {
   const paths = LUCIDE_PATHS[name] || '';
