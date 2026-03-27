@@ -2515,7 +2515,7 @@ function renderHome() {
               <div style="font-size:12px;color:var(--text-muted)">Start assessing skills to see your insights here</div>
             </div>
           ` : `
-            <div style="display:flex;gap:16px;align-items:flex-start">
+            <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
               ${persona ? `
                 <div class="analysis-persona" style="flex:0 0 300px;margin-bottom:0">
                   <div class="analysis-persona-top">
@@ -2529,7 +2529,7 @@ function renderHome() {
                 </div>
               ` : ''}
               ${insightBullets.length > 0 ? `
-                <div class="analysis-narrative-blocks" style="flex:1;min-width:0">
+                <div class="analysis-narrative-blocks" style="flex:1;min-width:220px">
                   ${insightBullets.map(b => {
                     const dashIdx = b.indexOf(' — ');
                     if (dashIdx !== -1) {
