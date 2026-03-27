@@ -30,6 +30,7 @@ const LUCIDE_PATHS = {
   'external-link':'<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
   'upload':       '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
   'download':     '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
+  'sparkles':     '<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/>',
 };
 function icon(name, size = 16, color = 'currentColor', extraStyle = '') {
   const paths = LUCIDE_PATHS[name] || '';
@@ -1109,6 +1110,8 @@ let state = {
   importTypes: ['skill-matrix', 'perf-review'],
   importFiles: {},
   importPreview: null,
+  aiSuggestModal: null,
+  aiSuggestions: [],
 };
 
 // ============ STORAGE ============
@@ -4213,7 +4216,10 @@ function renderGoalSection(sectionId, title, subtitle, goals, isEditable) {
           <div class="goals-section-title">${title}</div>
           ${subtitle ? `<div class="goals-section-subtitle">${subtitle}</div>` : ''}
         </div>
-        ${isEditable ? `<button class="btn btn-secondary btn-sm" onclick="openAddGoalModal('${sectionId}')">+ Add Goal</button>` : ''}
+        ${isEditable ? `<div style="display:flex;gap:8px;align-items:center">
+          ${sectionId === 'personal' ? `<button class="btn btn-ai btn-sm" onclick="openAISuggest('personal-goal')">${icon('sparkles',13)} Suggest</button>` : ''}
+          <button class="btn btn-secondary btn-sm" onclick="openAddGoalModal('${sectionId}')">+ Add Goal</button>
+        </div>` : ''}
       </div>
       ${goals.length === 0 ? `
         <div class="goals-empty">No goals added yet. <button class="goals-empty-add" onclick="openAddGoalModal('${sectionId}')">Add one →</button></div>
@@ -4643,13 +4649,20 @@ function renderGrowthThemes() {
   const d = getData();
   const themes = d.growthThemes || [];
 
+  const sectionHeader = `
+    <div class="goals-section-header">
+      <div>
+        <div class="goals-section-title">Growth Themes</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-ai btn-sm" onclick="openAISuggest('growth-theme')">${icon('sparkles',13)} Suggest</button>
+        <button class="btn btn-secondary btn-sm" onclick="addGrowthTheme()">+ Add Theme</button>
+      </div>
+    </div>`;
+
   if (!themes.length) return `
     <div class="goals-section">
-      <div class="goals-section-header">
-        <div>
-          <div class="goals-section-title">Growth Themes</div>
-        </div>
-      </div>
+      ${sectionHeader}
       <div class="goals-empty">No themes added yet. <button class="goals-empty-add" onclick="addGrowthTheme()">Add one →</button></div>
     </div>
   `;
@@ -4658,11 +4671,7 @@ function renderGrowthThemes() {
 
   return `
     <div class="goals-section">
-      <div class="goals-section-header">
-        <div>
-          <div class="goals-section-title">Growth Themes</div>
-        </div>
-      </div>
+      ${sectionHeader}
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">
         ${themes.map(t => {
           const today = base !== null ? base.toFixed(1) : null;
@@ -4670,10 +4679,15 @@ function renderGrowthThemes() {
           const count = (d.growthThemeEvidence?.[t.id] || []).length;
           const preview = (t.today || [])[0] || '';
           return `
-            <div class="growth-theme-tile" onclick="navigateToGrowthTheme('${t.id}')">
-              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">
+            <div class="growth-theme-tile" style="position:relative" onclick="navigateToGrowthTheme('${t.id}')">
+              <div style="position:absolute;top:10px;right:10px;display:flex;gap:4px;z-index:1">
+                <button onclick="event.stopPropagation();openGrowthThemeModal('${t.id}')" class="tile-action-btn" title="Edit">
+                  <svg width="13" height="13" viewBox="0 0 256 256" fill="currentColor"><path d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31l83.67-83.66,3.48,13.9-29.19,29.19a8,8,0,0,0,11.31,11.31l32-32a8,8,0,0,0,2.11-7.6l-6.06-24.19L227.31,96A16,16,0,0,0,227.31,73.37ZM48,208V163.31L136,75.31,180.69,120,92.69,208Z"/></svg>
+                </button>
+                <button onclick="event.stopPropagation();deleteGrowthTheme('${t.id}')" class="tile-action-btn tile-action-btn--delete" title="Delete">✕</button>
+              </div>
+              <div style="margin-bottom:8px;padding-right:52px">
                 <div class="goals-goal-name" style="font-size:14px">${escHtml(t.theme)}</div>
-                <svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor" style="color:var(--text-muted);flex-shrink:0;margin-top:2px"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
               </div>
               ${preview ? `<div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escHtml(preview)}</div>` : '<div style="margin-bottom:12px"></div>'}
               <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
@@ -5187,6 +5201,13 @@ function renderGrowthThemeModal() {
     </div>`;
 }
 
+function deleteGrowthTheme(id) {
+  if (!confirm('Delete this growth theme?')) return;
+  const d = getData();
+  d.growthThemes = (d.growthThemes || []).filter(t => t.id !== id);
+  saveData(d);
+  render();
+}
 function addGrowthTheme() {
   const d = getData();
   const id = 'gt_' + Date.now();
@@ -5196,6 +5217,175 @@ function addGrowthTheme() {
   state.growthThemeModal = id;
   render();
 }
+// ============ AI GOAL SUGGESTIONS ============
+function openAISuggest(type) {
+  state.aiSuggestModal = type;
+  state.aiSuggestions = generateAISuggestions(type);
+  render();
+}
+function closeAISuggest() { state.aiSuggestModal = null; state.aiSuggestions = []; render(); }
+
+function generateAISuggestions(type) {
+  const d = getData();
+  const assessments = d.assessments || {};
+  const suggestions = [];
+
+  if (type === 'growth-theme') {
+    const existingTitles = new Set((d.growthThemes || []).map(t => t.theme.toLowerCase()));
+
+    // 1. Skill gap categories
+    const catGaps = {};
+    SKILLS_DATA.skills.forEach(skill => {
+      const a = assessments[skill.id];
+      if (!a || !a.managerLevel || a.managerLevel === 'Unknown') return;
+      const exp = getExpectedLevelForSkill(skill.id);
+      if (exp && getLevelOrder(a.managerLevel) < getLevelOrder(exp)) {
+        if (!catGaps[skill.category]) catGaps[skill.category] = [];
+        catGaps[skill.category].push(skill.name);
+      }
+    });
+    Object.entries(catGaps).sort((a, b) => b[1].length - a[1].length).slice(0, 2).forEach(([cat, names]) => {
+      const title = `Elevate My ${cat}`;
+      if (!existingTitles.has(title.toLowerCase()))
+        suggestions.push({ title, rationale: `${names.length} skill${names.length > 1 ? 's' : ''} below target — including ${names.slice(0,2).join(' and ')}`, tag: 'Skill Gap', tagColor: '#DC2626', tagBg: '#FEF2F2' });
+    });
+
+    // 2. Evidence text patterns
+    const evidenceTexts = Object.values(assessments).map(a => a.evidence || '').filter(t => t.length > 20);
+    const themeHints = [
+      { rx: /stakeholder|partner|collaborat|align/i, title: 'Deepen Cross-Functional Influence', rationale: 'Your assessment notes mention collaboration and stakeholder work' },
+      { rx: /system|scale|pattern|component|library/i, title: 'Grow Design Systems Thinking', rationale: 'Notes across assessments reference systems-level design work' },
+      { rx: /research|user.*insight|test|interview/i, title: 'Build a Research-Led Practice', rationale: 'Multiple assessments reference user research and insights' },
+      { rx: /mentor|coach|lead.*team|present|facilitat/i, title: 'Develop Design Leadership', rationale: 'Evidence shows emerging leadership and mentoring activity' },
+      { rx: /data|metric|measur|analytic|outcome/i, title: 'Strengthen Data-Informed Design', rationale: 'Notes suggest growing capability with metrics and outcomes' },
+    ];
+    themeHints.forEach(({ rx, title, rationale }) => {
+      if (suggestions.length < 5 && !existingTitles.has(title.toLowerCase()) && evidenceTexts.some(t => rx.test(t)))
+        suggestions.push({ title, rationale, tag: 'From Your Notes', tagColor: '#0369A1', tagBg: '#F0F9FF' });
+    });
+
+    // 3. Generic high-value fallbacks
+    const generics = [
+      { title: 'Sharpen Strategic Communication', rationale: 'Frame and present design decisions persuasively to senior stakeholders' },
+      { title: 'Scale Impact Across the Org', rationale: 'Move from individual delivery toward multiplying your team\'s effectiveness' },
+      { title: 'Master End-to-End Product Thinking', rationale: 'Develop a holistic view from discovery through delivery and measurement' },
+      { title: 'Build a Feedback-Rich Design Culture', rationale: 'Create regular critique habits that raise the quality bar for the whole team' },
+      { title: 'Advance Facilitation & Workshop Skills', rationale: 'Lead alignment sessions, design sprints, and cross-team workshops with confidence' },
+    ];
+    generics.forEach(g => {
+      if (suggestions.length < 6 && !existingTitles.has(g.title.toLowerCase()))
+        suggestions.push({ ...g, tag: 'High Impact', tagColor: '#7C3AED', tagBg: '#F5F3FF' });
+    });
+
+  } else if (type === 'personal-goal') {
+    // 1. From growth themes
+    (d.growthThemes || []).slice(0, 2).forEach(t => {
+      if (!t.theme) return;
+      const better = (t.better || [])[0];
+      suggestions.push({
+        goal: `Demonstrate measurable progress on "${t.theme}"`,
+        kpi: better ? better : 'Ship at least one concrete project that directly reflects this theme',
+        timeFrame: 'Q2 2026',
+        rationale: `Converts your growth theme into an actionable goal`,
+        tag: 'Growth Theme', tagColor: '#7C3AED', tagBg: '#F5F3FF'
+      });
+    });
+
+    // 2. Top skill gaps
+    const gapSkills = [];
+    SKILLS_DATA.skills.forEach(skill => {
+      const a = assessments[skill.id];
+      if (!a || !a.managerLevel || a.managerLevel === 'Unknown') return;
+      const exp = getExpectedLevelForSkill(skill.id);
+      if (exp && getLevelOrder(a.managerLevel) < getLevelOrder(exp)) gapSkills.push({ name: skill.name, exp });
+    });
+    gapSkills.slice(0, 2).forEach(({ name, exp }) => {
+      suggestions.push({
+        goal: `Reach ${exp} level in ${name}`,
+        kpi: `Deliver 2+ projects demonstrating ${exp}-level capability and document the evidence`,
+        timeFrame: 'H1 2026',
+        rationale: 'This skill is currently below your target level',
+        tag: 'Skill Gap', tagColor: '#DC2626', tagBg: '#FEF2F2'
+      });
+    });
+
+    // 3. Generic growth goals
+    const existingGoals = new Set((d.personalGoals || []).map(g => g.goal.toLowerCase().slice(0, 30)));
+    const generics = [
+      { goal: 'Lead a design sprint or workshop end-to-end', kpi: 'Facilitate one structured session with cross-functional stakeholders and synthesize outcomes into design direction', timeFrame: 'Q2 2026', rationale: 'Builds facilitation, alignment, and leadership skills simultaneously', tag: 'Leadership', tagColor: '#0369A1', tagBg: '#F0F9FF' },
+      { goal: 'Establish a regular habit of design documentation', kpi: 'Publish at least 4 project write-ups or design decision docs that are shared with the broader team', timeFrame: 'Q2 2026', rationale: 'Increases visibility of your work and builds a portfolio of decisions', tag: 'Craft', tagColor: '#059669', tagBg: '#F0FDF4' },
+      { goal: 'Contribute a reusable pattern to the design system', kpi: 'Ship at least one documented, reviewed, and reusable component or pattern to the shared design system', timeFrame: 'Q3 2026', rationale: 'Scales your design impact beyond individual project work', tag: 'Impact', tagColor: '#D97706', tagBg: '#FFFBEB' },
+      { goal: 'Develop a mentoring relationship with a junior designer', kpi: 'Meet bi-weekly and provide structured feedback on at least 3 of their projects over the next quarter', timeFrame: 'H1 2026', rationale: 'Deepens your craft through teaching and develops your leadership', tag: 'Leadership', tagColor: '#0369A1', tagBg: '#F0F9FF' },
+    ];
+    generics.forEach(g => {
+      if (suggestions.length < 6 && !existingGoals.has(g.goal.toLowerCase().slice(0, 30)))
+        suggestions.push(g);
+    });
+  }
+
+  return suggestions.slice(0, 6);
+}
+
+function applyGrowthThemeSuggestion(idx) {
+  const s = state.aiSuggestions[idx];
+  if (!s) return;
+  closeAISuggest();
+  const d = getData();
+  const id = 'gt_' + Date.now();
+  if (!d.growthThemes) d.growthThemes = [];
+  d.growthThemes.push({ id, theme: s.title, today: [], better: [], best: [] });
+  saveData(d);
+  state.growthThemeModal = id;
+  render();
+}
+
+function applyPersonalGoalSuggestion(idx) {
+  const s = state.aiSuggestions[idx];
+  if (!s) return;
+  closeAISuggest();
+  state.goalModal = { sectionId: 'personal', isEdit: false, idx: null, goal: s.goal, kpi: s.kpi, timeFrame: s.timeFrame, status: 'not_started', notes: '' };
+  render();
+  setTimeout(updateSmartPanel, 0);
+}
+
+function renderAISuggestModal() {
+  const type = state.aiSuggestModal;
+  const suggestions = state.aiSuggestions;
+  const isTheme = type === 'growth-theme';
+  const title = isTheme ? 'Suggested Growth Themes' : 'Suggested Personal Goals';
+  const sub = 'Based on your skill assessments, notes, and feedback across the app.';
+
+  return `
+    <div class="modal-overlay" onclick="if(event.target===this)closeAISuggest()" style="z-index:1100">
+      <div class="modal-box" onclick="event.stopPropagation()" style="max-width:680px;max-height:90vh;overflow-y:auto">
+        <div class="insight-modal-header" style="border-bottom:1px solid var(--border)">
+          <div>
+            <div class="insight-modal-title" style="display:flex;align-items:center;gap:8px">
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:#F5F3FF;color:#7C3AED">${icon('sparkles',15,'#7C3AED')}</span>
+              ${escHtml(title)}
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:4px">${sub}</div>
+          </div>
+          <button class="insight-modal-close" onclick="closeAISuggest()">✕</button>
+        </div>
+        <div style="padding:20px 24px">
+          ${suggestions.length === 0 ? `<div style="text-align:center;padding:32px;color:var(--text-muted);font-size:14px">No suggestions available yet — add more skill assessments and notes to improve results.</div>` : `
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
+            ${suggestions.map((s, i) => `
+              <div class="ai-suggestion-card" onclick="${isTheme ? `applyGrowthThemeSuggestion(${i})` : `applyPersonalGoalSuggestion(${i})`}">
+                <span class="ai-suggest-tag" style="color:${s.tagColor};background:${s.tagBg}">${escHtml(s.tag)}</span>
+                <div class="ai-suggest-title">${escHtml(isTheme ? s.title : s.goal)}</div>
+                ${!isTheme && s.kpi ? `<div class="ai-suggest-rationale" style="font-size:11px;color:var(--text-secondary);margin-top:2px">KPI: ${escHtml(s.kpi)}</div>` : ''}
+                <div class="ai-suggest-rationale">${escHtml(s.rationale)}</div>
+                <div style="margin-top:8px;font-size:12px;font-weight:600;color:var(--primary)">Use this →</div>
+              </div>`).join('')}
+          </div>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function openGrowthThemeModal(id) { state.growthThemeModal = id; render(); }
 function closeGrowthThemeModal() { state.growthThemeModal = null; render(); }
 function openGrowthThemeLevelModal(themeId, level) { state.growthThemeLevelModal = { themeId, level }; render(); }
@@ -5290,6 +5480,7 @@ function renderGoals() {
     ${state.growthThemeLevelModal ? renderGrowthThemeLevelModal() : ''}
     ${state.goalModal ? renderGoalModal() : ''}
     ${state.goalNotesModal ? renderGoalNotesModal() : ''}
+    ${state.aiSuggestModal ? renderAISuggestModal() : ''}
   `;
 }
 
