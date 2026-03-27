@@ -1579,7 +1579,7 @@ function renderRadarCardInner() {
       <div class="radar-card-title">Skills</div>
       <button class="section-link" onclick="navigate('review')">View all →</button>
     </div>
-    ${!hasAssessments ? `<div class="radar-card-subtitle" style="margin-bottom:8px">Complete assessments to see your skill shape</div><div style="text-align:center;margin-bottom:10px"><button class="btn btn-primary" style="font-size:12px;padding:6px 14px" onclick="openImportModal('skill-matrix')">${icon('upload',13)} Import skills</button></div>` : ''}
+    ${!hasAssessments ? `<div class="radar-card-subtitle" style="margin-bottom:8px">Complete assessments to see your skill shape</div><div style="text-align:center;margin-bottom:10px"><button class="btn btn-secondary" style="font-size:12px;padding:6px 14px" onclick="openImportModal('skill-matrix')">${icon('upload',13)} Import skills</button></div>` : ''}
     <div class="radar-chart-wrap" style="${!hasAssessments ? 'opacity:.35;filter:grayscale(1)' : ''}">
       ${renderRadarChart(290, layers)}
     </div>
@@ -1664,7 +1664,7 @@ function renderValuesRadarCard() {
         <div class="radar-card-title">Core Values</div>
         <button class="section-link" onclick="navigate('values')">View all →</button>
       </div>
-      ${rated.length === 0 ? `<div class="radar-card-subtitle" style="margin-bottom:8px">Rate your core values to see your shape</div><div style="text-align:center;margin-bottom:10px"><button class="btn btn-primary" style="font-size:12px;padding:6px 14px" onclick="navigate('values')">Rate values →</button></div>` : ''}
+      ${rated.length === 0 ? `<div class="radar-card-subtitle" style="margin-bottom:8px">Rate your core values to see your shape</div><div style="text-align:center;margin-bottom:10px"><button class="btn btn-secondary" style="font-size:12px;padding:6px 14px" onclick="navigate('values')">Rate values →</button></div>` : ''}
       <div class="radar-chart-wrap" style="${rated.length === 0 ? 'opacity:.35;filter:grayscale(1)' : ''}">
         ${renderValuesRadarChart(290)}
       </div>
@@ -2513,7 +2513,7 @@ function renderHome() {
               <div style="font-size:28px;margin-bottom:8px">📊</div>
               <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:4px">No assessments yet</div>
               <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">Start assessing skills to see your insights here</div>
-              <button class="btn btn-primary" style="font-size:12px;padding:6px 14px" onclick="openImportModal('skill-matrix')">${icon('upload',13)} Import skills</button>
+              <button class="btn btn-secondary" style="font-size:12px;padding:6px 14px" onclick="openImportModal('skill-matrix')">${icon('upload',13)} Import skills</button>
             </div>
           ` : `
             <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
