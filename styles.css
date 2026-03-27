@@ -551,6 +551,8 @@ body {
 }
 .analysis-count-gap .analysis-count-label { color: var(--red); }
 .analysis-count-over .analysis-count-label { color: var(--green); }
+.analysis-count-unknown .analysis-count-num { color: #94A3B8; }
+.analysis-count-unknown .analysis-count-label { color: #94A3B8; }
 .analysis-empty {
   display: flex;
   flex-direction: column;

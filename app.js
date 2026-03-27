@@ -2239,13 +2239,17 @@ function renderHome() {
   const assessedSkills = SKILLS_DATA.skills.filter(s => assessments[s.id]?.managerLevel);
   const skillsWithManager = assessedSkills;
 
+  const allUnknown = skillsWithManager.filter(s => assessments[s.id].managerLevel === 'Unknown');
+
   const allGaps = currentProfile?.role ? skillsWithManager.filter(s => {
     const exp = getExpectedLevelForSkill(s.id);
+    if (assessments[s.id].managerLevel === 'Unknown') return false;
     return exp && getLevelOrder(assessments[s.id].managerLevel) < getLevelOrder(exp);
   }) : [];
 
   const allOverperforming = currentProfile?.role ? skillsWithManager.filter(s => {
     const exp = getExpectedLevelForSkill(s.id);
+    if (assessments[s.id].managerLevel === 'Unknown') return false;
     return exp && getLevelOrder(assessments[s.id].managerLevel) > getLevelOrder(exp);
   }) : [];
 
@@ -2443,6 +2447,11 @@ function renderHome() {
               <span class="analysis-count-label">overperforming</span>
               <span class="analysis-count-num">${allOverperforming.length}</span>
             </button>
+            ${allUnknown.length > 0 ? `
+            <button class="analysis-count-chip analysis-count-unknown" onclick="navigate('review');setReviewFilter('unknown')">
+              <span class="analysis-count-label">unknown</span>
+              <span class="analysis-count-num">${allUnknown.length}</span>
+            </button>` : ''}
             ${(() => {
               const _firstName = (currentProfile?.name || '').split(' ')[0].toLowerCase();
               const _saved = (() => { try { return JSON.parse(localStorage.getItem('dch_review_' + state.profile)); } catch(e) { return null; } })();
@@ -3324,7 +3333,7 @@ function renderReview() {
     allSkills = allSkills.filter(s => {
       const a = d.assessments[s.id];
       const exp = getExpectedLevelForSkill(s.id);
-      return exp && a?.managerLevel && getLevelOrder(a.managerLevel) < getLevelOrder(exp);
+      return exp && a?.managerLevel && a.managerLevel !== 'Unknown' && getLevelOrder(a.managerLevel) < getLevelOrder(exp);
     });
   } else if (state.reviewFilter === 'strength') {
     allSkills = allSkills.filter(s => {
@@ -3332,6 +3341,8 @@ function renderReview() {
       const exp = getExpectedLevelForSkill(s.id);
       return exp && a?.managerLevel && getLevelOrder(a.managerLevel) > getLevelOrder(exp);
     });
+  } else if (state.reviewFilter === 'unknown') {
+    allSkills = allSkills.filter(s => d.assessments[s.id]?.managerLevel === 'Unknown');
   }
   if (state.reviewCats.length) allSkills = allSkills.filter(s => state.reviewCats.includes(s.category));
   if (state.reviewLevels.length) allSkills = allSkills.filter(s => state.reviewLevels.includes(d.assessments[s.id]?.managerLevel));
@@ -3392,6 +3403,7 @@ function renderReview() {
                 checkRow('All', state.reviewFilter === 'all', "setReviewFilter('all')"),
                 checkRow('Growth Areas', state.reviewFilter === 'gap', "setReviewFilter('gap')"),
                 checkRow('Strengths', state.reviewFilter === 'strength', "setReviewFilter('strength')"),
+                checkRow('Unknown', state.reviewFilter === 'unknown', "setReviewFilter('unknown')"),
               ].join('');
             })() + `</div>` : ''}
           </div>`;
