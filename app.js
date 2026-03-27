@@ -6570,24 +6570,24 @@ async function parseSkillMatrixFile(file) {
         }
         if (roleCol === -1) roleCol = 2; // fall back to column C
 
-        // Detect skill name column: prefer a header like "skill", "competency", "ability"
+        // Detect skill name column: exact header match only (avoids "EXCEEDING COMPETENCY" matching "competency")
         skillCol = -1;
         for (let c = 0; c < headerCells.length; c++) {
-          if (/skill|competency|ability|name/i.test(headerCells[c])) {
+          if (/^(skills?|competenc(y|ies)|abilit(y|ies)|name)$/i.test(headerCells[c])) {
             skillCol = c; break;
           }
         }
 
-        // If no header match, scan ALL data rows and pick the column with the most skill name matches
+        // If no header match, find column with most long text strings (skill names are always >15 chars)
         if (skillCol === -1) {
           let bestCol = 0, bestCount = 0;
           for (let c = 0; c < Math.min(headerCells.length, 6); c++) {
             if (c === mgrCol || c === roleCol) continue;
             let count = 0;
             for (let r = headerRow + 1; r < rows.length; r++) {
-              if (rows[r][c] && matchSkillByName(rows[r][c])) count++;
+              if (String(rows[r][c] || '').trim().length > 15) count++;
             }
-            console.log('[parseSkillMatrix] column', c, 'header="' + headerCells[c] + '" skill matches:', count);
+            console.log('[parseSkillMatrix] column', c, 'long-text count:', count);
             if (count > bestCount) { bestCount = count; bestCol = c; }
           }
           skillCol = bestCol;
