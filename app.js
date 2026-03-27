@@ -7590,7 +7590,7 @@ function renderEOYReview() {
               </div>
               <div style="width:1px;background:var(--border);flex-shrink:0"></div>
               <div style="flex:1;min-width:0">
-                <div style="font-size:10px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Growth Areas</div>
+                <div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Growth Areas</div>
                 <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px">
                   ${review.manager.improvements.slice(0,2).map(a => `<li style="font-size:12px;color:var(--text-secondary);line-height:1.45;padding-left:12px;position:relative"><span style="position:absolute;left:0;top:5px;width:5px;height:5px;border-radius:50%;background:#D1D5DB"></span>${escHtml(a.headline)}</li>`).join('')}
                 </ul>
