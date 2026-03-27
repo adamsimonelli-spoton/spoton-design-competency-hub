@@ -4009,13 +4009,17 @@ function renderOutreachPage() {
             <div class="outreach-progress-fill${pct >= 100 ? ' complete' : ''}" style="width:${pct}%"></div>
           </div>
         </div>
-        <div class="outreach-tile">
-          <div class="outreach-tile-value">${hveThisQ}</div>
-          <div class="outreach-tile-label">HVE check-ins Q${q}</div>
-        </div>
         <div class="outreach-tile${hveThisMonth >= 1 ? ' tile-ok' : ' tile-due'}">
-          <div class="outreach-tile-value">${hveThisMonth >= 1 ? '✓' : '!'}</div>
-          <div class="outreach-tile-label">HVE this month</div>
+          <div style="display:flex;align-items:baseline;gap:6px">
+            <div class="outreach-tile-value">${hveThisQ}</div>
+            <div style="font-size:13px;color:var(--text-muted);font-weight:500">this quarter</div>
+          </div>
+          <div class="outreach-tile-label" style="margin-bottom:8px">HVE check-ins</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;${hveThisMonth >= 1 ? 'color:var(--green)' : 'color:var(--red)'}">
+            ${hveThisMonth >= 1
+              ? `${icon('check-circle', 13, 'var(--green)')} Done this month`
+              : `${icon('alert-circle', 13, 'var(--red)')} Required — not done yet`}
+          </div>
         </div>
       </div>
 
