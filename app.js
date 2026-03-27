@@ -4368,7 +4368,7 @@ function detailNotesPanel(notes, saveExpr) {
     <div class="sidebar-panel" style="margin-bottom:24px">
       <div class="panel-header">
         <span class="panel-title">Notes</span>
-        <button onclick="state.detailNotesEditing=true;render()" style="font-size:12px;font-weight:600;color:var(--primary);background:none;border:none;padding:0;cursor:pointer">${notes ? 'Edit' : '+ Add'}</button>
+        <button onclick="state.detailNotesEditing=true;render()" class="btn btn-secondary btn-sm">${notes ? 'Edit' : '+ Add'}</button>
       </div>
       <div class="panel-body">
         <div style="font-size:14px;color:var(--text-secondary);line-height:1.6">${notes ? escHtml(notes) : '<span style="color:var(--text-muted);font-style:italic">No notes yet</span>'}</div>
