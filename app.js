@@ -4467,14 +4467,18 @@ function renderPersonalGoalDetail() {
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px">
         <h1 style="font-size:22px;font-weight:800;color:var(--text);line-height:1.3;margin:0;flex:1">${escHtml(g.goal)}</h1>
         <div style="display:flex;gap:8px;flex-shrink:0;align-items:center">
-          <select class="review-level-select" style="color:${sc.color};background:${sc.bg};border-color:${sc.color};font-weight:600" onchange="saveGoalStatusFromDetail('${g.id}',this.value)">
-            ${Object.entries(GOAL_STATUS_CONFIG).map(([k,v]) => `<option value="${k}" ${(g.status||'not_started')===k?'selected':''}>${v.label}</option>`).join('')}
-          </select>
           <button class="btn btn-secondary btn-sm" onclick="openEditPersonalGoalFromDetail('${g.id}')" style="white-space:nowrap">${icon('pencil',13)} Edit</button>
-          <button class="btn btn-secondary btn-sm" onclick="deletePersonalGoalFromDetail('${g.id}')" style="white-space:nowrap;color:#DC2626;border-color:#FECACA" title="Delete goal">✕</button>
+          <button class="btn btn-secondary btn-sm" onclick="deletePersonalGoalFromDetail('${g.id}')" style="white-space:nowrap;color:#DC2626;border-color:#FECACA">${icon('trash-2',13)} Delete</button>
         </div>
       </div>
-      ${g.timeFrame ? `<div style="font-size:13px;color:var(--text-muted);margin-bottom:24px">${escHtml(g.timeFrame)}</div>` : '<div style="margin-bottom:24px"></div>'}
+      ${g.timeFrame ? `<div style="font-size:13px;color:var(--text-muted);margin-bottom:20px">${escHtml(g.timeFrame)}</div>` : '<div style="margin-bottom:20px"></div>'}
+
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+        <span style="font-size:12px;font-weight:600;color:var(--text-muted)">Status</span>
+        <select class="review-level-select" style="color:${sc.color};background:${sc.bg};border-color:${sc.color};font-weight:600" onchange="saveGoalStatusFromDetail('${g.id}',this.value)">
+          ${Object.entries(GOAL_STATUS_CONFIG).map(([k,v]) => `<option value="${k}" ${(g.status||'not_started')===k?'selected':''}>${v.label}</option>`).join('')}
+        </select>
+      </div>
 
       <div class="sidebar-panel" style="margin-bottom:24px">
         <div class="panel-header"><span class="panel-title">KPI / How I'll Contribute</span></div>
@@ -4607,7 +4611,7 @@ function renderGrowthThemeDetail() {
         <h1 style="font-size:22px;font-weight:800;color:var(--text);margin:0">${escHtml(t.theme)}</h1>
         <div style="display:flex;gap:8px;flex-shrink:0">
           <button class="btn btn-secondary btn-sm" onclick="openGrowthThemeModal('${t.id}')" style="white-space:nowrap">${icon('pencil',13)} Edit</button>
-          <button class="btn btn-secondary btn-sm" onclick="deleteGrowthThemeFromDetail('${t.id}')" style="white-space:nowrap;color:#DC2626;border-color:#FECACA" title="Delete theme">✕</button>
+          <button class="btn btn-secondary btn-sm" onclick="deleteGrowthThemeFromDetail('${t.id}')" style="white-space:nowrap;color:#DC2626;border-color:#FECACA">${icon('trash-2',13)} Delete</button>
         </div>
       </div>
 
