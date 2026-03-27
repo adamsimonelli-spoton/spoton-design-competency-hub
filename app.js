@@ -2584,7 +2584,7 @@ function renderHome() {
         ` : ''}
 
         <!-- Star charts side by side -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
           <div class="radar-card" id="radar-card">
             ${renderRadarCardInner()}
           </div>
