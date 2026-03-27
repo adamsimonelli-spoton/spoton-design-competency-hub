@@ -533,8 +533,7 @@ body {
   border: none;
   box-shadow: var(--shadow-sm);
 }
-.analysis-count-chip:hover { filter: brightness(0.97); transform: translateY(-1px); }
-.analysis-count-chip:active { transform: translateY(0); }
+.analysis-count-chip:hover { background: var(--primary-light); }
 .analysis-count-num {
   font-size: 36px;
   font-weight: 800;
@@ -587,7 +586,7 @@ body {
   transition: background 0.12s;
   text-decoration: none;
 }
-.skill-snapshot-stat:hover { background: var(--surface-2, #F8FAFC); }
+.skill-snapshot-stat:hover { background: var(--primary-light); }
 .skill-snapshot-divider {
   width: 1px;
   background: var(--border);
@@ -2367,7 +2366,7 @@ body {
 }
 .review-table tr:last-child td { border-bottom: none; }
 .review-table td { transition: background .12s; }
-.review-table tr:hover td { background: var(--surface-hover); }
+.review-table tr:hover td { background: var(--primary-light); }
 .review-table th:nth-child(1),
 .review-table td:nth-child(1) { min-width: 260px; width: 260px; }
 .review-table th:nth-child(2),
