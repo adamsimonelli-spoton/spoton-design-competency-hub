@@ -3963,11 +3963,11 @@ function renderOutreachWidget() {
             <div class="outreach-progress-fill${pct >= 100 ? ' complete' : ''}" style="width:${pct}%"></div>
           </div>
         </div>
-        <div class="outreach-widget-compact-footer" style="display:flex;align-items:center;justify-content:space-between;margin-top:14px">
-          <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:${hveOk ? 'var(--green)' : 'var(--text-muted)'}">
-            ${hveOk ? `${icon('check', 14, 'var(--green)')} HVE done this month` : `<span style="font-size:14px">○</span> HVE due this month`}
+        <div class="outreach-widget-compact-footer" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+          <div style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:${hveOk ? 'var(--green)' : 'var(--text-muted)'}">
+            ${hveOk ? `${icon('check', 13, 'var(--green)')} HVE done this month` : `<span style="font-size:14px">○</span> HVE due this month`}
           </div>
-          <button class="btn btn-primary btn-sm" onclick="openOutreachModal(null)">+ Log Outreach</button>
+          <button class="btn btn-primary btn-sm" onclick="openOutreachModal(null)">Log Outreach</button>
         </div>
       </div>
     </div>
