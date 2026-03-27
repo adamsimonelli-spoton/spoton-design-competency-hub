@@ -3627,10 +3627,13 @@ function renderReview() {
                       <div class="review-skill-name" onclick="navigate('skill','${skill.id}')">${escHtml(skill.name)}</div>
                     </td>
                     <td>
-                      <select class="review-level-select ${mgrLc ? mgrLc.cls : ''}" onchange="setReviewLevel('${skill.id}',this.value)">
-                        <option value="">—</option>
-                        ${LEVELS.map(l => `<option value="${l}" ${a.managerLevel === l ? 'selected' : ''}>${l}</option>`).join('')}
-                      </select>
+                      <div style="position:relative;display:inline-flex;align-items:center">
+                        ${mgrLc ? `<span style="position:absolute;left:7px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1;display:flex;align-items:center">${icon(mgrLc.iconName, 11, mgrLc.color)}</span>` : ''}
+                        <select class="review-level-select ${mgrLc ? mgrLc.cls : ''}" style="${mgrLc ? 'padding-left:22px' : ''}" onchange="setReviewLevel('${skill.id}',this.value)">
+                          <option value="">—</option>
+                          ${LEVELS.map(l => `<option value="${l}" ${a.managerLevel === l ? 'selected' : ''}>${l}</option>`).join('')}
+                        </select>
+                      </div>
                     </td>
                     <td>
                       ${expLc ? `<span class="level-badge ${expLc.cls}">${icon(expLc.iconName, 11, expLc.color)} ${expectedLevel}</span>` : '<span style="color:var(--text-muted);font-size:12px">—</span>'}
@@ -4168,6 +4171,9 @@ function renderCoreValues() {
           }).map(cv => {
             const v = getValueRating(cv.id);
             const rc = v.managerRating ? CV_RATING_CONFIG[v.managerRating] : null;
+            const CV_COLOR_MAP = {'var(--red)':'%23D82123','#EA580C':'%23EA580C','#2563EB':'%232563EB','var(--green)':'%2310B981','#7C3AED':'%237C3AED'};
+            const cvChevron = rc ? (CV_COLOR_MAP[rc.color] || '%2394A3B8') : '%2394A3B8';
+            const cvChevronUrl = `url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%276%27 viewBox=%270 0 10 6%27%3E%3Cpath d=%27M1 1l4 4 4-4%27 stroke=%27${cvChevron}%27 stroke-width=%271.5%27 fill=%27none%27 stroke-linecap=%27round%27/%3E%3C/svg%3E')`;
             return `
               <tr>
                 <td>
@@ -4176,7 +4182,7 @@ function renderCoreValues() {
                   </div>
                 </td>
                 <td>
-                  <select class="review-level-select ${rc ? '' : ''}" style="${rc ? `color:${rc.color};background:${rc.bg};border-color:${rc.color};font-weight:600` : ''}" onchange="setValueManagerRating('${cv.id}',this.value)">
+                  <select class="review-level-select" style="${rc ? `color:${rc.color};background:${rc.bg};border-color:${rc.color};font-weight:600;` : ''}appearance:none;-webkit-appearance:none;background-image:${cvChevronUrl};background-repeat:no-repeat;background-position:right 7px center" onchange="setValueManagerRating('${cv.id}',this.value)">
                     <option value="">—</option>
                     ${[1,2,3,4,5].map(n => {
                       const r = CV_RATING_CONFIG[n];
