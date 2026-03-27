@@ -6504,17 +6504,19 @@ function matchSkillByName(name) {
   if (sub1) return sub1;
   const sub2 = SKILLS_DATA.skills.find(s => n.includes(s.name.toLowerCase()));
   if (sub2) return sub2;
-  // Word-overlap fallback: ≥60% of significant words in common
-  const sig = w => w.length > 3 && !/^(and|the|for|with|from|that|this|into)$/.test(w);
+  // Word-overlap fallback with prefix matching (handles "Interprets" vs "interpret", "Executes" vs "execute" etc.)
+  const STOP = new Set(['and','the','for','with','from','that','this','into','when','their','have','been','will','able','they','our','its','can','how']);
+  const sig = w => w.length > 3 && !STOP.has(w);
+  // Two words match if equal OR share a common 5-char prefix (handles conjugation/pluralization)
+  const wordMatch = (a, b) => a === b || (a.length >= 5 && b.length >= 5 && a.slice(0,5) === b.slice(0,5));
   const nWords = n.split(/\W+/).filter(sig);
   if (nWords.length < 2) return null;
-  const nSet = new Set(nWords);
   let bestMatch = null, bestScore = 0;
   for (const s of SKILLS_DATA.skills) {
     const sWords = s.name.toLowerCase().split(/\W+/).filter(sig);
-    const overlap = sWords.filter(w => nSet.has(w)).length;
-    const score = overlap / Math.max(sWords.length, nSet.size);
-    if (score >= 0.6 && score > bestScore) { bestScore = score; bestMatch = s; }
+    const overlap = sWords.filter(sw => nWords.some(nw => wordMatch(nw, sw))).length;
+    const score = overlap / Math.max(sWords.length, nWords.length);
+    if (score >= 0.55 && score > bestScore) { bestScore = score; bestMatch = s; }
   }
   return bestMatch;
 }
