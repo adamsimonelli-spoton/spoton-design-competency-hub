@@ -722,6 +722,15 @@ body {
   margin-top: 6px;
   flex-shrink: 0;
 }
+/* Quick wins carousel — scrollbar appears while scrolling */
+#quick-wins-carousel.qw-scrolling {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+#quick-wins-carousel.qw-scrolling::-webkit-scrollbar { height: 4px; }
+#quick-wins-carousel.qw-scrolling::-webkit-scrollbar-track { background: transparent; }
+#quick-wins-carousel.qw-scrolling::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
 .quick-win-card {
   background: var(--surface);
   border: none;

@@ -3415,20 +3415,35 @@ function getQuickWins() {
 function renderQuickWinsSection() {
   const quickWins = getQuickWins();
   if (!quickWins.length) return '';
+  const btnBase = 'width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;transition:opacity .15s';
   return `
     <div style="margin-bottom:24px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <span style="font-size:16px;font-weight:700;color:var(--text)">Quick Wins</span>
         <div style="display:flex;align-items:center;gap:4px">
-          <button onclick="scrollQuickWins(-1)" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted)" title="Scroll left">${icon('chevron-left',14)}</button>
-          <button onclick="scrollQuickWins(1)"  style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted)" title="Scroll right">${icon('chevron-right',14)}</button>
+          <button id="qw-arrow-left" onclick="scrollQuickWins(-1)" disabled style="${btnBase};opacity:.35;cursor:not-allowed;color:var(--text-muted)">${icon('chevron-left',14)}</button>
+          <button id="qw-arrow-right" onclick="scrollQuickWins(1)" style="${btnBase};cursor:pointer;color:var(--text-muted)">${icon('chevron-right',14)}</button>
         </div>
       </div>
-      <div id="quick-wins-carousel" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;-ms-overflow-style:none">
+      <div id="quick-wins-carousel" onscroll="onQuickWinsScroll(this)" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;-ms-overflow-style:none">
         ${quickWins.map((w, i) => renderQuickWinCard(w, i)).join('')}
       </div>
     </div>
   `;
+}
+
+function onQuickWinsScroll(el) {
+  // Show scrollbar while scrolling, hide after pause
+  el.classList.add('qw-scrolling');
+  clearTimeout(el._scrollTimer);
+  el._scrollTimer = setTimeout(() => el.classList.remove('qw-scrolling'), 800);
+  // Update arrow disabled states
+  const atStart = el.scrollLeft < 2;
+  const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
+  const L = document.getElementById('qw-arrow-left');
+  const R = document.getElementById('qw-arrow-right');
+  if (L) { L.disabled = atStart; L.style.opacity = atStart ? '.35' : '1'; L.style.cursor = atStart ? 'not-allowed' : 'pointer'; }
+  if (R) { R.disabled = atEnd;   R.style.opacity = atEnd   ? '.35' : '1'; R.style.cursor = atEnd   ? 'not-allowed' : 'pointer'; }
 }
 
 function scrollQuickWins(dir) {
