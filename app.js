@@ -1,5 +1,5 @@
 /* ===================================================
-   SpotOn Design Competency Hub — Application
+   SpotOn Design Growth Hub — Application
    =================================================== */
 console.log('[DCH] app.js v33 loaded');
 
@@ -3253,16 +3253,127 @@ const CROSS_SKILL_ACTIVITIES = [
       { title: 'Lean Analytics', author: 'Croll & Yoskovitz', type: 'Book', url: 'https://leananalyticsbook.com/' },
     ],
   },
+  {
+    icon: '🧑‍🏫',
+    title: 'Mentor a junior designer for one quarter',
+    desc: 'Structured mentorship sharpens your coaching, communication, and leadership skills while multiplying your impact.',
+    relatedIds: ['influence_6', 'influence_7', 'collaboration_8', 'collaboration_2'],
+    tips: [
+      'Set a clear goal for the quarter upfront — "finish X project" or "get comfortable with Y skill" — so both of you know what success looks like.',
+      'Give feedback on process, not just output. Ask "how did you decide that?" before "here\'s what I\'d change."',
+      'Share your own mistakes openly — mentees learn more from your failures than your wins.',
+    ],
+    framework: { name: 'SBI Feedback Model', desc: 'Situation (when/where), Behavior (what you observed), Impact (what it caused). Keeps feedback specific, non-personal, and actionable — and trains the mentee to self-evaluate using the same lens over time.' },
+    resources: [
+      { title: 'The Coaching Habit', author: 'Michael Bungay Stanier', type: 'Book', url: 'https://boxofcrayons.com/the-coaching-habit-book/' },
+      { title: 'Radical Candor', author: 'Kim Scott', type: 'Book', url: 'https://www.radicalcandor.com/' },
+    ],
+  },
+  {
+    icon: '♿',
+    title: 'Conduct an accessibility audit on a live product',
+    desc: 'Reviewing real screens for WCAG issues builds inclusive design habits, attention to detail, and cross-functional credibility.',
+    relatedIds: ['job_skills_19', 'job_skills_14', 'job_skills_22', 'job_skills_12'],
+    tips: [
+      'Start with a keyboard-only walkthrough — if you can\'t complete a core flow with only Tab and Enter, it\'s a blocker.',
+      'Use a contrast checker on every text/background combo, including disabled states and placeholder text.',
+      'Document findings with severity ratings (critical / serious / moderate) and share with engineering as a prioritized ticket list, not just a design file.',
+    ],
+    framework: { name: 'WCAG 2.1 POUR', desc: 'Four principles: Perceivable (info is presentable to all senses), Operable (UI is navigable by all input methods), Understandable (content is readable and predictable), Robust (works with assistive technologies). Use as a checklist framework, not just a compliance target.' },
+    resources: [
+      { title: 'WebAIM Contrast Checker', type: 'Tool', url: 'https://webaim.org/resources/contrastchecker/' },
+      { title: 'Deque University — Accessibility', type: 'Course', url: 'https://dequeuniversity.com/' },
+    ],
+  },
+  {
+    icon: '📐',
+    title: 'Prototype and test a high-stakes interaction',
+    desc: 'Building a high-fidelity prototype and running it through a usability test closes loops across craft, research, and handoff.',
+    relatedIds: ['job_skills_14', 'job_skills_2', 'job_skills_3', 'job_skills_21'],
+    tips: [
+      'Prototype the riskiest assumption first — the thing you\'re least sure about — not the part you\'re most excited about.',
+      'Test with 5 participants. You\'ll find 80% of usability issues. More sessions rarely change the direction of findings.',
+      'Write your test script before finishing the prototype — if you can\'t write the tasks, the design isn\'t clear enough yet.',
+    ],
+    framework: { name: 'Prototype Fidelity Ladder', desc: 'Match fidelity to the question: paper for flow, wireframes for layout, Figma prototype for interaction, coded prototype for edge cases. Over-fidelity wastes time; under-fidelity misses real problems. Choose the lowest fidelity that can answer your question.' },
+    resources: [
+      { title: 'Rocket Surgery Made Easy', author: 'Steve Krug', type: 'Book', url: 'https://www.sensible.com/rocket-surgery-made-easy.html' },
+      { title: 'Maze — Usability Testing', type: 'Tool', url: 'https://maze.co/' },
+    ],
+  },
+  {
+    icon: '🗣️',
+    title: 'Request and act on structured peer feedback',
+    desc: 'Proactively seeking feedback from colleagues builds self-awareness, psychological safety, and a culture of openness.',
+    relatedIds: ['collaboration_2', 'collaboration_4', 'collaboration_8', 'influence_9'],
+    tips: [
+      'Ask for feedback on a specific piece of work, not your performance in general — specific inputs produce specific, useful outputs.',
+      'After receiving feedback, summarize what you heard back to the giver before reacting — it closes interpretation gaps immediately.',
+      'Close the loop: tell people what you did with their feedback. It makes them more likely to give honest input next time.',
+    ],
+    framework: { name: 'Feedforward (not Feedback)', desc: 'Ask colleagues "What\'s one thing I could do differently on the next project to be more effective?" instead of "How did I do?" Feedforward is future-oriented, less threatening, and produces actionable suggestions rather than evaluative judgments.' },
+    resources: [
+      { title: 'Thanks for the Feedback', author: 'Stone & Heen', type: 'Book', url: 'https://www.stoneandheen.com/thanks-feedback' },
+      { title: 'How to Ask for Feedback', author: 'HBR', type: 'Article', url: 'https://hbr.org/2014/12/how-to-ask-for-feedback-that-will-actually-help-you' },
+    ],
+  },
+  {
+    icon: '🤖',
+    title: 'Integrate an AI tool into your design workflow',
+    desc: 'Experimenting with AI for research synthesis, copy, or ideation builds adaptability and positions you as a forward-thinking designer.',
+    relatedIds: ['job_skills_24', 'job_skills_7', 'job_skills_5', 'project_management_5'],
+    tips: [
+      'Pick one repeatable task — like writing usability test summaries or generating copy variants — and use AI exclusively for it for two weeks.',
+      'Document what it gets right and wrong. The skill isn\'t prompting — it\'s knowing when to trust the output and when to override it.',
+      'Share what you learn with your team. Being the person who figured something out early compounds — it builds influence and credibility fast.',
+    ],
+    framework: { name: 'AI as Thought Partner', desc: 'Treat AI outputs as a first draft and a prompt for your own thinking, not a final answer. Use it to generate options you\'d evaluate, not conclusions you\'d ship. The judgment layer — knowing what\'s good — is the human skill that compounds.' },
+    resources: [
+      { title: 'AI for Designers — NN/g Guide', type: 'Article', url: 'https://www.nngroup.com/articles/ai-design-tools/' },
+      { title: 'Prompting Fundamentals', author: 'OpenAI', type: 'Guide', url: 'https://platform.openai.com/docs/guides/prompt-engineering' },
+    ],
+  },
+  {
+    icon: '📣',
+    title: 'Share a case study with the broader team',
+    desc: 'Writing and presenting a project story strengthens communication, storytelling, and visibility across the org simultaneously.',
+    relatedIds: ['influence_1', 'influence_2', 'influence_8', 'collaboration_4'],
+    tips: [
+      'Structure it as: problem → process → decision → outcome. Skip the part where you explain every tool you used.',
+      'Include one thing that didn\'t work and why — it makes the story credible and models intellectual honesty for the team.',
+      'End with what you\'d do differently. It signals growth mindset and gives the audience something concrete to take away.',
+    ],
+    framework: { name: 'STAR Case Study Format', desc: 'Situation (context and constraints), Task (what you were responsible for), Action (what you specifically decided and why), Result (measurable outcome). Keeps case studies from becoming project timelines and keeps focus on your judgment and impact.' },
+    resources: [
+      { title: 'Writing Case Studies That Don\'t Suck', author: 'UX Collective', type: 'Article', url: 'https://uxdesign.cc/writing-a-case-study-that-doesnt-suck-b9a3e6a6c4f4' },
+    ],
+  },
+  {
+    icon: '🔍',
+    title: 'Audit your design handoff process',
+    desc: 'A handoff audit surfaces gaps in annotation, spec accuracy, and dev collaboration — improving quality and trust across functions.',
+    relatedIds: ['job_skills_22', 'job_skills_20', 'job_skills_23', 'collaboration_3'],
+    tips: [
+      'Ask an engineer to walk you through the last file you handed off — watch where they get confused without you explaining it.',
+      'Check every interactive state: hover, focus, error, empty, loading. Missing states are the most common handoff gap.',
+      'Add a "design decisions" section to your files — one sentence per major choice explaining the why, not just the what.',
+    ],
+    framework: { name: 'Handoff Readiness Checklist', desc: 'Before declaring a file ready: all specs annotated, all states covered, all assets exported, all decisions documented, at least one walkthrough done with an engineer. Each item missed creates at least one follow-up conversation later — usually at the worst possible time.' },
+    resources: [
+      { title: 'Design Handoff Best Practices', author: 'Figma', type: 'Guide', url: 'https://www.figma.com/best-practices/design-handoff/' },
+      { title: 'Zeroheight — Design System Docs', type: 'Tool', url: 'https://zeroheight.com/' },
+    ],
+  },
 ];
 
-function computeQuickWins(allEntries, minScore = 2) {
+function computeQuickWins(allEntries, minScore = 1) {
   const ids = new Set(allEntries.map(e => e.skill.id));
   const scored = CROSS_SKILL_ACTIVITIES.map(a => {
     const matchingIds = a.relatedIds.filter(id => ids.has(id));
     const matchingNames = matchingIds.map(id => SKILLS_DATA.skills.find(s => s.id === id)?.name).filter(Boolean);
     return { ...a, matchingIds, matchingNames, score: matchingIds.length };
   }).filter(a => a.score >= minScore).sort((a, b) => b.score - a.score);
-  return scored.slice(0, 3).map(a => ({ kind: 'activity', ...a }));
+  return scored.slice(0, 5).map(a => ({ kind: 'activity', ...a }));
 }
 
 function getQuickWins() {
@@ -3530,7 +3641,7 @@ function renderProfileModal() {
     <div class="modal-overlay" id="profile-modal" onclick="if(event.target===this && !${isFirstRun})closeProfileModal()">
       <div class="modal" style="width:420px;max-width:95vw">
         ${isFirstRun ? `
-          <div class="modal-title" style="margin-bottom:4px">Welcome to Competency Hub</div>
+          <div class="modal-title" style="margin-bottom:4px">Welcome to Growth Hub</div>
           <div class="modal-subtitle" style="margin-bottom:20px">Create your profile to get started.</div>
           <div style="display:flex;flex-direction:column;gap:12px">
             <div>
@@ -6694,7 +6805,7 @@ function getViewTitle() {
     case 'growth-theme':  return 'Growth Themes';
     case 'eoy': return 'Performance Review';
     case 'outreach': return 'Merchant Outreach';
-    default: return 'Design Competency Hub';
+    default: return 'Design Growth Hub';
   }
 }
 
@@ -6714,7 +6825,7 @@ function render() {
     <aside id="sidebar">
       <div class="sidebar-brand">
         <div class="brand-logo">SpotOn Design</div>
-        <div class="brand-title">Competency Hub</div>
+        <div class="brand-title">Growth Hub</div>
       </div>
 
       <div class="sidebar-profile">
