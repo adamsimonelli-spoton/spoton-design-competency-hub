@@ -4384,8 +4384,8 @@ function detailEvidenceSection(goalId, evidence, addFormId, saveFn, findFn, allI
       <div class="panel-header">
         <span class="panel-title">Evidence</span>
         <div style="display:flex;gap:8px">
+          <button onclick="${findFn}" class="btn btn-ai btn-sm">${icon('sparkles',12)} Find with AI</button>
           <button onclick="state.designGoalAddMode = isManual ? null : 'manual'; render()" class="btn btn-secondary btn-sm">+ Add</button>
-          <button onclick="${findFn}" class="btn-ai-find">✦ Find with AI</button>
         </div>
       </div>
       <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
@@ -4491,8 +4491,8 @@ function renderPersonalGoalDetail() {
         <div class="panel-header">
           <span class="panel-title">Evidence</span>
           <div style="display:flex;gap:8px">
+            <button onclick="findPersonalGoalEvidence('${g.id}')" class="btn btn-ai btn-sm">${icon('sparkles',12)} Find with AI</button>
             <button onclick="state.designGoalAddMode=state.designGoalAddMode==='manual'?null:'manual';render()" class="btn btn-secondary btn-sm">+ Add</button>
-            <button onclick="findPersonalGoalEvidence('${g.id}')" class="btn-ai-find">✦ Find with AI</button>
           </div>
         </div>
         <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
@@ -4639,8 +4639,8 @@ function renderGrowthThemeDetail() {
         <div class="panel-header">
           <span class="panel-title">Evidence</span>
           <div style="display:flex;gap:8px">
+            <button onclick="findGrowthThemeEvidence('${t.id}')" class="btn btn-ai btn-sm">${icon('sparkles',12)} Find with AI</button>
             <button onclick="state.designGoalAddMode=state.designGoalAddMode==='manual'?null:'manual';render()" class="btn btn-secondary btn-sm">+ Add</button>
-            <button onclick="findGrowthThemeEvidence('${t.id}')" class="btn-ai-find">✦ Find with AI</button>
           </div>
         </div>
         <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
@@ -4822,8 +4822,8 @@ function renderDesignGoalDetail() {
         <div class="panel-header">
           <span class="panel-title">Evidence</span>
           <div style="display:flex;gap:8px">
+            <button onclick="findDesignGoalEvidence('${g.id}')" class="btn btn-ai btn-sm">${icon('sparkles',12)} Find with AI</button>
             <button onclick="state.designGoalAddMode=state.designGoalAddMode==='manual'?null:'manual';render()" class="btn btn-secondary btn-sm">+ Add</button>
-            <button onclick="findDesignGoalEvidence('${g.id}')" class="btn-ai-find">✦ Find with AI</button>
           </div>
         </div>
         <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
@@ -5153,8 +5153,8 @@ function renderDesignGoalModal() {
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
             <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Evidence</span>
             <div style="display:flex;gap:8px">
+              <button onclick="findDesignGoalEvidence('${g.id}')" class="btn btn-ai btn-sm">${icon('sparkles',12)} Find with AI</button>
               <button onclick="state.designGoalAddMode = state.designGoalAddMode === 'manual' ? null : 'manual'; render()" class="btn btn-secondary btn-sm">+ Add</button>
-              <button onclick="findDesignGoalEvidence('${g.id}')" class="btn-ai-find">✦ Find with AI</button>
             </div>
           </div>
 
