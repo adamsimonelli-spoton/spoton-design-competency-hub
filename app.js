@@ -32,6 +32,8 @@ const LUCIDE_PATHS = {
   'download':     '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
   'sparkles':     '<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/>',
   'trending-up':  '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  'chevron-left': '<path d="m15 18-6-6 6-6"/>',
+  'chevron-right':'<path d="m9 18 6-6-6-6"/>',
 };
 function icon(name, size = 16, color = 'currentColor', extraStyle = '') {
   const paths = LUCIDE_PATHS[name] || '';
@@ -3415,14 +3417,23 @@ function renderQuickWinsSection() {
   if (!quickWins.length) return '';
   return `
     <div style="margin-bottom:24px">
-      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <span style="font-size:16px;font-weight:700;color:var(--text)">Quick Wins</span>
+        <div style="display:flex;align-items:center;gap:4px">
+          <button onclick="scrollQuickWins(-1)" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted)" title="Scroll left">${icon('chevron-left',14)}</button>
+          <button onclick="scrollQuickWins(1)"  style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted)" title="Scroll right">${icon('chevron-right',14)}</button>
+        </div>
       </div>
-      <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;-ms-overflow-style:none">
+      <div id="quick-wins-carousel" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;-ms-overflow-style:none">
         ${quickWins.map((w, i) => renderQuickWinCard(w, i)).join('')}
       </div>
     </div>
   `;
+}
+
+function scrollQuickWins(dir) {
+  const el = document.getElementById('quick-wins-carousel');
+  if (el) el.scrollBy({ left: dir * 280, behavior: 'smooth' });
 }
 
 function renderQuickWinCard(w, idx) {
