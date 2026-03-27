@@ -5394,6 +5394,10 @@ function applyGrowthThemeSuggestion(idx) {
   const id = 'gt_' + Date.now();
   if (!d.growthThemes) d.growthThemes = [];
   d.growthThemes.push({ id, theme: s.title, today: s.today || [], better: s.better || [], best: s.best || [] });
+  if (s.rationale) {
+    if (!d.growthThemeNotes) d.growthThemeNotes = {};
+    d.growthThemeNotes[id] = s.rationale;
+  }
   saveData(d);
   state.growthThemeModal = id;
   render();
@@ -5403,7 +5407,7 @@ function applyPersonalGoalSuggestion(idx) {
   const s = state.aiSuggestions[idx];
   if (!s) return;
   closeAISuggest();
-  state.goalModal = { sectionId: 'personal', isEdit: false, idx: null, goal: s.goal, kpi: s.kpi, timeFrame: s.timeFrame, status: 'not_started', notes: '' };
+  state.goalModal = { sectionId: 'personal', isEdit: false, idx: null, goal: s.goal, kpi: s.kpi, timeFrame: s.timeFrame, status: 'not_started', notes: s.rationale || '' };
   render();
   setTimeout(updateSmartPanel, 0);
 }
@@ -5436,7 +5440,7 @@ function renderAISuggestModal() {
                 <span class="ai-suggest-tag" style="color:${s.tagColor};background:${s.tagBg}">${escHtml(s.tag)}</span>
                 <div class="ai-suggest-title">${escHtml(isTheme ? s.title : s.goal)}</div>
                 ${!isTheme && s.kpi ? `<div class="ai-suggest-rationale" style="font-size:11px;color:var(--text-secondary);margin-top:2px">KPI: ${escHtml(s.kpi)}</div>` : ''}
-                <div class="ai-suggest-rationale">${escHtml(s.rationale)}</div>
+                <div class="ai-suggest-rationale"><span style="font-weight:700;color:var(--text-secondary)">Notes: </span>${escHtml(s.rationale)}</div>
                 <div style="margin-top:8px;font-size:12px;font-weight:600;color:var(--primary)">Use this →</div>
               </div>`).join('')}
           </div>`}
