@@ -2288,25 +2288,42 @@ function renderHome() {
   const gapRatio = assessedSkills.length > 0 ? allGaps.length / assessedSkills.length : 0;
 
   // Persona
+  const PERSONAS = {
+    overachiever: { label: 'The Overachiever', emoji: '🚀', tagline: 'Consistently punching above the role bar', body: "Your scores across the board exceed what's expected at your level. You're not playing to the rubric — you're setting a new standard for it. The question now is how to parlay this into the next level, not just validation of where you are." },
+    craftsperson:  { label: 'The Craftsperson',  emoji: '✏️', tagline: 'Where taste meets tenacity',           body: "Your design craft scores are exceptional — the care you put into quality, detail, and interaction shows up clearly in your work. You're building a reputation on output. The next unlock is pairing that craft with stronger strategic narrative so the work lands at every level of the org." },
+    strategist:    { label: 'The Strategist',     emoji: '💡', tagline: 'Thinking a level ahead',               body: "You see the bigger picture before most people in the room. Your systems thinking and influence scores are ahead of the curve. The opportunity is in bringing your execution craft up to match — the ideas are there, and the output to back them up will make you unstoppable." },
+    multiplier:    { label: 'The Multiplier',     emoji: '🤝', tagline: 'Makes the work better for everyone around them', body: "Cross-functional collaboration, communication, and influence are your standout traits. You make teams faster, alignment easier, and feedback land better. The growth edge is going deeper — investing in craft or strategic depth to match the influence you already carry." },
+    rocketship:    { label: 'The Rocketship',     emoji: '🔥', tagline: 'Early days. Steep trajectory.',        body: "You're still building your foundation — and that's actually a good thing. Every skill you unlock compounds. There are more development areas than strengths right now, but the pattern here is momentum, not deficit. Keep the velocity up. The ceiling is high." },
+    specialist:    { label: 'The Specialist',     emoji: '🎯', tagline: 'World-class in a lane, building out from there', body: "You have one or two areas of clear mastery that stand significantly above the rest. You're the go-to person in those areas — and for good reason. The growth opportunity is lateral: developing adjacent skills so your expertise becomes more versatile and your impact wider." },
+    steadyHand:    { label: 'The Steady Hand',    emoji: '🧭', tagline: 'The reliable core of the team',       body: "Your skills land right where they should — consistently, dependably, without drama. You deliver what's needed and teams know they can count on you. The opportunity ahead is choosing where to push: which skill becomes your breakout, and what would it take to get there?" },
+    connector:     { label: 'The Connector',      emoji: '🔗', tagline: 'Bridging design and the broader business', body: "You move easily between design and the business context around it. Communication and stakeholder influence are clear strengths. Strong connectors who also have a craft or strategy specialty become rare and irreplaceable — that's the next chapter." },
+    architect:     { label: 'The Architect',      emoji: '🏗️', tagline: 'Building the structures others design within', body: "Systems thinking, scalability, and design infrastructure are where you shine. You're not just solving problems — you're building the frameworks others use to solve them. The growth edge is often in making that complexity visible and compelling to those outside the system." },
+    emerging:      { label: 'The Emerging',       emoji: '🌱', tagline: 'Signal is strong — still finding the shape', body: "Some skills are landing well; others are developing. What stands out is the breadth of what you're already engaged with at an early stage. This phase determines trajectory. Stay curious, make the most of every project, and the picture will sharpen fast." },
+  };
+
   let persona = null;
   if (assessedSkills.length >= 4 && topCat) {
     const t = topCat.cat;
     if (gapRatio > 0.5) {
-      persona = { label: 'The Hungry Climber', emoji: '🧗', desc: 'Ambitious and eager — lots of runway ahead' };
-    } else if (allOverperforming.length > 0 && allOverperforming.length >= allGaps.length && topCat.avg >= 3) {
-      persona = { label: 'The Overachiever', emoji: '🚀', desc: 'Consistently punching above the role bar' };
-    } else if (t === 'Design Skills' && expertCount >= 2) {
-      persona = { label: 'The Craft Purist', emoji: '🎯', desc: 'Deep expertise in the design fundamentals' };
+      persona = PERSONAS.rocketship;
+    } else if (allOverperforming.length >= Math.max(3, allGaps.length * 2) && gapRatio < 0.25) {
+      persona = PERSONAS.overachiever;
+    } else if (expertCount >= 2 && gapRatio > 0.3) {
+      persona = PERSONAS.specialist;
     } else if (t === 'Design Skills') {
-      persona = { label: 'The Design Craftsperson', emoji: '✏️', desc: 'Grounded in solid, reliable execution' };
-    } else if (t === 'Influence') {
-      persona = { label: 'The Strategic Voice', emoji: '💡', desc: 'Shapes direction and moves rooms' };
+      persona = PERSONAS.craftsperson;
+    } else if (t === 'Influence' && topCat.avg >= 3.5) {
+      persona = PERSONAS.strategist;
     } else if (t === 'Collaboration') {
-      persona = { label: 'The Force Multiplier', emoji: '🤝', desc: 'Makes every team around them better' };
+      persona = PERSONAS.multiplier;
     } else if (t === 'Project Management') {
-      persona = { label: 'The Steady Hand', emoji: '🧭', desc: 'Reliable, organized, always delivering' };
+      persona = PERSONAS.connector;
+    } else if (topCat.avg >= 4 && expertCount >= 2) {
+      persona = PERSONAS.architect;
+    } else if (gapRatio < 0.15) {
+      persona = PERSONAS.steadyHand;
     } else {
-      persona = { label: 'The Well-Rounded Designer', emoji: '⭐', desc: 'Balanced across the full design spectrum' };
+      persona = PERSONAS.emerging;
     }
   }
 
@@ -2500,11 +2517,14 @@ function renderHome() {
           ` : `
             ${persona ? `
               <div class="analysis-persona">
-                <span class="analysis-persona-emoji">${persona.emoji}</span>
-                <div>
-                  <div class="analysis-persona-label">${escHtml(persona.label)}</div>
-                  <div class="analysis-persona-desc">${escHtml(persona.desc)}</div>
+                <div class="analysis-persona-top">
+                  <span class="analysis-persona-emoji">${persona.emoji}</span>
+                  <div>
+                    <div class="analysis-persona-label">${escHtml(persona.label)}</div>
+                    <div class="analysis-persona-tagline">"${escHtml(persona.tagline)}"</div>
+                  </div>
                 </div>
+                <div class="analysis-persona-body">${escHtml(persona.body)}</div>
               </div>
             ` : ''}
             ${insightBullets.length > 0 ? `

@@ -627,29 +627,38 @@ body {
   margin-bottom: 8px;
 }
 .analysis-persona {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.analysis-persona-top {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--bg);
-  border-radius: 10px;
-  padding: 12px 16px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 .analysis-persona-emoji {
-  font-size: 24px;
+  font-size: 26px;
   flex-shrink: 0;
   line-height: 1;
 }
 .analysis-persona-label {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text);
   line-height: 1.2;
 }
-.analysis-persona-desc {
-  font-size: 14px;
-  color: var(--text-secondary);
+.analysis-persona-tagline {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
   margin-top: 2px;
+}
+.analysis-persona-body {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.65;
 }
 .analysis-narrative-blocks {
   display: flex;
