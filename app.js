@@ -2426,7 +2426,6 @@ function renderHome() {
         <h1>Welcome back, ${escHtml((currentProfile?.name || 'Designer').split(' ')[0])}${currentProfile?.role ? ` <span style="font-size:13px;font-weight:600;color:var(--primary);background:var(--primary-light);border:1px solid rgba(99,102,241,.2);border-radius:20px;padding:4px 8px;vertical-align:middle;position:relative;top:-2px;margin-left:8px">${escHtml(shortRole(currentProfile.role))}</span>` : ''}</h1>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
-        <button class="btn btn-secondary" onclick="openImportModal()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import Documents</button>
         ${renderNoteInputCard()}
       </div>
     </div>
@@ -2444,18 +2443,18 @@ function renderHome() {
               <div class="skill-snapshot-header">Skills Assessment</div>
               <div class="skill-snapshot-stats">
                 <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('gap')">
-                  <span class="skill-snapshot-num" style="color:var(--red)">${allGaps.length}</span>
                   <span class="skill-snapshot-label">Below Target</span>
+                  <span class="skill-snapshot-num" style="color:var(--red)">${allGaps.length}</span>
                 </button>
                 <div class="skill-snapshot-divider"></div>
                 <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('strength')">
-                  <span class="skill-snapshot-num" style="color:var(--green)">${allOverperforming.length}</span>
                   <span class="skill-snapshot-label">Above Target</span>
+                  <span class="skill-snapshot-num" style="color:var(--green)">${allOverperforming.length}</span>
                 </button>
                 <div class="skill-snapshot-divider"></div>
                 <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('unknown')">
-                  <span class="skill-snapshot-num" style="color:#94A3B8">${allUnknown.length}</span>
                   <span class="skill-snapshot-label">Not Assessed</span>
+                  <span class="skill-snapshot-num" style="color:#94A3B8">${allUnknown.length}</span>
                 </button>
               </div>
             </div>
@@ -3367,6 +3366,7 @@ function renderReview() {
       </div>
       <div class="review-actions">
         <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-secondary" onclick="openImportModal('skill-matrix')" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import</button>
           <button class="aero-icon-btn" onclick="window.print()" aria-label="Print" title="Print">
             <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
               <path d="M214,72H176V40a8,8,0,0,0-8-8H88a8,8,0,0,0-8,8V72H42A18,18,0,0,0,24,90V166a18,18,0,0,0,18,18H64v32a8,8,0,0,0,8,8H184a8,8,0,0,0,8-8V184h22a18,18,0,0,0,18-18V90A18,18,0,0,0,214,72ZM96,48h64V72H96ZM176,208H80V160h96Zm48-42a2,2,0,0,1-2,2H184V152a8,8,0,0,0-8-8H80a8,8,0,0,0-8,8v16H42a2,2,0,0,1-2-2V90a2,2,0,0,1,2-2H214a2,2,0,0,1,2,2ZM192,108a12,12,0,1,1-12-12A12,12,0,0,1,192,108Z"/>
@@ -4658,7 +4658,7 @@ function renderGrowthThemes() {
           <div class="goals-section-title">Growth Themes</div>
         </div>
       </div>
-      <div style="font-size:13px;color:var(--text-muted)">No growth themes created yet.</div>
+      <div class="goals-empty">No themes added yet. <button class="goals-empty-add" onclick="addGrowthTheme()">Add one →</button></div>
     </div>
   `;
 
@@ -5195,6 +5195,15 @@ function renderGrowthThemeModal() {
     </div>`;
 }
 
+function addGrowthTheme() {
+  const d = getData();
+  const id = 'gt_' + Date.now();
+  if (!d.growthThemes) d.growthThemes = [];
+  d.growthThemes.push({ id, theme: '', today: [], better: [], best: [] });
+  saveData(d);
+  state.growthThemeModal = id;
+  render();
+}
 function openGrowthThemeModal(id) { state.growthThemeModal = id; render(); }
 function closeGrowthThemeModal() { state.growthThemeModal = null; render(); }
 function openGrowthThemeLevelModal(themeId, level) { state.growthThemeLevelModal = { themeId, level }; render(); }
@@ -6309,9 +6318,6 @@ function render() {
             <span class="nav-icon">${icon('users', 18)}</span>
             <span style="font-size:12.5px">Manage Team</span>
           </button>
-        <div class="sidebar-footer-text">
-          ${getAssessedCount()} of ${SKILLS_DATA.skills.length} skills assessed
-        </div>
       </div>
     </aside>
 
@@ -6428,10 +6434,10 @@ function render() {
 
 // ============ IMPORT DOCUMENTS MODAL ============
 
-function openImportModal() {
+function openImportModal(type) {
   state.importModal = true;
   state.importStep = 1;
-  state.importTypes = [];
+  state.importTypes = type ? [type] : [];
   state.importFiles = {};
   state.importPreview = null;
   window._importFiles = {};
@@ -6775,10 +6781,13 @@ function renderImportModal() {
 }
 
 function renderImportStep1() {
-  const types = [
+  const allTypes = [
     { id: 'skill-matrix', label: 'Skill Matrix',        iconName: 'layers' },
     { id: 'perf-review',  label: 'Performance Review',  iconName: 'bar-chart-2' },
   ];
+  const types = state.importTypes.length === 1
+    ? allTypes.filter(t => state.importTypes.includes(t.id))
+    : allTypes;
   return `
     <div>
       <h2 class="import-step-heading">Upload your documents</h2>
@@ -6904,7 +6913,12 @@ function renderEOYReview() {
   const profileFirstName = (currentProfile?.name || '').split(' ')[0].toLowerCase();
   const _savedReview = (() => { try { return JSON.parse(localStorage.getItem('dch_review_' + state.profile)); } catch(e) { return null; } })();
   const review = _savedReview || EOY_REVIEWS[profileFirstName] || null;
-  if (!review) return `<div style="padding:48px;text-align:center;color:var(--text-muted);font-size:14px">No performance review data available for this profile.</div>`;
+  if (!review) return `
+    <div style="padding:48px;text-align:center">
+      <div style="font-size:14px;color:var(--text-muted);margin-bottom:16px">No performance review data available yet.</div>
+      <button class="btn btn-secondary" onclick="openImportModal('perf-review')" style="font-size:13px;display:inline-flex;align-items:center;gap:6px">${icon('upload',14)} Import Performance Review</button>
+    </div>
+  `;
   const tab = state.eoyTextTab || 'self';
   const tabData = tab === 'self' ? review.self : review.manager;
 
@@ -6938,9 +6952,12 @@ function renderEOYReview() {
   return `
     <div style="max-width:960px">
       <div style="margin-bottom:24px">
-        <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
-          <h2 style="font-size:22px;font-weight:800;color:var(--text);margin:0">${escHtml(review.year)} Performance Review</h2>
-          <span style="font-size:13px;color:var(--text-muted)">${escHtml(currentProfile?.name || '')}${currentProfile?.role ? ' · ' + escHtml(shortRole(currentProfile.role)) : ''}</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+            <h2 style="font-size:22px;font-weight:800;color:var(--text);margin:0">${escHtml(review.year)} Performance Review</h2>
+            <span style="font-size:13px;color:var(--text-muted)">${escHtml(currentProfile?.name || '')}${currentProfile?.role ? ' · ' + escHtml(shortRole(currentProfile.role)) : ''}</span>
+          </div>
+          <button class="btn btn-secondary" onclick="openImportModal('perf-review')" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import</button>
         </div>
         <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap">
           <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;padding:14px 20px 12px;gap:2px;background:var(--surface);box-shadow:var(--shadow-sm);min-width:90px">
