@@ -4464,11 +4464,15 @@ function renderPersonalGoalDetail() {
         </div>` : ''}
       </div>
 
-      <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:4px">
-        <h1 style="font-size:22px;font-weight:800;color:var(--text);line-height:1.3;margin:0;flex:1;max-width:600px">${escHtml(g.goal)}</h1>
-        <select class="review-level-select" style="color:${sc.color};background:${sc.bg};border-color:${sc.color};font-weight:600;flex-shrink:0;margin-top:4px" onchange="saveGoalStatusFromDetail('${g.id}',this.value)">
-          ${Object.entries(GOAL_STATUS_CONFIG).map(([k,v]) => `<option value="${k}" ${(g.status||'not_started')===k?'selected':''}>${v.label}</option>`).join('')}
-        </select>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px">
+        <h1 style="font-size:22px;font-weight:800;color:var(--text);line-height:1.3;margin:0;flex:1">${escHtml(g.goal)}</h1>
+        <div style="display:flex;gap:8px;flex-shrink:0;align-items:center">
+          <select class="review-level-select" style="color:${sc.color};background:${sc.bg};border-color:${sc.color};font-weight:600" onchange="saveGoalStatusFromDetail('${g.id}',this.value)">
+            ${Object.entries(GOAL_STATUS_CONFIG).map(([k,v]) => `<option value="${k}" ${(g.status||'not_started')===k?'selected':''}>${v.label}</option>`).join('')}
+          </select>
+          <button class="btn btn-secondary btn-sm" onclick="openEditPersonalGoalFromDetail('${g.id}')" style="white-space:nowrap">${icon('pencil',13)} Edit</button>
+          <button class="btn btn-secondary btn-sm" onclick="deletePersonalGoalFromDetail('${g.id}')" style="white-space:nowrap;color:#DC2626;border-color:#FECACA" title="Delete goal">✕</button>
+        </div>
       </div>
       ${g.timeFrame ? `<div style="font-size:13px;color:var(--text-muted);margin-bottom:24px">${escHtml(g.timeFrame)}</div>` : '<div style="margin-bottom:24px"></div>'}
 
@@ -4511,7 +4515,29 @@ function renderPersonalGoalDetail() {
             : evidence.map(item => detailEvidenceCard(item, `deletePersonalGoalEvidence('${g.id}','${item.id}')`)).join('')}
         </div>
       </div>
+      ${state.goalModal ? renderGoalModal() : ''}
     </div>`;
+}
+
+function openEditPersonalGoalFromDetail(goalId) {
+  const goals = getPersonalGoals();
+  const idx = goals.findIndex(g => g.id === goalId);
+  if (idx === -1) return;
+  const g = goals[idx];
+  state.goalModal = { sectionId: 'personal', isEdit: true, idx, goal: g.goal, kpi: g.kpi || '', timeFrame: g.timeFrame || '', status: g.status || 'not_started', notes: g.notes || '' };
+  render();
+  setTimeout(updateSmartPanel, 0);
+}
+function deletePersonalGoalFromDetail(goalId) {
+  if (!confirm('Delete this goal?')) return;
+  const goals = getPersonalGoals();
+  const idx = goals.findIndex(g => g.id === goalId);
+  if (idx === -1) return;
+  goals.splice(idx, 1);
+  savePersonalGoals(goals);
+  state.view = 'goals';
+  state.personalGoalId = null;
+  render();
 }
 
 function saveGoalStatusFromDetail(goalId, status) {
@@ -4579,7 +4605,10 @@ function renderGrowthThemeDetail() {
       <!-- Header -->
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px">
         <h1 style="font-size:22px;font-weight:800;color:var(--text);margin:0">${escHtml(t.theme)}</h1>
-        <button class="btn btn-secondary btn-sm" onclick="openGrowthThemeModal('${t.id}')" style="flex-shrink:0;white-space:nowrap">${icon('pencil',13)} Edit Theme</button>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button class="btn btn-secondary btn-sm" onclick="openGrowthThemeModal('${t.id}')" style="white-space:nowrap">${icon('pencil',13)} Edit</button>
+          <button class="btn btn-secondary btn-sm" onclick="deleteGrowthThemeFromDetail('${t.id}')" style="white-space:nowrap;color:#DC2626;border-color:#FECACA" title="Delete theme">✕</button>
+        </div>
       </div>
 
       <!-- Today / Better / Best -->
@@ -5207,6 +5236,15 @@ function deleteGrowthTheme(id) {
   const d = getData();
   d.growthThemes = (d.growthThemes || []).filter(t => t.id !== id);
   saveData(d);
+  render();
+}
+function deleteGrowthThemeFromDetail(id) {
+  if (!confirm('Delete this growth theme?')) return;
+  const d = getData();
+  d.growthThemes = (d.growthThemes || []).filter(t => t.id !== id);
+  saveData(d);
+  state.view = 'goals';
+  state.growthThemeId = null;
   render();
 }
 function addGrowthTheme() {
