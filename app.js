@@ -2515,33 +2515,35 @@ function renderHome() {
               <div style="font-size:12px;color:var(--text-muted)">Start assessing skills to see your insights here</div>
             </div>
           ` : `
-            ${persona ? `
-              <div class="analysis-persona">
-                <div class="analysis-persona-top">
-                  <span class="analysis-persona-emoji">${persona.emoji}</span>
-                  <div>
-                    <div class="analysis-persona-label">${escHtml(persona.label)}</div>
-                    <div class="analysis-persona-tagline">"${escHtml(persona.tagline)}"</div>
+            <div style="display:flex;gap:16px;align-items:flex-start">
+              ${persona ? `
+                <div class="analysis-persona" style="flex:0 0 260px;margin-bottom:0">
+                  <div class="analysis-persona-top">
+                    <span class="analysis-persona-emoji">${persona.emoji}</span>
+                    <div>
+                      <div class="analysis-persona-label">${escHtml(persona.label)}</div>
+                      <div class="analysis-persona-tagline">"${escHtml(persona.tagline)}"</div>
+                    </div>
                   </div>
+                  <div class="analysis-persona-body">${escHtml(persona.body)}</div>
                 </div>
-                <div class="analysis-persona-body">${escHtml(persona.body)}</div>
-              </div>
-            ` : ''}
-            ${insightBullets.length > 0 ? `
-              <div class="analysis-narrative-blocks">
-                ${insightBullets.map(b => {
-                  const dashIdx = b.indexOf(' — ');
-                  if (dashIdx !== -1) {
-                    return `<div class="analysis-narrative-block"><div class="analysis-narrative-heading">${escHtml(b.slice(0, dashIdx))}</div><div class="analysis-narrative-body">${escHtml(b.slice(dashIdx + 3))}</div></div>`;
-                  }
-                  const commaIdx = b.indexOf(', ');
-                  if (commaIdx !== -1) {
-                    return `<div class="analysis-narrative-block"><div class="analysis-narrative-heading">${escHtml(b.slice(0, commaIdx))}</div><div class="analysis-narrative-body">${escHtml(b.slice(commaIdx + 2))}</div></div>`;
-                  }
-                  return `<div class="analysis-narrative-block"><div class="analysis-narrative-body">${escHtml(b)}</div></div>`;
-                }).join('')}
-              </div>
-            ` : '<div style="font-size:12px;color:var(--text-muted)">No insights yet</div>'}
+              ` : ''}
+              ${insightBullets.length > 0 ? `
+                <div class="analysis-narrative-blocks" style="flex:1;min-width:0">
+                  ${insightBullets.map(b => {
+                    const dashIdx = b.indexOf(' — ');
+                    if (dashIdx !== -1) {
+                      return `<div class="analysis-narrative-block"><div class="analysis-narrative-heading">${escHtml(b.slice(0, dashIdx))}</div><div class="analysis-narrative-body">${escHtml(b.slice(dashIdx + 3))}</div></div>`;
+                    }
+                    const commaIdx = b.indexOf(', ');
+                    if (commaIdx !== -1) {
+                      return `<div class="analysis-narrative-block"><div class="analysis-narrative-heading">${escHtml(b.slice(0, commaIdx))}</div><div class="analysis-narrative-body">${escHtml(b.slice(commaIdx + 2))}</div></div>`;
+                    }
+                    return `<div class="analysis-narrative-block"><div class="analysis-narrative-body">${escHtml(b)}</div></div>`;
+                  }).join('')}
+                </div>
+              ` : (!persona ? '<div style="font-size:12px;color:var(--text-muted)">No insights yet</div>' : '')}
+            </div>
           `}
         </div>
 
