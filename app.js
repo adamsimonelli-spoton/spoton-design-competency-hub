@@ -5654,12 +5654,9 @@ function renderGrowthPlan() {
     <div style="max-width:800px">
 
       <!-- Page header -->
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:32px">
-        <div>
-          <h1 style="font-size:24px;font-weight:800;color:var(--text);margin:0 0 8px">Growth plan</h1>
-          <div style="font-size:13.5px;color:var(--text-muted);line-height:1.6;max-width:540px">Your space to think about where you're going. Write honestly. Bring it to your 1:1. Update it when things shift.</div>
-        </div>
-        <div style="font-size:12px;font-weight:600;color:var(--text-muted);white-space:nowrap;padding-top:6px;flex-shrink:0">Bring this to your next 1:1</div>
+      <div style="margin-bottom:32px">
+        <h1 style="font-size:24px;font-weight:800;color:var(--text);margin:0 0 8px">Growth plan</h1>
+        <div style="font-size:13.5px;color:var(--text-muted);line-height:1.6;max-width:560px">Write honestly, update it when things shift, and bring this to your next 1:1.</div>
       </div>
 
       <!-- 01 Your sweet spot -->
