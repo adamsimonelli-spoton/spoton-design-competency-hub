@@ -6773,14 +6773,14 @@ function render() {
           <span>Performance Review</span>
         </button>
 
-        <button class="nav-item ${state.view === 'resources' ? 'active' : ''}" onclick="navigate('resources')">
-          <span class="nav-icon">${icon('book-open', 18)}</span>
-          <span>Resources</span>
-        </button>
-
-        <button class="nav-item ${state.view === 'outreach' ? 'active' : ''}" onclick="navigate('outreach')" style="margin-top:12px">
+        <button class="nav-item ${state.view === 'outreach' ? 'active' : ''}" onclick="navigate('outreach')">
           <span class="nav-icon">${icon('store', 18)}</span>
           <span>Merchant Outreach</span>
+        </button>
+
+        <button class="nav-item ${state.view === 'resources' ? 'active' : ''}" onclick="navigate('resources')" style="margin-top:12px">
+          <span class="nav-icon">${icon('book-open', 18)}</span>
+          <span>Resources</span>
         </button>
       </nav>
 
