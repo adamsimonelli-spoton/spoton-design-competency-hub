@@ -7568,19 +7568,31 @@ function renderEOYReview() {
           </div>
           <button class="btn btn-secondary" onclick="openImportModal('perf-review')" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import</button>
         </div>
-        <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap">
-          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;padding:14px 20px 12px;gap:2px;background:var(--surface);box-shadow:var(--shadow-sm);min-width:90px">
-            <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Self</span>
-            <span style="font-size:36px;font-weight:800;line-height:1;color:var(--text)">${selfAvg}</span>
-            <div style="display:flex;gap:1px;margin-top:2px">${Array.from({length:5},(_,i)=>`<span style="color:${i<Math.round(parseFloat(selfAvg))?'#F59E0B':'#CBD5E1'};font-size:11px;line-height:1">★</span>`).join('')}</div>
+        <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;align-items:stretch">
+          <!-- Combined scores tile -->
+          <div class="analysis-card" style="min-width:0;flex-shrink:0">
+            <div class="analysis-card-header">
+              <div class="analysis-card-title">Review Scores</div>
+            </div>
+            <div style="display:flex;gap:20px;align-items:center">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+                <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Self</span>
+                <span style="font-size:36px;font-weight:800;line-height:1;color:var(--text)">${selfAvg}</span>
+                <div style="display:flex;gap:1px;margin-top:2px">${Array.from({length:5},(_,i)=>`<span style="color:${i<Math.round(parseFloat(selfAvg))?'#F59E0B':'#CBD5E1'};font-size:11px;line-height:1">★</span>`).join('')}</div>
+              </div>
+              <div style="width:1px;height:52px;background:var(--border);flex-shrink:0"></div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+                <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">${escHtml(review.manager.name)}</span>
+                <span style="font-size:36px;font-weight:800;line-height:1;color:var(--text)">${mgrAvg}</span>
+                <div style="display:flex;gap:1px;margin-top:2px">${Array.from({length:5},(_,i)=>`<span style="color:${i<Math.round(parseFloat(mgrAvg))?'#F59E0B':'#CBD5E1'};font-size:11px;line-height:1">★</span>`).join('')}</div>
+              </div>
+            </div>
           </div>
-          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;padding:14px 20px 12px;gap:2px;background:var(--surface);box-shadow:var(--shadow-sm);min-width:90px">
-            <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">${escHtml(review.manager.name)}</span>
-            <span style="font-size:36px;font-weight:800;line-height:1;color:var(--text)">${mgrAvg}</span>
-            <div style="display:flex;gap:1px;margin-top:2px">${Array.from({length:5},(_,i)=>`<span style="color:${i<Math.round(parseFloat(mgrAvg))?'#F59E0B':'#CBD5E1'};font-size:11px;line-height:1">★</span>`).join('')}</div>
-          </div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px;flex:1;min-width:0">
-            <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${escHtml(review.manager.name)}'s Take</div>
+          <!-- Manager's Take tile -->
+          <div class="analysis-card" style="flex:1;min-width:0">
+            <div class="analysis-card-header">
+              <div class="analysis-card-title">${escHtml(review.manager.name)}'s Take</div>
+            </div>
             <div style="display:flex;gap:24px">
               <div style="flex:1;min-width:0">
                 <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Strengths</div>
