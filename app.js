@@ -29,6 +29,7 @@ const LUCIDE_PATHS = {
   'plus':         '<path d="M5 12h14"/><path d="M12 5v14"/>',
   'external-link':'<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
   'upload':       '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
+  'download':     '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
 };
 function icon(name, size = 16, color = 'currentColor', extraStyle = '') {
   const paths = LUCIDE_PATHS[name] || '';
@@ -3367,16 +3368,7 @@ function renderReview() {
       <div class="review-actions">
         <div style="display:flex;gap:8px;align-items:center">
           <button class="btn btn-secondary" onclick="openImportModal('skill-matrix')" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import</button>
-          <button class="aero-icon-btn" onclick="window.print()" aria-label="Print" title="Print">
-            <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-              <path d="M214,72H176V40a8,8,0,0,0-8-8H88a8,8,0,0,0-8,8V72H42A18,18,0,0,0,24,90V166a18,18,0,0,0,18,18H64v32a8,8,0,0,0,8,8H184a8,8,0,0,0,8-8V184h22a18,18,0,0,0,18-18V90A18,18,0,0,0,214,72ZM96,48h64V72H96ZM176,208H80V160h96Zm48-42a2,2,0,0,1-2,2H184V152a8,8,0,0,0-8-8H80a8,8,0,0,0-8,8v16H42a2,2,0,0,1-2-2V90a2,2,0,0,1,2-2H214a2,2,0,0,1,2,2ZM192,108a12,12,0,1,1-12-12A12,12,0,0,1,192,108Z"/>
-            </svg>
-          </button>
-          <button class="aero-icon-btn" onclick="exportReviewCSV()" aria-label="Export" title="Export as CSV">
-            <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-              <path d="M224,152v56a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V152a8,8,0,0,1,16,0v56H208V152a8,8,0,0,1,16,0Zm-101.66,5.66a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,132.69V40a8,8,0,0,0-16,0v92.69L93.66,106.34a8,8,0,0,0-11.32,11.32Z"/>
-            </svg>
-          </button>
+          <button class="btn btn-secondary" onclick="exportReviewCSV()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('download',14)} Export</button>
         </div>
         ${renderNoteInputCard()}
       </div>
