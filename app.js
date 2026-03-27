@@ -2517,7 +2517,7 @@ function renderHome() {
           ` : `
             <div style="display:flex;gap:16px;align-items:flex-start">
               ${persona ? `
-                <div class="analysis-persona" style="flex:0 0 260px;margin-bottom:0">
+                <div class="analysis-persona" style="flex:0 0 300px;margin-bottom:0">
                   <div class="analysis-persona-top">
                     <div style="flex:1">
                       <div class="analysis-persona-label">${escHtml(persona.label)}</div>
