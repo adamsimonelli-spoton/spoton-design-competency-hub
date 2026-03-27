@@ -1113,6 +1113,7 @@ let state = {
   importPreview: null,
   aiSuggestModal: null,
   aiSuggestions: [],
+  deleteConfirm: null,
 };
 
 // ============ STORAGE ============
@@ -4521,6 +4522,7 @@ function renderPersonalGoalDetail() {
         </div>
       </div>
       ${state.goalModal ? renderGoalModal() : ''}
+      ${state.deleteConfirm ? renderDeleteConfirmModal() : ''}
     </div>`;
 }
 
@@ -4534,12 +4536,18 @@ function openEditPersonalGoalFromDetail(goalId) {
   setTimeout(updateSmartPanel, 0);
 }
 function deletePersonalGoalFromDetail(goalId) {
-  if (!confirm('Delete this goal?')) return;
+  const goals = getPersonalGoals();
+  const g = goals.find(g => g.id === goalId);
+  state.deleteConfirm = { type: 'personal-goal', id: goalId, label: g?.goal || 'this goal' };
+  render();
+}
+function confirmDeletePersonalGoal(goalId) {
   const goals = getPersonalGoals();
   const idx = goals.findIndex(g => g.id === goalId);
   if (idx === -1) return;
   goals.splice(idx, 1);
   savePersonalGoals(goals);
+  state.deleteConfirm = null;
   state.view = 'goals';
   state.personalGoalId = null;
   render();
@@ -4676,6 +4684,7 @@ function renderGrowthThemeDetail() {
 
       ${state.growthThemeLevelModal ? renderGrowthThemeLevelModal() : ''}
       ${state.growthThemeModal === t.id ? renderGrowthThemeModal() : ''}
+      ${state.deleteConfirm ? renderDeleteConfirmModal() : ''}
     </div>
   `;
 }
@@ -5237,17 +5246,29 @@ function renderGrowthThemeModal() {
 }
 
 function deleteGrowthTheme(id) {
-  if (!confirm('Delete this growth theme?')) return;
+  const d = getData();
+  const t = (d.growthThemes || []).find(t => t.id === id);
+  state.deleteConfirm = { type: 'growth-theme', id, label: t?.theme || 'this growth theme' };
+  render();
+}
+function confirmDeleteGrowthTheme(id) {
   const d = getData();
   d.growthThemes = (d.growthThemes || []).filter(t => t.id !== id);
   saveData(d);
+  state.deleteConfirm = null;
   render();
 }
 function deleteGrowthThemeFromDetail(id) {
-  if (!confirm('Delete this growth theme?')) return;
+  const d = getData();
+  const t = (d.growthThemes || []).find(t => t.id === id);
+  state.deleteConfirm = { type: 'growth-theme-detail', id, label: t?.theme || 'this growth theme' };
+  render();
+}
+function confirmDeleteGrowthThemeFromDetail(id) {
   const d = getData();
   d.growthThemes = (d.growthThemes || []).filter(t => t.id !== id);
   saveData(d);
+  state.deleteConfirm = null;
   state.view = 'goals';
   state.growthThemeId = null;
   render();
@@ -5412,6 +5433,40 @@ function applyPersonalGoalSuggestion(idx) {
   setTimeout(updateSmartPanel, 0);
 }
 
+function renderDeleteConfirmModal() {
+  const m = state.deleteConfirm;
+  if (!m) return '';
+  const isTheme = m.type === 'growth-theme' || m.type === 'growth-theme-detail';
+  const itemName = isTheme ? 'growth theme' : 'goal';
+  const confirmFn = m.type === 'growth-theme'        ? `confirmDeleteGrowthTheme('${m.id}')`
+                  : m.type === 'growth-theme-detail'  ? `confirmDeleteGrowthThemeFromDetail('${m.id}')`
+                  : `confirmDeletePersonalGoal('${m.id}')`;
+  return `
+    <div class="modal-overlay" onclick="if(event.target===this){state.deleteConfirm=null;render()}" style="z-index:1200">
+      <div class="modal-box" onclick="event.stopPropagation()" style="max-width:420px">
+        <div class="insight-modal-header" style="border-bottom:1px solid var(--border)">
+          <div style="flex:1">
+            <div class="insight-modal-title" style="display:flex;align-items:center;gap:8px">
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:#FEF2F2;color:#DC2626">${icon('trash-2',15,'#DC2626')}</span>
+              Delete ${itemName}
+            </div>
+          </div>
+          <button class="insight-modal-close" onclick="state.deleteConfirm=null;render()" style="align-self:flex-start">✕</button>
+        </div>
+        <div style="padding:20px 24px">
+          <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin:0 0 4px">Are you sure you want to delete</p>
+          <p style="font-size:14px;font-weight:700;color:var(--text);line-height:1.5;margin:0 0 20px">"${escHtml(m.label)}"?</p>
+          <p style="font-size:12.5px;color:var(--text-muted);margin:0 0 24px">This can't be undone. All associated evidence and notes will also be removed.</p>
+          <div style="display:flex;gap:10px;justify-content:flex-end">
+            <button class="btn btn-secondary btn-sm" onclick="state.deleteConfirm=null;render()">Cancel</button>
+            <button class="btn btn-sm" style="background:#DC2626;color:#fff;border-color:#DC2626;font-weight:600" onclick="${confirmFn}">${icon('trash-2',13,'#fff')} Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderAISuggestModal() {
   const type = state.aiSuggestModal;
   const suggestions = state.aiSuggestions;
@@ -5553,6 +5608,7 @@ function renderGoals() {
     ${state.goalModal ? renderGoalModal() : ''}
     ${state.goalNotesModal ? renderGoalNotesModal() : ''}
     ${state.aiSuggestModal ? renderAISuggestModal() : ''}
+    ${state.deleteConfirm ? renderDeleteConfirmModal() : ''}
   `;
 }
 
