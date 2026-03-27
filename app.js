@@ -3971,7 +3971,7 @@ function renderOutreachWidget() {
           <div style="font-size:13px;font-weight:600;color:${hveOk ? 'var(--green)' : 'var(--text-muted)'}">
             ${hveOk ? '✓ HVE done!' : '○ HVE due this month'}
           </div>
-          <button class="btn btn-primary btn-sm" onclick="openOutreachModal(null)">Log Outreach</button>
+          <button class="btn btn-secondary btn-sm" onclick="openOutreachModal(null)">Log Outreach</button>
         </div>
       </div>
     </div>
