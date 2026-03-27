@@ -4010,11 +4010,8 @@ function renderOutreachPage() {
           </div>
         </div>
         <div class="outreach-tile${hveThisMonth >= 1 ? ' tile-ok' : ' tile-due'}">
-          <div style="display:flex;align-items:baseline;gap:6px">
-            <div class="outreach-tile-value">${hveThisMonth}</div>
-            <div style="font-size:13px;color:var(--text-muted);font-weight:500">this month</div>
-          </div>
-          <div class="outreach-tile-label" style="margin-bottom:8px">HVE check-ins</div>
+          <div class="outreach-tile-value">${hveThisMonth}</div>
+          <div class="outreach-tile-label" style="margin-bottom:8px">HVE check-ins this month</div>
           <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;${hveThisMonth >= 1 ? 'color:var(--green)' : 'color:var(--red)'}">
             ${hveThisMonth >= 1
               ? `${icon('check-circle', 13, 'var(--green)')} Done this month`
