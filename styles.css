@@ -527,7 +527,7 @@ body {
   gap: 2px;
   cursor: pointer;
   font-family: inherit;
-  transition: filter 0.15s, transform 0.1s;
+  transition: background 0.12s;
   text-decoration: none;
   background: var(--surface);
   border: none;
@@ -569,7 +569,7 @@ body {
 }
 .skill-snapshot-stats {
   display: flex;
-  padding: 4px 16px 0;
+  padding: 0;
 }
 .skill-snapshot-stat {
   flex: 1;
