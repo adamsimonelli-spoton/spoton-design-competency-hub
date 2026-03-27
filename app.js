@@ -2519,11 +2519,11 @@ function renderHome() {
               ${persona ? `
                 <div class="analysis-persona" style="flex:0 0 260px;margin-bottom:0">
                   <div class="analysis-persona-top">
-                    <span class="analysis-persona-emoji">${persona.emoji}</span>
-                    <div>
+                    <div style="flex:1">
                       <div class="analysis-persona-label">${escHtml(persona.label)}</div>
                       <div class="analysis-persona-tagline">"${escHtml(persona.tagline)}"</div>
                     </div>
+                    <span class="analysis-persona-emoji">${persona.emoji}</span>
                   </div>
                   <div class="analysis-persona-body">${escHtml(persona.body)}</div>
                 </div>
