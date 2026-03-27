@@ -635,6 +635,7 @@ const EOY_REVIEWS = {
   'adam': {
     year: '2025',
     self: {
+      totalWeightedAvg: 3.875,
       ratings: { technical:3, quality:3, accountability:4, we_lead:4, we_deliver:4, we_learn:3, we_care:5, engagement:5, team_performance:4, feedback_coaching:4 },
       accomplishments: [
         { headline: 'Delivered high-impact launches quickly and set a new bar for speed + partnership', bullets: [
@@ -685,7 +686,8 @@ const EOY_REVIEWS = {
       ],
     },
     manager: {
-      name: 'Nicole',
+      name: 'Manager',
+      totalWeightedAvg: 3.562,
       ratings: { technical:3, quality:3, accountability:4, we_lead:4, we_deliver:3, we_learn:3, we_care:5, engagement:5, team_performance:3, feedback_coaching:3 },
       accomplishments: [
         { headline: 'Built an exceptionally supportive, psychologically safe team environment', bullets: [
@@ -2488,9 +2490,10 @@ function renderHome() {
               const _saved = (() => { try { return JSON.parse(localStorage.getItem('dch_review_' + state.profile)); } catch(e) { return null; } })();
               const er = _saved || EOY_REVIEWS[_firstName] || null;
               if (!er) return '';
-              const vals = Object.values(er.manager.ratings);
-              const avgNum = vals.reduce((a, b) => a + b, 0) / vals.length;
-              const avg = avgNum.toFixed(1);
+              const avgNum = er.manager.totalWeightedAvg != null
+                ? er.manager.totalWeightedAvg
+                : (Object.values(er.manager.ratings).reduce((a,b)=>a+b,0) / Object.values(er.manager.ratings).length);
+              const avg = er.manager.totalWeightedAvg != null ? avgNum.toFixed(3) : avgNum.toFixed(1);
               const fullStars = Math.round(avgNum);
               const stars = Array.from({length: 5}, (_, i) =>
                 `<span style="color:${i < fullStars ? '#F59E0B' : '#CBD5E1'};font-size:11px;line-height:1">★</span>`
@@ -7144,8 +7147,12 @@ async function startImportProcessing() {
   let parsedMatrix = null;
   const smFile = window._importFiles?.['skill-matrix'];
   if (smFile) parsedMatrix = await parseSkillMatrixFile(smFile);
+  // Parse performance review PDF if present
+  let parsedReview = null;
+  const prFile = window._importFiles?.['perf-review'];
+  if (prFile) parsedReview = await parsePerfReviewPDF(prFile);
   await new Promise(r => setTimeout(r, 2800));
-  state.importPreview = generateImportPreview(parsedMatrix);
+  state.importPreview = generateImportPreview(parsedMatrix, parsedReview);
   state.importStep = 3;
   render();
 }
@@ -7304,7 +7311,144 @@ async function parseSkillMatrixFile(file) {
   });
 }
 
-function generateImportPreview(parsedMatrix) {
+// ============ PERF REVIEW PDF PARSER ============
+const PERF_RATING_KEYWORDS = [
+  'truly outstanding',
+  'exceeds expectations',
+  'meets expectations',
+  'partially meets expectations',
+  'partially meets',
+  'does not meet expectations',
+  'does not meet',
+];
+const PERF_RATING_VALUES = {
+  'truly outstanding': 5,
+  'exceeds expectations': 4,
+  'meets expectations': 3,
+  'partially meets expectations': 2,
+  'partially meets': 2,
+  'does not meet expectations': 1,
+  'does not meet': 1,
+};
+const PERF_CATS = ['technical','quality','accountability','we_lead','we_deliver','we_learn','we_care','engagement','team_performance','feedback_coaching'];
+
+async function parsePerfReviewPDF(file) {
+  if (!window.pdfjsLib) { console.warn('[DCH] pdf.js not loaded'); return null; }
+  try {
+    const buffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+    let fullText = '';
+    for (let p = 1; p <= pdf.numPages; p++) {
+      const page = await pdf.getPage(p);
+      const content = await page.getTextContent();
+      fullText += content.items.map(i => i.str).join(' ') + '\n';
+    }
+    console.log('[DCH] PDF text extracted, length:', fullText.length);
+    return parsePerfReviewText(fullText);
+  } catch(e) {
+    console.warn('[DCH] parsePerfReviewPDF error:', e);
+    return null;
+  }
+}
+
+function parsePerfReviewText(rawText) {
+  const text = rawText;
+  const lower = text.toLowerCase();
+
+  // Extract all "Total Weighted Average" values
+  const twaPattern = /total\s+weighted\s+average\s*[:\s]+(\d+\.\d+)/gi;
+  const twaMatches = [];
+  let m;
+  while ((m = twaPattern.exec(lower)) !== null) twaMatches.push(parseFloat(m[1]));
+
+  // Find all rating occurrences in document order
+  const ratings = [];
+  let pos = 0;
+  while (pos < lower.length) {
+    let found = false;
+    for (const kw of PERF_RATING_KEYWORDS) {
+      if (lower.startsWith(kw, pos)) {
+        ratings.push(PERF_RATING_VALUES[kw]);
+        pos += kw.length;
+        found = true;
+        break;
+      }
+    }
+    if (!found) pos++;
+  }
+  console.log('[DCH] PDF ratings found:', ratings, 'TWA matches:', twaMatches);
+
+  if (ratings.length < 10) return null;
+
+  // Determine self vs manager sets
+  // If 20+ ratings: first 10 = self, next 10 = manager
+  // If exactly 10: use for both (single-side PDF)
+  const selfRatings = {}, mgrRatings = {};
+  if (ratings.length >= 20) {
+    PERF_CATS.forEach((cat, i) => { selfRatings[cat] = ratings[i]; mgrRatings[cat] = ratings[i + 10]; });
+  } else {
+    PERF_CATS.forEach((cat, i) => { selfRatings[cat] = ratings[i] ?? 3; mgrRatings[cat] = ratings[i] ?? 3; });
+  }
+
+  // Extract year
+  const yearMatch = rawText.match(/20(\d\d)/);
+  const year = yearMatch ? yearMatch[0] : new Date().getFullYear().toString();
+
+  // Try to extract bullet text sections for accomplishments / improvements
+  const extractSection = (pattern) => {
+    const match = rawText.match(pattern);
+    if (!match || !match[1]) return [];
+    const chunk = match[1];
+    const lines = chunk.split(/\n|(?:•|–|-)(?=\s)/).map(l => l.trim()).filter(l => l.length > 20 && l.length < 600);
+    if (!lines.length) return [];
+    const groups = [];
+    let cur = null;
+    lines.forEach(line => {
+      if (!cur || line.length > 80) {
+        cur = { headline: line.substring(0, 120), bullets: [] };
+        groups.push(cur);
+      } else {
+        cur.bullets.push(line);
+      }
+    });
+    return groups.slice(0, 4);
+  };
+
+  const mid = Math.floor(rawText.length / 2);
+  const selfText = rawText.slice(0, mid);
+  const mgrText  = rawText.slice(mid);
+
+  const selfAccomplishments = extractSection(/recognition\s*&\s*accomplishments[^\n]*([\s\S]{10,2000}?)(?:areas for improvement|areas of improvement|$)/i) ||
+    [{ headline: 'Recognition & Accomplishments', bullets: [] }];
+  const selfImprovements = extractSection(/areas for (?:improvement|development)[^\n]*([\s\S]{10,1000}?)(?:$)/i) ||
+    [{ headline: 'Areas for Development', bullets: [] }];
+
+  // For manager text section, look in second half
+  const mgrRawText = mgrText;
+  const mgrAccomplishments = extractSection.call(null, /recognition\s*&\s*accomplishments[^\n]*([\s\S]{10,2000}?)(?:areas for improvement|areas of improvement|$)/i) ||
+    [{ headline: 'Recognition & Accomplishments', bullets: [] }];
+  const mgrImprovements = extractSection.call(null, /areas for (?:improvement|development)[^\n]*([\s\S]{10,1000}?)(?:$)/i) ||
+    [{ headline: 'Areas for Development', bullets: [] }];
+
+  return {
+    year,
+    self: {
+      totalWeightedAvg: twaMatches[0] ?? null,
+      ratings: selfRatings,
+      accomplishments: selfAccomplishments.length ? selfAccomplishments : [{ headline: 'Key contributions', bullets: [] }],
+      improvements: selfImprovements.length ? selfImprovements : [{ headline: 'Development areas', bullets: [] }],
+    },
+    manager: {
+      name: 'Manager',
+      totalWeightedAvg: twaMatches[1] ?? null,
+      ratings: mgrRatings,
+      accomplishments: mgrAccomplishments.length ? mgrAccomplishments : [{ headline: 'Key contributions', bullets: [] }],
+      improvements: mgrImprovements.length ? mgrImprovements : [{ headline: 'Development areas', bullets: [] }],
+    },
+  };
+}
+
+function generateImportPreview(parsedMatrix, parsedReview = null) {
   const profiles = getProfiles();
   const currentProfile = profiles.find(p => p.id === state.profile);
   const nameHash = (currentProfile?.name || 'User').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
@@ -7323,36 +7467,11 @@ function generateImportPreview(parsedMatrix) {
   }
 
   if (state.importTypes.includes('perf-review')) {
-    const cats = ['technical','quality','accountability','we_lead','we_deliver','we_learn','we_care','engagement','team_performance','feedback_coaching'];
-    const selfRatings = {}, mgrRatings = {};
-    cats.forEach((c, i) => {
-      selfRatings[c] = Math.min(5, Math.max(1, Math.round(3 + seededRnd(nameHash + i * 13) * 2 - 0.5)));
-      mgrRatings[c]  = Math.min(5, Math.max(1, Math.round(3 + seededRnd(nameHash + i * 19 + 3) * 2 - 0.5)));
-    });
-    result.review = {
-      year: new Date().getFullYear().toString(),
-      self: {
-        ratings: selfRatings,
-        accomplishments: [
-          { headline: 'Elevated design quality across key product surfaces', bullets: ['Raised the visual and interaction bar on multiple high-traffic flows.', 'Design critique sessions led to measurable improvements in handoff quality.'] },
-          { headline: 'Strengthened cross-functional collaboration', bullets: ['Partnered closely with PM and engineering to reduce design-to-dev friction.', 'Introduced shared vocabulary that improved sprint planning efficiency.'] },
-        ],
-        improvements: [
-          { headline: 'Build more confidence presenting to senior stakeholders', bullets: ['Continue developing executive communication skills.', 'Seek more opportunities to present at the leadership level.'] },
-        ],
-      },
-      manager: {
-        name: 'Your Manager',
-        ratings: mgrRatings,
-        accomplishments: [
-          { headline: 'Demonstrated strong ownership of design outcomes', bullets: ['Took initiative on projects without waiting for direction.', 'Proactively identified design gaps and proposed solutions.'] },
-          { headline: 'Consistently delivered high-quality work on schedule', bullets: ['Reliable execution across multiple parallel workstreams.', 'Strong attention to detail and consistent follow-through.'] },
-        ],
-        improvements: [
-          { headline: 'Increase speed of decision-making on lower-stakes choices', bullets: ['Room to be more decisive on smaller design decisions to maintain momentum.', 'Practice committing earlier to directions that can be refined in iteration.'] },
-        ],
-      },
-    };
+    if (parsedReview) {
+      result.review = parsedReview;
+    } else {
+      result.reviewParseError = true;
+    }
   }
 
   return result;
@@ -7533,7 +7652,9 @@ function renderImportStep3() {
     ? SKILLS_DATA.skills.slice(0, 5).map(s => ({ name: s.name, level: preview.skills[s.id]?.managerLevel || 'Contributor' }))
     : [];
   const mgrAvg = preview.review
-    ? (Object.values(preview.review.manager.ratings).reduce((a,b)=>a+b,0) / Object.values(preview.review.manager.ratings).length).toFixed(1)
+    ? (preview.review.manager.totalWeightedAvg != null
+        ? preview.review.manager.totalWeightedAvg.toFixed(3)
+        : (Object.values(preview.review.manager.ratings).reduce((a,b)=>a+b,0) / Object.values(preview.review.manager.ratings).length).toFixed(1))
     : null;
 
   return `
@@ -7563,11 +7684,17 @@ function renderImportStep3() {
         ` : ''}
         ${preview.review ? `
           <div class="import-preview-section">
-            <div class="import-preview-section-header">${icon('bar-chart-2',14,'var(--primary)')} Performance Review ${preview.review.year} — avg score ${mgrAvg}/5</div>
+            <div class="import-preview-section-header">${icon('bar-chart-2',14,'var(--primary)')} Performance Review ${preview.review.year} — Total Weighted Avg ${mgrAvg}</div>
             <div style="font-size:13px;color:var(--text-secondary)">
               <div style="font-weight:600;color:var(--text);margin-bottom:4px">${escHtml(preview.review.manager.accomplishments[0]?.headline || '')}</div>
               Ratings imported for all 10 performance categories. Self and manager perspectives included.
             </div>
+          </div>
+        ` : ''}
+        ${preview.reviewParseError ? `
+          <div class="import-preview-section" style="border-color:#FCA5A5;background:#FFF5F5">
+            <div class="import-preview-section-header" style="color:#DC2626">${icon('alert-triangle',14,'#DC2626')} Performance Review — could not read file</div>
+            <div style="font-size:13px;color:#7F1D1D;margin-top:4px">The file format wasn't recognized. Make sure you're uploading a PDF exported from your review system (e.g. Workday). The file must contain rating labels like "Meets Expectations" and a "Total Weighted Average."</div>
           </div>
         ` : ''}
       </div>
@@ -7622,8 +7749,14 @@ function renderEOYReview() {
 
   const allSelfRatings = Object.values(review.self.ratings);
   const allMgrRatings = Object.values(review.manager.ratings);
-  const selfAvg = (allSelfRatings.reduce((a, b) => a + b, 0) / allSelfRatings.length).toFixed(1);
-  const mgrAvg = (allMgrRatings.reduce((a, b) => a + b, 0) / allMgrRatings.length).toFixed(1);
+  const selfAvgNum = review.self.totalWeightedAvg != null
+    ? review.self.totalWeightedAvg
+    : (allSelfRatings.reduce((a,b)=>a+b,0) / allSelfRatings.length);
+  const mgrAvgNum = review.manager.totalWeightedAvg != null
+    ? review.manager.totalWeightedAvg
+    : (allMgrRatings.reduce((a,b)=>a+b,0) / allMgrRatings.length);
+  const selfAvg = review.self.totalWeightedAvg != null ? selfAvgNum.toFixed(3) : selfAvgNum.toFixed(1);
+  const mgrAvg = review.manager.totalWeightedAvg != null ? mgrAvgNum.toFixed(3) : mgrAvgNum.toFixed(1);
   const levelCounts = [1,2,3,4,5].map(n => ({ n, count: allMgrRatings.filter(r => r === n).length, ...EOY_RATING_CONFIG[n] }));
 
   return `
@@ -7643,13 +7776,13 @@ function renderEOYReview() {
               <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
                 <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Self</span>
                 <span style="font-size:36px;font-weight:800;line-height:1;color:var(--text)">${selfAvg}</span>
-                <div style="display:flex;gap:1px;margin-top:2px">${Array.from({length:5},(_,i)=>`<span style="color:${i<Math.round(parseFloat(selfAvg))?'#F59E0B':'#CBD5E1'};font-size:11px;line-height:1">★</span>`).join('')}</div>
+                <div style="display:flex;gap:1px;margin-top:2px">${Array.from({length:5},(_,i)=>`<span style="color:${i<Math.round(selfAvgNum)?'#F59E0B':'#CBD5E1'};font-size:11px;line-height:1">★</span>`).join('')}</div>
               </div>
               <div style="width:1px;height:52px;background:var(--border);flex-shrink:0"></div>
               <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
                 <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Manager</span>
                 <span style="font-size:36px;font-weight:800;line-height:1;color:var(--text)">${mgrAvg}</span>
-                <div style="display:flex;gap:1px;margin-top:2px">${Array.from({length:5},(_,i)=>`<span style="color:${i<Math.round(parseFloat(mgrAvg))?'#F59E0B':'#CBD5E1'};font-size:11px;line-height:1">★</span>`).join('')}</div>
+                <div style="display:flex;gap:1px;margin-top:2px">${Array.from({length:5},(_,i)=>`<span style="color:${i<Math.round(mgrAvgNum)?'#F59E0B':'#CBD5E1'};font-size:11px;line-height:1">★</span>`).join('')}</div>
               </div>
             </div>
           </div>
