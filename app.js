@@ -2492,7 +2492,7 @@ function renderHome() {
             ${(() => {
               const _firstName = (currentProfile?.name || '').split(' ')[0].toLowerCase();
               const _saved = (() => { try { return JSON.parse(localStorage.getItem('dch_review_' + state.profile)); } catch(e) { return null; } })();
-              const er = _saved || EOY_REVIEWS[_firstName] || null;
+              const er = _saved || null;
               if (!er) return '';
               const avgNum = er.manager.totalWeightedAvg != null
                 ? er.manager.totalWeightedAvg
@@ -7764,7 +7764,7 @@ function renderEOYReview() {
   const currentProfile = profiles.find(p => p.id === state.profile);
   const profileFirstName = (currentProfile?.name || '').split(' ')[0].toLowerCase();
   const _savedReview = (() => { try { return JSON.parse(localStorage.getItem('dch_review_' + state.profile)); } catch(e) { return null; } })();
-  const review = _savedReview || EOY_REVIEWS[profileFirstName] || null;
+  const review = _savedReview || null;
   if (!review) return `
     <div style="padding:48px;text-align:center">
       <div style="font-size:14px;color:var(--text-muted);margin-bottom:16px">No performance review data available yet.</div>
@@ -7865,29 +7865,36 @@ function renderEOYReview() {
           <span style="font-size:11px;font-weight:700;color:#5B21B6;text-transform:uppercase;letter-spacing:.05em">Manager</span>
           <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;text-align:center">Delta</span>
         </div>
-        ${EOY_CATEGORY_GROUPS.map((group, gi) => `
-          <div style="padding:8px 16px;background:var(--bg);${gi > 0 ? 'border-top:1px solid var(--border);' : ''}font-size:10px;font-weight:700;color:var(--text-secondary);letter-spacing:.07em;text-transform:uppercase">${escHtml(group.label)}</div>
-          ${group.categories.map((cat, ci) => {
-            const selfR = review.self.ratings[cat.id];
-            const mgrR = review.manager.ratings[cat.id];
-            const isLast = ci === group.categories.length - 1;
-            return `<div style="display:grid;grid-template-columns:1fr 170px 170px 90px;align-items:center;padding:12px 16px;${!isLast ? 'border-bottom:1px solid var(--border);' : ''}">
-              <div>
-                <div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(cat.label)}</div>
-                <div style="font-size:11.5px;color:var(--text-muted);margin-top:4px;line-height:1.4">${escHtml(cat.desc)}</div>
-              </div>
-              <div>${ratingBadge(selfR)}</div>
-              <div>${ratingBadge(mgrR)}</div>
-              <div style="text-align:center">${deltaChip(selfR, mgrR)}</div>
-            </div>`;
-          }).join('')}
-        `).join('')}
+        ${(() => {
+          let rowNum = 0;
+          return EOY_CATEGORY_GROUPS.map((group, gi) => `
+            <div style="padding:8px 16px;background:var(--bg);${gi > 0 ? 'border-top:1px solid var(--border);' : ''}font-size:10px;font-weight:700;color:var(--text-secondary);letter-spacing:.07em;text-transform:uppercase">${escHtml(group.label)}</div>
+            ${group.categories.map((cat, ci) => {
+              rowNum++;
+              const selfR = review.self.ratings[cat.id];
+              const mgrR = review.manager.ratings[cat.id];
+              const isLast = ci === group.categories.length - 1;
+              return `<div style="display:grid;grid-template-columns:1fr 170px 170px 90px;align-items:center;padding:12px 16px;${!isLast ? 'border-bottom:1px solid var(--border);' : ''}">
+                <div style="display:flex;gap:10px;align-items:flex-start">
+                  <span style="font-size:12px;font-weight:700;color:var(--text-muted);min-width:18px;padding-top:1px">(${rowNum})</span>
+                  <div>
+                    <div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(cat.label)}</div>
+                    <div style="font-size:11.5px;color:var(--text-muted);margin-top:4px;line-height:1.4">${escHtml(cat.desc)}</div>
+                  </div>
+                </div>
+                <div>${ratingBadge(selfR)}</div>
+                <div>${ratingBadge(mgrR)}</div>
+                <div style="text-align:center">${deltaChip(selfR, mgrR)}</div>
+              </div>`;
+            }).join('')}
+          `).join('');
+        })()}
       </div>
 
       <!-- Recognition & Accomplishments: side-by-side -->
       <div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:16px;overflow:hidden">
         <div style="padding:16px 24px;border-bottom:1px solid var(--border)">
-          <div style="font-size:16px;font-weight:700;color:var(--text)">Recognition &amp; Accomplishments</div>
+          <div style="font-size:16px;font-weight:700;color:var(--text)"><span style="color:var(--text-muted);font-weight:600;margin-right:8px">(11)</span>Recognition &amp; Accomplishments</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr">
           <div style="padding:20px 24px;border-right:1px solid var(--border)">
@@ -7904,7 +7911,7 @@ function renderEOYReview() {
       <!-- Areas for Development: side-by-side -->
       <div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:32px;overflow:hidden">
         <div style="padding:16px 24px;border-bottom:1px solid var(--border)">
-          <div style="font-size:16px;font-weight:700;color:var(--text)">Areas for Development</div>
+          <div style="font-size:16px;font-weight:700;color:var(--text)"><span style="color:var(--text-muted);font-weight:600;margin-right:8px">(12)</span>Areas for Development</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr">
           <div style="padding:20px 24px;border-right:1px solid var(--border)">
