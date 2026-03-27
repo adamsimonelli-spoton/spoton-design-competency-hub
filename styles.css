@@ -570,7 +570,7 @@ body {
 }
 .skill-snapshot-stats {
   display: flex;
-  padding: 0 16px;
+  padding: 4px 16px 0;
 }
 .skill-snapshot-stat {
   flex: 1;

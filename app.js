@@ -2444,7 +2444,6 @@ function renderHome() {
         ${hasAssessments && currentProfile?.role ? `
           <div class="analysis-counts-row">
             <div class="skill-snapshot-card">
-              <div class="skill-snapshot-header">Skills Assessment</div>
               <div class="skill-snapshot-stats">
                 <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('gap')">
                   <span class="skill-snapshot-label">Below Target</span>
@@ -5247,30 +5246,46 @@ function generateAISuggestions(type) {
     Object.entries(catGaps).sort((a, b) => b[1].length - a[1].length).slice(0, 2).forEach(([cat, names]) => {
       const title = `Elevate My ${cat}`;
       if (!existingTitles.has(title.toLowerCase()))
-        suggestions.push({ title, rationale: `${names.length} skill${names.length > 1 ? 's' : ''} below target — including ${names.slice(0,2).join(' and ')}`, tag: 'Skill Gap', tagColor: '#DC2626', tagBg: '#FEF2F2' });
+        suggestions.push({
+          title, tag: 'Skill Gap', tagColor: '#DC2626', tagBg: '#FEF2F2',
+          rationale: `${names.length} skill${names.length > 1 ? 's' : ''} below target — including ${names.slice(0,2).join(' and ')}`,
+          today:  [`Applying ${cat} at a basic level, sometimes needing guidance on complex problems`],
+          better: [`Consistently delivering high-quality ${cat} work independently across varied contexts`],
+          best:   [`Setting the standard for ${cat} across the team; elevating others' thinking and practice`],
+        });
     });
 
     // 2. Evidence text patterns
     const evidenceTexts = Object.values(assessments).map(a => a.evidence || '').filter(t => t.length > 20);
     const themeHints = [
-      { rx: /stakeholder|partner|collaborat|align/i, title: 'Deepen Cross-Functional Influence', rationale: 'Your assessment notes mention collaboration and stakeholder work' },
-      { rx: /system|scale|pattern|component|library/i, title: 'Grow Design Systems Thinking', rationale: 'Notes across assessments reference systems-level design work' },
-      { rx: /research|user.*insight|test|interview/i, title: 'Build a Research-Led Practice', rationale: 'Multiple assessments reference user research and insights' },
-      { rx: /mentor|coach|lead.*team|present|facilitat/i, title: 'Develop Design Leadership', rationale: 'Evidence shows emerging leadership and mentoring activity' },
-      { rx: /data|metric|measur|analytic|outcome/i, title: 'Strengthen Data-Informed Design', rationale: 'Notes suggest growing capability with metrics and outcomes' },
+      { rx: /stakeholder|partner|collaborat|align/i,   title: 'Deepen Cross-Functional Influence', rationale: 'Your assessment notes mention collaboration and stakeholder work',
+        today: ['Building relationships within my immediate team and navigating basic stakeholder needs'], better: ['Proactively aligning with PMs, engineers, and leadership to shape product direction'], best: ['Trusted design voice across the org; influencing strategy and multiplying team impact'] },
+      { rx: /system|scale|pattern|component|library/i, title: 'Grow Design Systems Thinking', rationale: 'Notes across assessments reference systems-level design work',
+        today: ['Using existing design system components; contributing small isolated patterns'], better: ['Designing reusable systems and documenting patterns adopted across multiple teams'], best: ["Architecting scalable design systems that define the product's visual and interaction language"] },
+      { rx: /research|user.*insight|test|interview/i,  title: 'Build a Research-Led Practice', rationale: 'Multiple assessments reference user research and insights',
+        today: ['Conducting basic usability tests and gathering user feedback when explicitly planned'], better: ['Proactively integrating research into every design process; synthesizing insights into clear direction'], best: ['Building a culture of continuous discovery; coaching others in research methods and mindset'] },
+      { rx: /mentor|coach|lead.*team|present|facilitat/i, title: 'Develop Design Leadership', rationale: 'Evidence shows emerging leadership and mentoring activity',
+        today: ['Occasionally mentoring peers informally; presenting work clearly in team settings'], better: ['Actively developing others, facilitating team rituals, and influencing design culture'], best: ["Leading the design org's growth; shaping team structure, culture, and craft standards"] },
+      { rx: /data|metric|measur|analytic|outcome/i,    title: 'Strengthen Data-Informed Design', rationale: 'Notes suggest growing capability with metrics and outcomes',
+        today: ['Referencing data when available; learning to connect design decisions to measurable outcomes'], better: ['Defining success metrics for every project and using data to validate and iterate on designs'], best: ['Championing data-informed design across the org; teaching others to connect craft to outcomes'] },
     ];
-    themeHints.forEach(({ rx, title, rationale }) => {
+    themeHints.forEach(({ rx, title, rationale, today, better, best }) => {
       if (suggestions.length < 5 && !existingTitles.has(title.toLowerCase()) && evidenceTexts.some(t => rx.test(t)))
-        suggestions.push({ title, rationale, tag: 'From Your Notes', tagColor: '#0369A1', tagBg: '#F0F9FF' });
+        suggestions.push({ title, rationale, today, better, best, tag: 'From Your Notes', tagColor: '#0369A1', tagBg: '#F0F9FF' });
     });
 
     // 3. Generic high-value fallbacks
     const generics = [
-      { title: 'Sharpen Strategic Communication', rationale: 'Frame and present design decisions persuasively to senior stakeholders' },
-      { title: 'Scale Impact Across the Org', rationale: 'Move from individual delivery toward multiplying your team\'s effectiveness' },
-      { title: 'Master End-to-End Product Thinking', rationale: 'Develop a holistic view from discovery through delivery and measurement' },
-      { title: 'Build a Feedback-Rich Design Culture', rationale: 'Create regular critique habits that raise the quality bar for the whole team' },
-      { title: 'Advance Facilitation & Workshop Skills', rationale: 'Lead alignment sessions, design sprints, and cross-team workshops with confidence' },
+      { title: 'Sharpen Strategic Communication', rationale: 'Frame and present design decisions persuasively to senior stakeholders',
+        today: ['Presenting design rationale clearly; building comfort with executive audiences'], better: ['Framing design decisions in business terms; confidently influencing senior stakeholders'], best: ['Shaping narrative around design value at the org level; a trusted voice in strategic planning'] },
+      { title: 'Scale Impact Across the Org', rationale: "Move from individual delivery toward multiplying your team's effectiveness",
+        today: ['Delivering strong individual work; starting to document and share learnings with the team'], better: ['Multiplying team effectiveness through mentorship, shared systems, and process improvements'], best: ["Driving org-wide design quality and culture; others' success is a direct result of your influence"] },
+      { title: 'Master End-to-End Product Thinking', rationale: 'Develop a holistic view from discovery through delivery and measurement',
+        today: ['Designing within a defined scope; growing awareness of upstream and downstream context'], better: ['Owning the full design arc from discovery through delivery; connecting decisions to outcomes'], best: ['Setting the product vision across multiple domains; a strategic partner to PMs and leadership'] },
+      { title: 'Build a Feedback-Rich Design Culture', rationale: 'Create regular critique habits that raise the quality bar for the whole team',
+        today: ['Participating in critiques; sharing feedback in one-on-ones and informal settings'], better: ['Facilitating structured design reviews; building team habits around quality and feedback'], best: ['Creating a self-sustaining culture of craft excellence and continuous improvement across the org'] },
+      { title: 'Advance Facilitation & Workshop Skills', rationale: 'Lead alignment sessions, design sprints, and cross-team workshops with confidence',
+        today: ['Leading small team meetings and basic alignment sessions with some prep'], better: ['Facilitating complex cross-functional workshops and design sprints with clear outcomes'], best: ['Designing and leading high-stakes org-wide alignment sessions; a go-to facilitator for hard problems'] },
     ];
     generics.forEach(g => {
       if (suggestions.length < 6 && !existingTitles.has(g.title.toLowerCase()))
@@ -5333,7 +5348,7 @@ function applyGrowthThemeSuggestion(idx) {
   const d = getData();
   const id = 'gt_' + Date.now();
   if (!d.growthThemes) d.growthThemes = [];
-  d.growthThemes.push({ id, theme: s.title, today: [], better: [], best: [] });
+  d.growthThemes.push({ id, theme: s.title, today: s.today || [], better: s.better || [], best: s.best || [] });
   saveData(d);
   state.growthThemeModal = id;
   render();
@@ -5359,14 +5374,14 @@ function renderAISuggestModal() {
     <div class="modal-overlay" onclick="if(event.target===this)closeAISuggest()" style="z-index:1100">
       <div class="modal-box" onclick="event.stopPropagation()" style="max-width:680px;max-height:90vh;overflow-y:auto">
         <div class="insight-modal-header" style="border-bottom:1px solid var(--border)">
-          <div>
+          <div style="flex:1">
             <div class="insight-modal-title" style="display:flex;align-items:center;gap:8px">
               <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:#F5F3FF;color:#7C3AED">${icon('sparkles',15,'#7C3AED')}</span>
               ${escHtml(title)}
             </div>
             <div style="font-size:12px;color:var(--text-muted);margin-top:4px">${sub}</div>
           </div>
-          <button class="insight-modal-close" onclick="closeAISuggest()">✕</button>
+          <button class="insight-modal-close" onclick="closeAISuggest()" style="align-self:flex-start">✕</button>
         </div>
         <div style="padding:20px 24px">
           ${suggestions.length === 0 ? `<div style="text-align:center;padding:32px;color:var(--text-muted);font-size:14px">No suggestions available yet — add more skill assessments and notes to improve results.</div>` : `
