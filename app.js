@@ -5743,7 +5743,7 @@ function renderGrowthPlan() {
               "What's blocking me that you can help remove?"
             ].map(q => `
               <li style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text-secondary);line-height:1.5">
-                <span style="width:6px;height:6px;border-radius:50%;background:var(--primary);flex-shrink:0;margin-top:5px"></span>
+                <span style="width:5px;height:5px;border-radius:50%;background:var(--text-muted);flex-shrink:0;margin-top:6px"></span>
                 ${escHtml(q)}
               </li>`).join('')}
           </ul>
