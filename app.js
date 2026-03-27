@@ -3593,7 +3593,6 @@ function renderReview() {
         <div class="review-category-section">
           <div class="review-cat-header">
             <span class="review-cat-title">${escHtml(cat)}</span>
-            <span class="review-cat-stats">${assessedInCat}/${catSkills.length} assessed</span>
           </div>
           <div class="review-table-wrap"><table class="review-table">
             <thead>
