@@ -31,6 +31,7 @@ const LUCIDE_PATHS = {
   'upload':       '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
   'download':     '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
   'sparkles':     '<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/>',
+  'trending-up':  '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
 };
 function icon(name, size = 16, color = 'currentColor', extraStyle = '') {
   const paths = LUCIDE_PATHS[name] || '';
@@ -5551,6 +5552,124 @@ function renderGoals() {
   `;
 }
 
+function renderGrowthPlan() {
+  const d = getData();
+  const profiles = getProfiles();
+  const currentProfile = profiles.find(p => p.id === state.profile);
+  const themes = d.growthThemes || [];
+  const personalGoals = getPersonalGoals();
+  const hasContent = themes.length > 0 || personalGoals.length > 0;
+
+  const scoreCol = (label, bg, color, items) => {
+    const list = Array.isArray(items) ? items : [];
+    return `
+      <div style="background:${bg};border-radius:8px;padding:14px 16px;flex:1;box-shadow:var(--shadow-sm)">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${color};margin-bottom:10px">${label}</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${list.length
+            ? list.map(i => `<div style="font-size:13px;color:var(--text-secondary);line-height:1.5">${escHtml(i)}</div>`).join('')
+            : `<div style="font-size:13px;color:var(--text-muted);font-style:italic">Not defined</div>`}
+        </div>
+      </div>`;
+  };
+
+  return `
+    <div style="max-width:900px">
+      <!-- Page header -->
+      <div class="review-header" style="margin-bottom:28px">
+        <div>
+          <h1 style="margin:0 0 6px">${escHtml(currentProfile?.name || 'Designer')}${currentProfile?.role ? ` <span style="font-size:13px;font-weight:600;color:var(--primary);background:var(--primary-light);border:1px solid rgba(99,102,241,.2);border-radius:20px;padding:4px 8px;vertical-align:middle;position:relative;top:-2px;margin-left:12px">${escHtml(shortRole(currentProfile.role))}</span>` : ''}</h1>
+          <div style="font-size:13px;color:var(--text-muted)">2026 Growth Plan</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="display:flex;gap:10px">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;text-align:center">
+              <div style="font-size:18px;font-weight:800;color:var(--primary)">${themes.length}</div>
+              <div style="font-size:11px;color:var(--text-muted);font-weight:500">Theme${themes.length !== 1 ? 's' : ''}</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;text-align:center">
+              <div style="font-size:18px;font-weight:800;color:var(--primary)">${personalGoals.length}</div>
+              <div style="font-size:11px;color:var(--text-muted);font-weight:500">Goal${personalGoals.length !== 1 ? 's' : ''}</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;text-align:center">
+              <div style="font-size:18px;font-weight:800;color:var(--green)">${personalGoals.filter(g => g.status === 'completed').length}</div>
+              <div style="font-size:11px;color:var(--text-muted);font-weight:500">Completed</div>
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="window.print()" style="margin-left:8px">${icon('download',13)} Export</button>
+        </div>
+      </div>
+
+      ${!hasContent ? `
+        <div class="goals-empty" style="text-align:center;padding:40px 24px">
+          <div style="font-size:32px;margin-bottom:12px">🌱</div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px">Your growth plan is empty</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px">Add growth themes and personal goals to build your development plan.</div>
+          <button class="btn btn-primary btn-sm" onclick="navigate('goals')">Go to Goals →</button>
+        </div>
+      ` : ''}
+
+      ${themes.length > 0 ? `
+        <!-- Growth Trajectory -->
+        <div style="margin-bottom:32px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div class="goals-section-title">Growth Trajectory</div>
+            <button class="btn btn-secondary btn-sm" onclick="navigate('goals')" style="font-size:12px">Manage →</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            ${themes.map(t => {
+              const evidenceCount = (d.growthThemeEvidence?.[t.id] || []).length;
+              return `
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow-sm)">
+                  <div style="padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)">
+                    <div style="font-size:15px;font-weight:700;color:var(--text)">${escHtml(t.theme)}</div>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      ${evidenceCount > 0 ? `<span style="font-size:11px;font-weight:700;color:var(--primary);background:var(--primary-light);padding:2px 8px;border-radius:20px">${evidenceCount} piece${evidenceCount !== 1 ? 's' : ''}</span>` : ''}
+                      <button onclick="navigateToGrowthTheme('${t.id}')" style="background:none;border:none;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;padding:0">View →</button>
+                    </div>
+                  </div>
+                  <div style="padding:14px 18px;display:flex;gap:10px">
+                    ${scoreCol('Today',  '#FFFFFF', 'var(--text-muted)', t.today)}
+                    ${scoreCol('Better', '#EFF6FF', '#3B82F6',           t.better)}
+                    ${scoreCol('Best',   '#F0FDF4', 'var(--green)',       t.best)}
+                  </div>
+                </div>`;
+            }).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      ${personalGoals.length > 0 ? `
+        <!-- Personal Goals -->
+        <div style="margin-bottom:32px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div class="goals-section-title">Personal Goals</div>
+            <button class="btn btn-secondary btn-sm" onclick="navigate('goals')" style="font-size:12px">Manage →</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            ${personalGoals.map(g => {
+              const sc = GOAL_STATUS_CONFIG[g.status || 'not_started'];
+              const evidenceCount = (d.personalGoalEvidence?.[g.id] || []).length;
+              return `
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;box-shadow:var(--shadow-sm);cursor:pointer" onclick="navigateToPersonalGoal('${g.id}')">
+                  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:${g.kpi ? '10px' : '0'}">
+                    <div style="font-size:14px;font-weight:700;color:var(--text);line-height:1.4;flex:1">${escHtml(g.goal)}</div>
+                    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+                      ${g.timeFrame ? `<span style="font-size:11px;color:var(--text-muted);font-weight:500">${escHtml(g.timeFrame)}</span>` : ''}
+                      <span style="font-size:11px;font-weight:700;color:${sc.color};background:${sc.bg};border:1px solid ${sc.border};padding:3px 10px;border-radius:20px;white-space:nowrap">${sc.label}</span>
+                      ${evidenceCount > 0 ? `<span style="font-size:11px;font-weight:700;color:var(--primary);background:var(--primary-light);padding:2px 8px;border-radius:20px">${evidenceCount}</span>` : ''}
+                    </div>
+                  </div>
+                  ${g.kpi ? `<div style="font-size:12.5px;color:var(--text-muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escHtml(g.kpi)}</div>` : ''}
+                </div>`;
+            }).join('')}
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
 function evaluateSmartGoal() {
   const goal = (document.getElementById('gm-goal')?.value || '').trim();
   const kpi  = (document.getElementById('gm-kpi')?.value || '').trim();
@@ -5801,6 +5920,8 @@ function navigate(view, param) {
     state.growthThemeId = null;
     state.personalGoalId = null;
     state.designGoalId = null;
+  } else if (view === 'growth-plan') {
+    state.view = 'growth-plan';
   } else if (view === 'value') {
     state.prevView = state.view;
     state.view = 'value';
@@ -6479,6 +6600,7 @@ function getViewTitle() {
     case 'values': return 'Core Values';
     case 'value': return 'Core Values';
     case 'goals': return 'Goals';
+    case 'growth-plan': return 'Growth Plan';
     case 'personal-goal': return 'Personal Goals';
     case 'design-goal':   return '2026 Design Team Goals';
     case 'growth-theme':  return 'Growth Themes';
@@ -6543,14 +6665,19 @@ function render() {
           <span>Skills</span>
         </button>
 
-        <button class="nav-item ${state.view === 'values' || state.view === 'value' ? 'active' : ''}" onclick="navigate('values')">
-          <span class="nav-icon">${icon('heart', 18)}</span>
-          <span>Core Values</span>
-        </button>
-
         <button class="nav-item ${['goals','personal-goal','design-goal','growth-theme'].includes(state.view) ? 'active' : ''}" onclick="navigate('goals')">
           <span class="nav-icon">${icon('target', 18)}</span>
           <span>Goals</span>
+        </button>
+
+        <button class="nav-item ${state.view === 'growth-plan' ? 'active' : ''}" onclick="navigate('growth-plan')">
+          <span class="nav-icon">${icon('trending-up', 18)}</span>
+          <span>Growth Plan</span>
+        </button>
+
+        <button class="nav-item ${state.view === 'values' || state.view === 'value' ? 'active' : ''}" onclick="navigate('values')">
+          <span class="nav-icon">${icon('heart', 18)}</span>
+          <span>Core Values</span>
         </button>
 
         <button class="nav-item ${state.view === 'eoy' ? 'active' : ''}" onclick="navigate('eoy')">
@@ -6558,15 +6685,15 @@ function render() {
           <span>Performance Review</span>
         </button>
 
-        <button class="nav-item ${state.view === 'outreach' ? 'active' : ''}" onclick="navigate('outreach')">
-          <span class="nav-icon">${icon('store', 18)}</span>
-          <span>Merchant Outreach</span>
-        </button>
-
-        <div class="nav-section-label" style="margin-top:12px">Learn</div>
         <button class="nav-item ${state.view === 'resources' ? 'active' : ''}" onclick="navigate('resources')">
           <span class="nav-icon">${icon('book-open', 18)}</span>
           <span>Resources</span>
+        </button>
+
+        <div class="nav-section-label" style="margin-top:12px">Work</div>
+        <button class="nav-item ${state.view === 'outreach' ? 'active' : ''}" onclick="navigate('outreach')">
+          <span class="nav-icon">${icon('store', 18)}</span>
+          <span>Merchant Outreach</span>
         </button>
       </nav>
 
@@ -6601,6 +6728,7 @@ function render() {
         ${state.view === 'values' ? renderCoreValues() : ''}
         ${state.view === 'value' ? renderCoreValueDetail() : ''}
         ${state.view === 'goals' ? renderGoals() : ''}
+        ${state.view === 'growth-plan' ? renderGrowthPlan() : ''}
         ${state.view === 'growth-theme' ? renderGrowthThemeDetail() : ''}
         ${state.view === 'personal-goal' ? renderPersonalGoalDetail() : ''}
         ${state.view === 'design-goal' ? renderDesignGoalDetail() : ''}
