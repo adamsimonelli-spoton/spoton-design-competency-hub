@@ -3541,9 +3541,9 @@ function renderReview() {
       </div>
       <div class="review-actions">
         <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-secondary" onclick="state.clearConfirm='skills';render()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap;color:#DC2626;border-color:#DC2626">${icon('trash-2',14,'#DC2626')} Clear all</button>
           <button class="btn btn-secondary" onclick="openImportModal('skill-matrix')" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import</button>
           <button class="btn btn-secondary" onclick="exportReviewCSV()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('download',14)} Export</button>
-          <button class="btn btn-secondary" onclick="state.clearConfirm='skills';render()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap;color:#DC2626;border-color:#DC2626">${icon('trash-2',14,'#DC2626')} Clear all</button>
         </div>
         ${renderNoteInputCard()}
       </div>
@@ -7895,8 +7895,8 @@ function renderEOYReview() {
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
           <h2 style="font-size:22px;font-weight:800;color:var(--text);margin:0">${escHtml(review.year)} Performance Review</h2>
           <div style="display:flex;gap:8px;align-items:center">
-            <button class="btn btn-secondary" onclick="openImportModal('perf-review')" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import</button>
             <button class="btn btn-secondary" onclick="state.clearConfirm='review';render()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap;color:#DC2626;border-color:#DC2626">${icon('trash-2',14,'#DC2626')} Clear all</button>
+            <button class="btn btn-secondary" onclick="openImportModal('perf-review')" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import</button>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:auto 1fr;gap:12px;margin-top:16px">
