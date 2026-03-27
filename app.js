@@ -1119,6 +1119,7 @@ let state = {
   aiSuggestModal: null,
   aiSuggestions: [],
   deleteConfirm: null,
+  clearConfirm: null,
 };
 
 // ============ STORAGE ============
@@ -3542,6 +3543,7 @@ function renderReview() {
         <div style="display:flex;gap:8px;align-items:center">
           <button class="btn btn-secondary" onclick="openImportModal('skill-matrix')" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import</button>
           <button class="btn btn-secondary" onclick="exportReviewCSV()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('download',14)} Export</button>
+          <button class="btn btn-secondary" onclick="state.clearConfirm='skills';render()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap;color:#DC2626;border-color:#DC2626">${icon('trash-2',14,'#DC2626')} Clear all</button>
         </div>
         ${renderNoteInputCard()}
       </div>
@@ -7016,6 +7018,7 @@ function render() {
     ${renderOutreachModal()}
     ${renderImportModal()}
     ${state.pinModal ? renderPinModal() : ''}
+    ${state.clearConfirm ? renderClearConfirmModal() : ''}
 
     ${renderNoteSuccessToast()}
     ${renderOutreachToast()}
@@ -7584,6 +7587,50 @@ function applyImportedData() {
   setTimeout(() => closeImportModal(), 2000);
 }
 
+function confirmClearSkills() {
+  const d = getData();
+  d.assessments = {};
+  saveData(d);
+  localStorage.removeItem('dch_expected_' + state.profile);
+  state.clearConfirm = null;
+  render();
+}
+function confirmClearReview() {
+  localStorage.removeItem('dch_review_' + state.profile);
+  state.clearConfirm = null;
+  render();
+}
+function renderClearConfirmModal() {
+  const m = state.clearConfirm;
+  if (!m) return '';
+  const isSkills = m === 'skills';
+  const label = isSkills ? 'skill assessments' : 'performance review';
+  const confirmFn = isSkills ? 'confirmClearSkills()' : 'confirmClearReview()';
+  return `
+    <div class="modal-overlay" onclick="if(event.target===this){state.clearConfirm=null;render()}" style="z-index:1200">
+      <div class="modal-box" onclick="event.stopPropagation()" style="max-width:420px">
+        <div class="insight-modal-header" style="border-bottom:1px solid var(--border)">
+          <div style="flex:1">
+            <div class="insight-modal-title" style="display:flex;align-items:center;gap:8px">
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:#FEF2F2;color:#DC2626">${icon('trash-2',15,'#DC2626')}</span>
+              Clear all ${label}
+            </div>
+          </div>
+          <button class="insight-modal-close" onclick="state.clearConfirm=null;render()" style="align-self:flex-start">✕</button>
+        </div>
+        <div style="padding:20px 24px">
+          <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin:0 0 12px">This will permanently delete all ${label} for this profile.</p>
+          <p style="font-size:12.5px;color:var(--text-muted);margin:0 0 24px">This can't be undone. You can re-import data at any time.</p>
+          <div style="display:flex;gap:10px;justify-content:flex-end">
+            <button class="btn btn-secondary btn-sm" onclick="state.clearConfirm=null;render()">Cancel</button>
+            <button class="btn btn-sm" style="background:#DC2626;color:#fff;border-color:#DC2626;font-weight:600" onclick="${confirmFn}">${icon('trash-2',13,'#fff')} Clear all</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderImportModal() {
   if (!state.importModal) return '';
   const closeable = state.importStep !== 2 && state.importStep !== 4;
@@ -7847,7 +7894,10 @@ function renderEOYReview() {
       <div style="margin-bottom:24px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
           <h2 style="font-size:22px;font-weight:800;color:var(--text);margin:0">${escHtml(review.year)} Performance Review</h2>
-          <button class="btn btn-secondary" onclick="openImportModal('perf-review')" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import</button>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn btn-secondary" onclick="openImportModal('perf-review')" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import</button>
+            <button class="btn btn-secondary" onclick="state.clearConfirm='review';render()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap;color:#DC2626;border-color:#DC2626">${icon('trash-2',14,'#DC2626')} Clear all</button>
+          </div>
         </div>
         <div style="display:grid;grid-template-columns:auto 1fr;gap:12px;margin-top:16px">
           <!-- Combined scores tile -->
