@@ -7379,8 +7379,8 @@ function parseColumnText(rawCol) {
       .filter(l => l.length > 20 && l.length < 600)
       .slice(0, 30);
   };
-  const accomplishments = extractBullets(/recognition\s*[&and]+\s*accomplishments[^\n]*([\s\S]{10,3000}?)(?:areas for|$)/i);
-  const improvements    = extractBullets(/areas for (?:improvement|development)[^\n]*([\s\S]{10,2000}?)(?:$)/i);
+  const accomplishments = extractBullets(/recognition\s*[&and]+\s*accomplishments[^\n]*([\s\S]{10,8000}?)(?:areas for|$)/i);
+  const improvements    = extractBullets(/areas for (?:improvement|development)[^\n]*([\s\S]{10,8000}?)(?:$)/i);
   return { ratings, totalWeightedAvg, accomplishments, improvements };
 }
 
@@ -7477,16 +7477,19 @@ const PERF_CAT_ANCHORS = {
 };
 
 // Find the rating keyword that appears EARLIEST in the text within `lookahead` chars.
-// Using earliest-position (not priority-order) prevents a higher-priority keyword from
-// a later question bleeding in and overriding the correct closer answer.
-function findRatingAt(lower, startPos, lookahead = 500) {
+// Falls back to Workday-style numeric badge "(N)" if keyword text is misread by OCR.
+function findRatingAt(lower, startPos, lookahead = 700) {
   const chunk = lower.slice(startPos, startPos + lookahead);
   let bestPos = Infinity, bestVal = null;
   for (const kw of PERF_RATING_KEYWORDS) {
     const ki = chunk.indexOf(kw);
     if (ki !== -1 && ki < bestPos) { bestPos = ki; bestVal = PERF_RATING_VALUES[kw]; }
   }
-  return bestVal;
+  if (bestVal !== null) return bestVal;
+  // Fallback: match Workday numeric badge "(N)" where N is 1–5 (rating scale)
+  const numMatch = chunk.match(/\(([1-5])\)/);
+  if (numMatch) return parseInt(numMatch[1]);
+  return null;
 }
 
 // For each category, collect every position where an anchor phrase appears (sorted asc).
