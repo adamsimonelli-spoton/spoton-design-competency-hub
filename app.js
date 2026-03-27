@@ -2361,7 +2361,7 @@ function renderHome() {
 
     // Theme 3: User advocacy as growth edge
     if (eoyReview.manager.improvements.some(i => /user|merchant|customer|empathy/i.test(i.headline))) {
-      insightBullets.push(`Strategic growth edge — ${mgrName} calls out a tendency to weigh aesthetics and feasibility over user advocacy. At the manager level, pushing harder for the user when PM or engineering pressure mounts is the mark of the next tier.`);
+      insightBullets.push(`Strategic growth edge — your manager calls out a tendency to weigh aesthetics and feasibility over user advocacy. At the manager level, pushing harder for the user when PM or engineering pressure mounts is the mark of the next tier.`);
     }
 
     // Theme 4: Speed as a shared, high-signal priority
@@ -7644,7 +7644,7 @@ function renderEOYReview() {
               </div>
               <div style="width:1px;height:52px;background:var(--border);flex-shrink:0"></div>
               <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
-                <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">${escHtml(review.manager.name)}</span>
+                <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Manager</span>
                 <span style="font-size:36px;font-weight:800;line-height:1;color:var(--text)">${mgrAvg}</span>
                 <div style="display:flex;gap:1px;margin-top:2px">${Array.from({length:5},(_,i)=>`<span style="color:${i<Math.round(parseFloat(mgrAvg))?'#F59E0B':'#CBD5E1'};font-size:11px;line-height:1">★</span>`).join('')}</div>
               </div>
@@ -7653,7 +7653,7 @@ function renderEOYReview() {
           <!-- Manager's Take tile -->
           <div class="analysis-card" style="min-width:0">
             <div class="analysis-card-header">
-              <div class="analysis-card-title">${escHtml(review.manager.name)}'s Take</div>
+              <div class="analysis-card-title">Manager's Take</div>
             </div>
             <div style="display:flex;gap:24px">
               <div style="flex:1;min-width:0">
@@ -7678,7 +7678,7 @@ function renderEOYReview() {
         <div style="display:grid;grid-template-columns:1fr 170px 170px 90px;padding:8px 16px;background:var(--bg);border-bottom:2px solid var(--border)">
           <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Category</span>
           <span style="font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.05em">Self</span>
-          <span style="font-size:11px;font-weight:700;color:#5B21B6;text-transform:uppercase;letter-spacing:.05em">${escHtml(review.manager.name)} <span style="font-weight:500;opacity:.65">(mgr)</span></span>
+          <span style="font-size:11px;font-weight:700;color:#5B21B6;text-transform:uppercase;letter-spacing:.05em">Manager</span>
           <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;text-align:center">Delta</span>
         </div>
         ${EOY_CATEGORY_GROUPS.map((group, gi) => `
@@ -7711,7 +7711,7 @@ function renderEOYReview() {
             ${renderItems(review.self.accomplishments)}
           </div>
           <div style="padding:20px 24px">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:14px">${escHtml(review.manager.name)}</div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:14px">Manager</div>
             ${renderItems(review.manager.accomplishments)}
           </div>
         </div>
@@ -7728,7 +7728,7 @@ function renderEOYReview() {
             ${renderItems(review.self.improvements)}
           </div>
           <div style="padding:20px 24px">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:14px">${escHtml(review.manager.name)}</div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:14px">Manager</div>
             ${renderItems(review.manager.improvements)}
           </div>
         </div>
