@@ -4577,8 +4577,9 @@ function renderGrowthThemeDetail() {
       </div>
 
       <!-- Header -->
-      <div style="margin-bottom:24px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px">
         <h1 style="font-size:22px;font-weight:800;color:var(--text);margin:0">${escHtml(t.theme)}</h1>
+        <button class="btn btn-secondary btn-sm" onclick="openGrowthThemeModal('${t.id}')" style="flex-shrink:0;white-space:nowrap">${icon('pencil',13)} Edit Theme</button>
       </div>
 
       <!-- Today / Better / Best -->
@@ -4640,6 +4641,7 @@ function renderGrowthThemeDetail() {
       </div>
 
       ${state.growthThemeLevelModal ? renderGrowthThemeLevelModal() : ''}
+      ${state.growthThemeModal === t.id ? renderGrowthThemeModal() : ''}
     </div>
   `;
 }
@@ -5458,6 +5460,14 @@ function openDesignGoalModal(id) { state.designGoalModal = id; render(); }
 function closeDesignGoalModal() { state.designGoalModal = null; render(); }
 function saveGrowthTheme(id) {
   const parse = elId => document.getElementById(elId)?.value.split('\n').map(s => s.trim()).filter(Boolean) || [];
+  let hasError = false;
+  ['gtm-today', 'gtm-better', 'gtm-best'].forEach(elId => {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (!el.value.trim()) { el.style.borderColor = 'var(--red)'; hasError = true; }
+    else el.style.borderColor = '';
+  });
+  if (hasError) return;
   const d = getData();
   const idx = (d.growthThemes || []).findIndex(x => x.id === id);
   if (idx === -1) return;
@@ -5623,7 +5633,14 @@ function saveGoalModal() {
   const kpi   = document.getElementById('gm-kpi')?.value.trim();
   const tf    = document.getElementById('gm-timeframe')?.value.trim();
   const status= document.getElementById('gm-status')?.value;
-  if (!goal) return;
+  let hasError = false;
+  [['gm-goal', goal], ['gm-kpi', kpi], ['gm-timeframe', tf]].forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!val) { el.style.borderColor = 'var(--red)'; hasError = true; }
+    else el.style.borderColor = '';
+  });
+  if (hasError) return;
   const newGoal = { id: `g_${Date.now()}`, goal, kpi, timeFrame: tf, status, notes: m.notes || '' };
   if (m.sectionId === 'personal') {
     const goals = getPersonalGoals();
