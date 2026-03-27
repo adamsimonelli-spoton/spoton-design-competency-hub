@@ -2440,19 +2440,25 @@ function renderHome() {
         <!-- Metric tiles -->
         ${hasAssessments && currentProfile?.role ? `
           <div class="analysis-counts-row">
-            <button class="analysis-count-chip analysis-count-gap" onclick="navigate('review');setReviewFilter('gap')">
-              <span class="analysis-count-label">skill gap${allGaps.length !== 1 ? 's' : ''}</span>
-              <span class="analysis-count-num">${allGaps.length}</span>
-            </button>
-            <button class="analysis-count-chip analysis-count-over" onclick="navigate('review');setReviewFilter('strength')">
-              <span class="analysis-count-label">overperforming</span>
-              <span class="analysis-count-num">${allOverperforming.length}</span>
-            </button>
-            ${allUnknown.length > 0 ? `
-            <button class="analysis-count-chip analysis-count-unknown" onclick="navigate('review');setReviewFilter('unknown')">
-              <span class="analysis-count-label">unknown</span>
-              <span class="analysis-count-num">${allUnknown.length}</span>
-            </button>` : ''}
+            <div class="skill-snapshot-card">
+              <div class="skill-snapshot-header">Skills Assessment</div>
+              <div class="skill-snapshot-stats">
+                <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('gap')">
+                  <span class="skill-snapshot-num" style="color:var(--red)">${allGaps.length}</span>
+                  <span class="skill-snapshot-label">Below Target</span>
+                </button>
+                <div class="skill-snapshot-divider"></div>
+                <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('strength')">
+                  <span class="skill-snapshot-num" style="color:var(--green)">${allOverperforming.length}</span>
+                  <span class="skill-snapshot-label">Above Target</span>
+                </button>
+                <div class="skill-snapshot-divider"></div>
+                <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('unknown')">
+                  <span class="skill-snapshot-num" style="color:#94A3B8">${allUnknown.length}</span>
+                  <span class="skill-snapshot-label">Not Assessed</span>
+                </button>
+              </div>
+            </div>
             ${(() => {
               const _firstName = (currentProfile?.name || '').split(' ')[0].toLowerCase();
               const _saved = (() => { try { return JSON.parse(localStorage.getItem('dch_review_' + state.profile)); } catch(e) { return null; } })();

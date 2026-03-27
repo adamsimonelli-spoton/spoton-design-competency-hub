@@ -553,6 +553,59 @@ body {
 .analysis-count-over .analysis-count-label { color: var(--green); }
 .analysis-count-unknown .analysis-count-num { color: #94A3B8; }
 .analysis-count-unknown .analysis-count-label { color: #94A3B8; }
+.skill-snapshot-card {
+  background: var(--surface);
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  flex: 2;
+}
+.skill-snapshot-header {
+  padding: 10px 16px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+.skill-snapshot-stats {
+  display: flex;
+}
+.skill-snapshot-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 8px 14px;
+  gap: 5px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  transition: background 0.12s;
+  text-decoration: none;
+}
+.skill-snapshot-stat:hover { background: var(--surface-2, #F8FAFC); }
+.skill-snapshot-divider {
+  width: 1px;
+  background: var(--border);
+  margin: 10px 0;
+  flex-shrink: 0;
+}
+.skill-snapshot-num {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1;
+}
+.skill-snapshot-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
 .analysis-empty {
   display: flex;
   flex-direction: column;
