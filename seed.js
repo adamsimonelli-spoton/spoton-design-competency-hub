@@ -493,8 +493,10 @@
     }
     return true;
   });
+  var deletedProfiles = JSON.parse(localStorage.getItem('dch_deleted_profiles') || '[]');
   var existingIds = existingProfiles.map(function(p) { return p.id; });
-  var newProfiles = seed['dch_profiles'].filter(function(p) { return existingIds.indexOf(p.id) === -1; });
+  // Don't re-add profiles that were deliberately deleted
+  var newProfiles = seed['dch_profiles'].filter(function(p) { return existingIds.indexOf(p.id) === -1 && deletedProfiles.indexOf(p.id) === -1; });
   var merged = existingProfiles.map(function(p) {
     var isExample = exampleIds.indexOf(p.id) !== -1;
     if (isExample && storedVersion < SEED_VERSION) {
@@ -515,8 +517,8 @@
     if (key === 'dch_profiles') return; // already handled above
     if (key === 'dch_current_profile' && localStorage.getItem(key)) return; // don't override active session
 
-    // For example profile data keys, re-seed if seed version is newer
-    var isExampleKey = exampleIds.some(function(id) { return key.indexOf(id) !== -1; });
+    // For example profile data keys, re-seed if seed version is newer (but not if deliberately deleted)
+    var isExampleKey = exampleIds.some(function(id) { return key.indexOf(id) !== -1 && deletedProfiles.indexOf(id) === -1; });
     if (isExampleKey && storedVersion < SEED_VERSION) {
       localStorage.setItem(key, typeof val === 'string' ? val : JSON.stringify(val));
     } else if (!localStorage.getItem(key)) {

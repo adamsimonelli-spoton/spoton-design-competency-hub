@@ -1310,7 +1310,11 @@ function avatarHtml(p, size = 36, fontSize = 13) {
 function deleteProfile(id) {
   const profiles = getProfiles().filter(p => p.id !== id);
   saveProfiles(profiles);
-  localStorage.removeItem(`dch_data_${id}`);
+  // Clear every localStorage key that belongs to this profile
+  Object.keys(localStorage).filter(k => k.includes(id)).forEach(k => localStorage.removeItem(k));
+  // Track deliberately-deleted IDs so seed.js won't re-add seed profiles
+  const deleted = JSON.parse(localStorage.getItem('dch_deleted_profiles') || '[]');
+  if (!deleted.includes(id)) { deleted.push(id); localStorage.setItem('dch_deleted_profiles', JSON.stringify(deleted)); }
 }
 function setCurrentProfile(id) {
   state.profile = id;
