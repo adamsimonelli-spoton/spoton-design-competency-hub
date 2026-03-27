@@ -6783,7 +6783,7 @@ function renderImportStep1() {
   return `
     <div>
       <h2 class="import-step-heading">Upload your documents</h2>
-      <p class="import-step-sub">Upload one or both. We'll extract the data and update your profile automatically. Accepts PDF, XLSX, CSV, PNG, or JPG.</p>
+      <p class="import-step-sub">${types.length > 1 ? 'Upload one or both. ' : ''}We'll extract the data and update your profile automatically. Accepts PDF, XLSX, CSV, PNG, or JPG.</p>
       <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px">
         ${types.map(({ id, label, iconName: iName }) => {
           const file = state.importFiles[id];
