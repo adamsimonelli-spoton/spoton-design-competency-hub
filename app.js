@@ -7562,15 +7562,12 @@ function renderEOYReview() {
     <div style="max-width:960px">
       <div style="margin-bottom:24px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-          <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
-            <h2 style="font-size:22px;font-weight:800;color:var(--text);margin:0">${escHtml(review.year)} Performance Review</h2>
-            <span style="font-size:13px;color:var(--text-muted)">${escHtml(currentProfile?.name || '')}${currentProfile?.role ? ' · ' + escHtml(shortRole(currentProfile.role)) : ''}</span>
-          </div>
+          <h2 style="font-size:22px;font-weight:800;color:var(--text);margin:0">${escHtml(review.year)} Performance Review</h2>
           <button class="btn btn-secondary" onclick="openImportModal('perf-review')" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import</button>
         </div>
-        <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;align-items:stretch">
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:12px;margin-top:16px">
           <!-- Combined scores tile -->
-          <div class="analysis-card" style="min-width:0;flex-shrink:0;height:auto">
+          <div class="analysis-card" style="min-width:0;flex-shrink:0">
             <div class="analysis-card-header">
               <div class="analysis-card-title">Review Scores</div>
             </div>
@@ -7589,7 +7586,7 @@ function renderEOYReview() {
             </div>
           </div>
           <!-- Manager's Take tile -->
-          <div class="analysis-card" style="flex:1;min-width:0;height:auto">
+          <div class="analysis-card" style="min-width:0">
             <div class="analysis-card-header">
               <div class="analysis-card-title">${escHtml(review.manager.name)}'s Take</div>
             </div>
