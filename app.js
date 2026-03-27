@@ -7460,6 +7460,44 @@ function renderImportStep1() {
           `;
         }).join('')}
       </div>
+      ${types.some(t => t.id === 'skill-matrix') ? `
+        <div style="background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:20px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px">Skill Matrix Format Guide</div>
+          <div style="font-size:12px;color:var(--text);line-height:1.6">
+            <div style="margin-bottom:8px">Your file needs these columns — headers are flexible but must match these patterns:</div>
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <th style="text-align:left;padding:4px 8px 6px 0;color:var(--text-muted);font-weight:600">Column</th>
+                  <th style="text-align:left;padding:4px 8px 6px;color:var(--text-muted);font-weight:600">Accepted headers</th>
+                  <th style="text-align:left;padding:4px 0 6px;color:var(--text-muted);font-weight:600">Required?</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom:1px solid #F1F5F9">
+                  <td style="padding:5px 8px 5px 0;font-weight:600">Skill name</td>
+                  <td style="padding:5px 8px;color:#475569">Skill, Skills, Competency, Competencies, Ability, Abilities, Name</td>
+                  <td style="padding:5px 0"><span style="background:#DCFCE7;color:#166534;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:600">Yes</span></td>
+                </tr>
+                <tr style="border-bottom:1px solid #F1F5F9">
+                  <td style="padding:5px 8px 5px 0;font-weight:600">Manager rating</td>
+                  <td style="padding:5px 8px;color:#475569">Must contain both <em>Manager</em> and <em>Assess</em> (e.g. "Manager Assessment")</td>
+                  <td style="padding:5px 0"><span style="background:#DCFCE7;color:#166534;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:600">Yes</span></td>
+                </tr>
+                <tr>
+                  <td style="padding:5px 8px 5px 0;font-weight:600">Expected level</td>
+                  <td style="padding:5px 8px;color:#475569">Role, Expected, or any header containing <em>Expected</em></td>
+                  <td style="padding:5px 0"><span style="background:#F1F5F9;color:#64748B;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:600">Optional</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+              <span style="font-weight:600">Valid level values:</span>
+              <span style="color:#475569"> Learner (or 1), Contributor (or 2), Independent (or 3), Expert (or 4), Unknown (or 0, blank, N/A)</span>
+            </div>
+          </div>
+        </div>
+      ` : ''}
       <div style="display:flex;justify-content:flex-end">
         <button class="btn btn-primary" onclick="startImportProcessing()" ${!canAdvanceToProcess() ? 'disabled' : ''}>Analyze Documents →</button>
       </div>
