@@ -2258,6 +2258,7 @@ function renderHome() {
     : assessedSkills.filter(s => assessments[s.id].managerLevel === 'Learner')
   ).slice().sort((a, b) => {
     const gapOf = s => {
+      if (assessments[s.id].managerLevel === 'Unknown') return 0;
       const exp = getExpectedLevelForSkill(s.id);
       return exp ? Math.max(getLevelOrder(exp) - getLevelOrder(assessments[s.id].managerLevel), 0) : 0;
     };
@@ -2529,8 +2530,9 @@ function renderHome() {
                 const exp = getExpectedLevelForSkill(s.id);
                 const mgrOrder = getLevelOrder(assessments[s.id].managerLevel);
                 const expOrder = exp ? getLevelOrder(exp) : mgrOrder;
-                const isGap = mgrOrder < expOrder;
-                const isOver = mgrOrder > expOrder;
+                const isUnknown = assessments[s.id].managerLevel === 'Unknown';
+                const isGap = !isUnknown && mgrOrder < expOrder;
+                const isOver = !isUnknown && mgrOrder > expOrder;
                 const gapDiff = isGap ? expOrder - mgrOrder : isOver ? mgrOrder - expOrder : 0;
                 const gapHtml = isGap
                   ? `<span class="review-gap-badge review-gap-under-${Math.min(gapDiff,3)}">−${gapDiff}</span>`
@@ -3453,8 +3455,8 @@ function renderReview() {
                 const expLc = expectedLevel ? LEVEL_CONFIG[expectedLevel] : null;
                 const mgrLc = a.managerLevel ? LEVEL_CONFIG[a.managerLevel] : null;
                 const mgrOrder = getLevelOrder(a.managerLevel), expOrder = getLevelOrder(expectedLevel);
-                const isGap = expectedLevel && a.managerLevel && mgrOrder < expOrder;
-                const isOver = expectedLevel && a.managerLevel && mgrOrder > expOrder;
+                const isGap = expectedLevel && a.managerLevel && a.managerLevel !== 'Unknown' && mgrOrder < expOrder;
+                const isOver = expectedLevel && a.managerLevel && a.managerLevel !== 'Unknown' && mgrOrder > expOrder;
                 const gapDiff = isGap ? expOrder - mgrOrder : isOver ? mgrOrder - expOrder : 0;
                 return `
                   <tr>
