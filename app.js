@@ -3969,7 +3969,7 @@ function renderOutreachWidget() {
         </div>
         <div class="outreach-widget-compact-footer" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
           <div style="font-size:13px;font-weight:600;color:${hveOk ? 'var(--green)' : 'var(--text-muted)'}">
-            ${hveOk ? '✓ HVE done!' : '○ HVE due this month'}
+            ${hveOk ? '✓ HVE done!' : `<span style="display:inline-flex;align-items:center;gap:5px">${icon('alert-triangle', 13, 'var(--text-muted)')} HVE due this month</span>`}
           </div>
           <button class="btn btn-secondary btn-sm" onclick="openOutreachModal(null)">Log Outreach</button>
         </div>
