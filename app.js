@@ -1256,7 +1256,7 @@ function openValueNotesModal(valueId) {
 function saveValueNotes(valueId) {
   const v = getValueRating(valueId);
   const el = document.getElementById(`cv-notes-${valueId}`);
-  if (el) v.notes = el.value;
+  if (el) v.notes = el.tagName === 'TEXTAREA' ? el.value : el.innerHTML;
   saveValueRating(valueId, v);
   const ind = document.getElementById(`cv-saved-${valueId}`);
   if (ind) { ind.style.opacity = '1'; setTimeout(() => { ind.style.opacity = '0'; }, 1500); }
@@ -1358,6 +1358,34 @@ function getInitials(name) {
 function escHtml(str) {
   if (!str) return '';
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+// Convert stored value (plain text or HTML) to innerHTML-safe content for contenteditable
+function toRteHtml(val) {
+  if (!val) return '';
+  if (/<[a-z][^>]*>/i.test(val)) return val; // already HTML
+  return escHtml(val).replace(/\n/g, '<br>');
+}
+// Render a rich text editor widget
+function rte(id, val, onInputExpr, placeholder, minHeight = '120px') {
+  const b = (cmd, label, title) =>
+    `<button class="rte-btn" title="${title}" onmousedown="event.preventDefault();document.execCommand('${cmd}')">${label}</button>`;
+  return `
+    <div class="rte-wrap">
+      <div class="rte-toolbar">
+        ${b('bold',   '<b>B</b>',   'Bold')}
+        ${b('italic', '<i>I</i>',   'Italic')}
+        <div class="rte-divider"></div>
+        ${b('insertUnorderedList', '&#8226;&nbsp;&#8212;', 'Bullet list')}
+        ${b('insertOrderedList',   '1.', 'Numbered list')}
+      </div>
+      <div class="rte-body" id="${id}" contenteditable="true"
+           data-placeholder="${placeholder}"
+           style="min-height:${minHeight}"
+           oninput="${onInputExpr}"
+           onblur="${onInputExpr}"
+      >${toRteHtml(val)}</div>
+    </div>
+  `;
 }
 const EXTERNAL_LINK_ICON = `<svg width="11" height="11" viewBox="0 0 256 256" fill="currentColor" style="flex-shrink:0;opacity:.55;margin-left:4px;vertical-align:middle;position:relative;top:-1px" aria-hidden="true"><path d="M224,104a8,8,0,0,1-16,0V59.32l-82.34,82.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"/></svg>`;
 function getAntiPatternForLevel(skill, level) {
@@ -1818,13 +1846,15 @@ function saveNotePreview() {
   const noteEntry = `[${date}] ${text}`;
   selected.forEach(m => {
     const existing = getAssessment(m.skillId);
-    const newEvidence = existing.evidence ? `${existing.evidence}\n\n${noteEntry}` : noteEntry;
+    const newEvidence = existing.evidence
+      ? existing.evidence + `<p>${escHtml(noteEntry)}</p>`
+      : `<p>${escHtml(noteEntry)}</p>`;
     const newImages = [...(existing.evidenceImages || []), ..._noteModalImages];
     saveAssessment(m.skillId, { ...existing, evidence: newEvidence, evidenceImages: newImages });
   });
   cvMatches.filter(c => c.selected).forEach(cv => {
     const v = getValueRating(cv.id);
-    v.notes = v.notes ? v.notes + '\n\n' + noteEntry : noteEntry;
+    v.notes = v.notes ? v.notes + `<p>${escHtml(noteEntry)}</p>` : `<p>${escHtml(noteEntry)}</p>`;
     saveValueRating(cv.id, v);
   });
   _noteModalImages = [];
@@ -2899,7 +2929,7 @@ function renderSkillDetail() {
           <div class="panel-body">
             <div class="form-group">
               <label class="form-label" for="evidence-input">Evidence &amp; Examples</label>
-              <textarea class="form-textarea" id="evidence-input" placeholder="Describe specific examples from your work that demonstrate this skill..." rows="8" oninput="debounceAssessmentField('${skill.id}','evidence',this.value)">${escHtml(assessment.evidence || '')}</textarea>
+              ${rte('evidence-input', assessment.evidence || '', `debounceAssessmentField('${skill.id}','evidence',this.innerHTML)`, 'Describe specific examples from your work that demonstrate this skill...', '160px')}
               <label class="notes-upload-zone" style="margin:8px 0 0">
                 <input type="file" accept="image/*" multiple style="display:none" onchange="handleDetailImageUpload(this,'evidence','${skill.id}')" />
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
@@ -2915,7 +2945,7 @@ function renderSkillDetail() {
             </div>
             <div class="form-group">
               <label class="form-label" for="goals-input">Notes</label>
-              <textarea class="form-textarea" id="goals-input" placeholder="Goals, action items, things to work on…" rows="5" oninput="debounceAssessmentField('${skill.id}','goals',this.value)">${escHtml(assessment.goals || '')}</textarea>
+              ${rte('goals-input', assessment.goals || '', `debounceAssessmentField('${skill.id}','goals',this.innerHTML)`, 'Goals, action items, things to work on…', '100px')}
             </div>
             <div style="height:4px;display:flex;align-items:center;padding:0 0 8px">
               <span class="save-indicator" id="save-indicator">✓ Saved</span>
@@ -4343,8 +4373,8 @@ function renderCoreValueDetail() {
           </div>
           <div class="panel-body">
             <div class="form-group">
-              <label class="form-label" for="cv-notes-${cv.id}">Evidence &amp; Examples</label>
-              <textarea class="form-textarea" id="cv-notes-${cv.id}" rows="8" placeholder="Add notes, examples, or evidence for this core value…" oninput="debounceSaveValueNotes('${cv.id}',this.value)">${escHtml(v.notes || '')}</textarea>
+              <label class="form-label">Evidence &amp; Examples</label>
+              ${rte(`cv-notes-${cv.id}`, v.notes || '', `debounceSaveValueNotes('${cv.id}',this.innerHTML)`, 'Add notes, examples, or evidence for this core value…', '160px')}
             </div>
             <div style="height:4px;display:flex;align-items:center;padding:0 0 8px">
               <span class="save-indicator" id="cv-save-indicator">✓ Saved</span>
@@ -5840,8 +5870,7 @@ function renderGrowthPlan() {
   const sweetCard = (field, label, placeholder, bg, border, labelColor) => `
     <div style="background:${bg};border:1.5px solid ${border};border-radius:10px;padding:16px 18px">
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${labelColor};margin-bottom:10px">${label}</div>
-      <textarea oninput="saveGrowthPlanField('${field}',this.value)" placeholder="${placeholder}"
-        style="${TA_BASE}min-height:86px">${escHtml(gp[field] || '')}</textarea>
+      ${rte(`gp-${field}`, gp[field] || '', `saveGrowthPlanField('${field}',this.innerHTML)`, placeholder, '86px')}
     </div>`;
 
   const headlineRow = (n, field, placeholder) => `
@@ -5851,9 +5880,8 @@ function renderGrowthPlan() {
         style="flex:1;border:none;outline:none;font-size:13px;color:var(--text);background:transparent;font-family:inherit;padding:2px 0" />
     </div>`;
 
-  const supportCell = (field, placeholder) => `
-    <textarea oninput="saveGrowthPlanField('${field}',this.value)" placeholder="${placeholder}"
-      style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;resize:none;font-size:13px;color:var(--text);line-height:1.6;min-height:74px;font-family:inherit;outline:none;box-sizing:border-box;background:var(--bg)">${escHtml(gp[field] || '')}</textarea>`;
+  const supportCell = (field, placeholder) =>
+    rte(`gp-${field}`, gp[field] || '', `saveGrowthPlanField('${field}',this.innerHTML)`, placeholder, '74px');
 
   return `
     <div style="max-width:800px">
@@ -5893,10 +5921,7 @@ function renderGrowthPlan() {
         ${sectionNum(3)}
         ${sectionTitle('Defining your strengths and growth areas')}
         ${sectionDesc("Think about the skills you need to reach those headlines. Which are genuine strengths? Which need investment? Which just need to hold steady? Be specific — this is for you and your manager, not for scoring.")}
-        <textarea oninput="saveGrowthPlanField('strengthsGrowth',this.value)"
-          placeholder="Where are you strong? Where do you want to grow? What do you just need to stabilise?"
-          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;resize:none;font-size:13px;color:var(--text);line-height:1.6;min-height:120px;font-family:inherit;outline:none;box-sizing:border-box"
-        >${escHtml(gp.strengthsGrowth || '')}</textarea>
+        ${rte('gp-strengthsGrowth', gp.strengthsGrowth || '', `saveGrowthPlanField('strengthsGrowth',this.innerHTML)`, 'Where are you strong? Where do you want to grow? What do you just need to stabilise?', '120px')}
       </div>
 
       <!-- 04 What I need to get there -->
@@ -5953,10 +5978,7 @@ function renderGrowthPlan() {
               </li>`).join('')}
           </ul>
         </div>
-        <textarea oninput="saveGrowthPlanField('oneOnOne',this.value)"
-          placeholder="What does a good 1:1 look like for you? What do you need from your manager that you're not currently getting? What cadence and channel works best?"
-          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;resize:none;font-size:13px;color:var(--text);line-height:1.6;min-height:100px;font-family:inherit;outline:none;box-sizing:border-box"
-        >${escHtml(gp.oneOnOne || '')}</textarea>
+        ${rte('gp-oneOnOne', gp.oneOnOne || '', `saveGrowthPlanField('oneOnOne',this.innerHTML)`, "What does a good 1:1 look like for you? What do you need from your manager that you're not currently getting? What cadence and channel works best?", '100px')}
       </div>
 
     </div>
