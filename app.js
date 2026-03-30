@@ -7370,17 +7370,24 @@ function parseColumnText(rawCol) {
   }
   const twaMatch = lower.match(/total\s+weighted\s+average\s*[:\s]+(\d+\.\d+)/);
   const totalWeightedAvg = twaMatch ? parseFloat(twaMatch[1]) : null;
-  const extractBullets = (pattern) => {
-    const m = rawCol.match(pattern);
-    if (!m?.[1]) return [];
-    return m[1]
-      .split(/\n|(?:[•●○*]|-{1,2}|—)(?=\s)/)
-      .map(l => l.replace(/[^\w\s.,!?'"();:\-–—@#$%&]/g, ' ').replace(/\s{2,}/g, ' ').trim())
-      .filter(l => l.length > 20 && l.length < 600)
+  // Position-based section extraction — avoids [^\n]* consuming content when OCR has no newlines
+  const extractSection = (startWord, endWord, skipSentences = 2) => {
+    const idx = lower.indexOf(startWord);
+    if (idx === -1) return [];
+    // Skip past header by counting sentence-ending periods
+    let pos = idx, dots = 0;
+    while (pos < lower.length && dots < skipSentences) { if (lower[pos] === '.') dots++; pos++; }
+    const endIdx = endWord ? lower.indexOf(endWord, pos) : lower.length;
+    const body = lower.slice(pos, endIdx > pos ? endIdx : lower.length).trim();
+    if (body.length < 20) return [];
+    return body
+      .split(/\.\s+/)
+      .map(s => s.replace(/\s+/g, ' ').trim())
+      .filter(s => s.length > 25 && s.length < 800)
       .slice(0, 30);
   };
-  const accomplishments = extractBullets(/recognition.{0,15}accomplishments[^\n]*([\s\S]{10,8000}?)(?:areas for|$)/i);
-  const improvements    = extractBullets(/areas for.{0,30}(?:improvement|development)[^\n]*([\s\S]{10,8000}?)$/i);
+  const accomplishments = extractSection('accomplishments', 'areas for', 2);
+  const improvements    = extractSection('areas for', null, 1);
   // Debug: log what was found to help diagnose issues
   const engagementIdx = lower.indexOf('employee engagement');
   const psyIdx = lower.indexOf('psychological safety');
@@ -7486,7 +7493,7 @@ const PERF_CAT_ANCHORS = {
   we_deliver:        ['we deliver:', 'we: deliver', 'create solutions, not excuses', 'core value - we deliver'],
   we_learn:          ['we learn:', 'we: learn', 'take risks to find better', 'core value - we learn'],
   we_care:           ['we care:', 'we: care', 'hospitality mindset', 'core value - we care'],
-  engagement:        ['promote cultures of psychological safety', 'employee engagement', 'psychological safety and recognition', 'retention issues are addressed', 'promote engagement'],
+  engagement:        ['psychological safety', 'promote cultures of psychological safety', 'employee engagement', 'psychological safety and recognition', 'retention issues are addressed', 'promote engagement'],
   team_performance:  ['promote team performance', 'team performance', 'delegate to their teams'],
   feedback_coaching: ['feedback and coaching', 'feedback & coaching', 'provide regular feedback'],
 };
