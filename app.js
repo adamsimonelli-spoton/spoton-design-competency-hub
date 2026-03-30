@@ -7954,171 +7954,138 @@ function closeQuickWinModal() { state.quickWinModal = null; render(); }
 
 
 // ============ EOY REVIEW VIEW ============
+function saveEoyReview(updater) {
+  const key = 'dch_review_' + state.profile;
+  let r;
+  try { r = JSON.parse(localStorage.getItem(key)); } catch(e) {}
+  if (!r) r = { year: new Date().getFullYear().toString(), self: { totalWeightedAvg: null, ratings: {}, accomplishments: [], improvements: [] }, manager: { name: 'Manager', totalWeightedAvg: null, ratings: {}, accomplishments: [], improvements: [] } };
+  if (!r.self) r.self = { totalWeightedAvg: null, ratings: {}, accomplishments: [], improvements: [] };
+  if (!r.manager) r.manager = { name: 'Manager', totalWeightedAvg: null, ratings: {}, accomplishments: [], improvements: [] };
+  updater(r);
+  localStorage.setItem(key, JSON.stringify(r));
+}
+function saveEoyYear(val) { saveEoyReview(r => r.year = val); }
+function saveEoyScore(who, val) { saveEoyReview(r => r[who].totalWeightedAvg = (val !== '' && val != null) ? parseFloat(val) : null); }
+function saveEoyRating(cat, who, val) { saveEoyReview(r => { if (!r[who].ratings) r[who].ratings = {}; if (val) r[who].ratings[cat] = parseInt(val); else delete r[who].ratings[cat]; }); }
+function saveEoyText(field, who, val) { saveEoyReview(r => { r[who][field] = val ? [{ headline: val, bullets: [] }] : []; }); }
+function getEoyText(review, who, field) {
+  const items = review?.[who]?.[field];
+  if (!items || !items.length) return '';
+  return items.map(i => [i.headline, ...(i.bullets || [])].filter(Boolean).join('\n')).join('\n\n');
+}
+
 function renderEOYReview() {
-  const profiles = getProfiles();
-  const currentProfile = profiles.find(p => p.id === state.profile);
-  const profileFirstName = (currentProfile?.name || '').split(' ')[0].toLowerCase();
-  const _savedReview = (() => { try { return JSON.parse(localStorage.getItem('dch_review_' + state.profile)); } catch(e) { return null; } })();
-  const review = _savedReview || null;
-  if (!review) return `
-    <div style="padding:48px;text-align:center">
-      <div style="font-size:14px;color:var(--text-muted);margin-bottom:16px">No performance review data available yet.</div>
-      <button class="btn btn-secondary" onclick="openImportModal('perf-review')" style="font-size:13px;display:inline-flex;align-items:center;gap:6px">${icon('upload',14)} Import Performance Review</button>
-    </div>
-  `;
-  const tab = state.eoyTextTab || 'self';
-  const tabData = tab === 'self' ? review.self : review.manager;
+  const key = 'dch_review_' + state.profile;
+  let review;
+  try { review = JSON.parse(localStorage.getItem(key)); } catch(e) {}
+  review = review || null;
 
-  const ratingBadge = (n) => {
-    const rc = EOY_RATING_CONFIG[n];
-    return `<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:20px;font-size:12px;font-weight:600;color:${rc.color};background:${rc.bg};border:1px solid ${rc.border}"><span style="font-size:14px;font-weight:800;line-height:1">${n}</span><span>${rc.short}</span></span>`;
+  const r = review || { year: new Date().getFullYear().toString(), self: { totalWeightedAvg: null, ratings: {}, accomplishments: [], improvements: [] }, manager: { name: 'Manager', totalWeightedAvg: null, ratings: {}, accomplishments: [], improvements: [] } };
+
+  const selfRatings = r.self?.ratings || {};
+  const mgrRatings = r.manager?.ratings || {};
+  const selfTWA = r.self?.totalWeightedAvg != null ? r.self.totalWeightedAvg : '';
+  const mgrTWA = r.manager?.totalWeightedAvg != null ? r.manager.totalWeightedAvg : '';
+  const selfAccomplish = escHtml(getEoyText(r, 'self', 'accomplishments'));
+  const mgrAccomplish = escHtml(getEoyText(r, 'manager', 'accomplishments'));
+  const selfImprove = escHtml(getEoyText(r, 'self', 'improvements'));
+  const mgrImprove = escHtml(getEoyText(r, 'manager', 'improvements'));
+
+  const ratingSelect = (catId, who, currentVal) => {
+    const opts = ['<option value="">\u2014</option>'].concat([1,2,3,4,5].map(n => {
+      const rc = EOY_RATING_CONFIG[n];
+      return '<option value="' + n + '"' + (parseInt(currentVal) === n ? ' selected' : '') + '>' + n + ' \u2013 ' + rc.label + '</option>';
+    })).join('');
+    return '<select onchange="saveEoyRating(\'' + catId + '\',\'' + who + '\',this.value)" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);width:100%;max-width:210px">' + opts + '</select>';
   };
 
-  const deltaChip = (self, mgr) => {
-    const diff = self - mgr;
-    if (diff === 0) return `<span style="color:var(--text-muted);font-size:12px;font-weight:500">—</span>`;
-    if (diff > 0) return `<span style="font-size:11px;font-weight:600;color:#92400E;background:#FFF7ED;border:1px solid #FED7AA;border-radius:20px;padding:4px 8px">Self +${diff}</span>`;
-    return `<span style="font-size:11px;font-weight:600;color:#2563EB;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:20px;padding:4px 8px">Mgr +${Math.abs(diff)}</span>`;
-  };
+  let rowNum = 0;
+  const tableRows = EOY_CATEGORY_GROUPS.map((group, gi) => {
+    const groupHeader = '<div style="padding:8px 16px;background:var(--bg);' + (gi > 0 ? 'border-top:2px solid var(--border);' : '') + 'font-size:10px;font-weight:700;color:var(--text-secondary);letter-spacing:.07em;text-transform:uppercase">' + escHtml(group.label) + '</div>';
+    const catRows = group.categories.map((cat, ci) => {
+      rowNum++;
+      const isLast = ci === group.categories.length - 1;
+      return '<div style="display:grid;grid-template-columns:1fr 220px 220px;align-items:center;padding:10px 16px;' + (!isLast ? 'border-bottom:1px solid var(--border);' : '') + '">' +
+        '<div style="display:flex;gap:10px;align-items:flex-start">' +
+          '<span style="font-size:12px;font-weight:700;color:var(--text-muted);min-width:22px;padding-top:2px">(' + rowNum + ')</span>' +
+          '<div>' +
+            '<div style="font-size:13px;font-weight:600;color:var(--text)">' + escHtml(cat.label) + '</div>' +
+            '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;line-height:1.4">' + escHtml(cat.desc) + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="padding-right:8px">' + ratingSelect(cat.id, 'self', selfRatings[cat.id]) + '</div>' +
+        '<div>' + ratingSelect(cat.id, 'manager', mgrRatings[cat.id]) + '</div>' +
+      '</div>';
+    }).join('');
+    return groupHeader + catRows;
+  }).join('');
 
-  const renderItems = (items) => items.map(item => `
-    <div style="margin-bottom:16px">
-      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">• ${escHtml(item.headline)}</div>
-      <ul style="margin:0 0 0 8px;padding:0;list-style:none">
-        ${item.bullets.map(b => `<li style="position:relative;padding-left:12px;font-size:12.5px;color:var(--text-secondary);line-height:1.65;margin-bottom:4px"><span style="position:absolute;left:0;top:8px;width:4px;height:4px;border-radius:50%;background:var(--text-muted)"></span>${escHtml(b)}</li>`).join('')}
-      </ul>
-    </div>
-  `).join('');
-
-  const allSelfRatings = Object.values(review.self.ratings);
-  const allMgrRatings = Object.values(review.manager.ratings);
-  const selfAvgNum = review.self.totalWeightedAvg != null
-    ? review.self.totalWeightedAvg
-    : (allSelfRatings.reduce((a,b)=>a+b,0) / allSelfRatings.length);
-  const mgrAvgNum = review.manager.totalWeightedAvg != null
-    ? review.manager.totalWeightedAvg
-    : (allMgrRatings.reduce((a,b)=>a+b,0) / allMgrRatings.length);
-  const selfAvg = review.self.totalWeightedAvg != null ? selfAvgNum.toFixed(3) : selfAvgNum.toFixed(1);
-  const mgrAvg = review.manager.totalWeightedAvg != null ? mgrAvgNum.toFixed(3) : mgrAvgNum.toFixed(1);
-  const levelCounts = [1,2,3,4,5].map(n => ({ n, count: allMgrRatings.filter(r => r === n).length, ...EOY_RATING_CONFIG[n] }));
+  const taStyle = 'width:100%;min-height:160px;font-size:12.5px;line-height:1.6;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:10px 12px;background:var(--bg);resize:vertical;font-family:inherit;box-sizing:border-box';
 
   return `
     <div style="max-width:960px">
-      <div style="margin-bottom:24px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-          <h2 style="font-size:22px;font-weight:800;color:var(--text);margin:0">${escHtml(review.year)} Performance Review</h2>
-          <div style="display:flex;gap:8px;align-items:center">
-            <button class="btn btn-secondary" onclick="state.clearConfirm='review';render()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap;color:#DC2626;border-color:#DC2626">${icon('trash-2',14,'#DC2626')} Clear all</button>
-            <button class="btn btn-secondary" onclick="openImportModal('perf-review')" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import</button>
-          </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:24px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <h2 style="font-size:22px;font-weight:800;color:var(--text);margin:0">Performance Review</h2>
+          <select onchange="saveEoyYear(this.value)" style="font-size:14px;font-weight:600;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text)">
+            ${[2026,2025,2024,2023].map(y => `<option value="${y}" ${r.year === String(y) ? 'selected' : ''}>${y}</option>`).join('')}
+          </select>
         </div>
-        <div style="display:grid;grid-template-columns:auto 1fr;gap:12px;margin-top:16px">
-          <!-- Combined scores tile -->
-          <div class="analysis-card" style="min-width:0;flex-shrink:0">
-            <div class="analysis-card-header">
-              <div class="analysis-card-title">Review Scores</div>
-            </div>
-            <div style="display:flex;gap:20px;align-items:center">
-              <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
-                <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Self</span>
-                <span style="font-size:36px;font-weight:800;line-height:1;color:var(--text)">${selfAvg}</span>
-                <div style="display:flex;gap:1px;margin-top:2px">${Array.from({length:5},(_,i)=>`<span style="color:${i<Math.round(selfAvgNum)?'#F59E0B':'#CBD5E1'};font-size:11px;line-height:1">★</span>`).join('')}</div>
-              </div>
-              <div style="width:1px;height:52px;background:var(--border);flex-shrink:0"></div>
-              <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
-                <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Manager</span>
-                <span style="font-size:36px;font-weight:800;line-height:1;color:var(--text)">${mgrAvg}</span>
-                <div style="display:flex;gap:1px;margin-top:2px">${Array.from({length:5},(_,i)=>`<span style="color:${i<Math.round(mgrAvgNum)?'#F59E0B':'#CBD5E1'};font-size:11px;line-height:1">★</span>`).join('')}</div>
-              </div>
-            </div>
-          </div>
-          <!-- Manager's Take tile -->
-          <div class="analysis-card" style="min-width:0">
-            <div class="analysis-card-header">
-              <div class="analysis-card-title">Manager's Take</div>
-            </div>
-            <div style="display:flex;gap:24px">
-              <div style="flex:1;min-width:0">
-                <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Strengths</div>
-                <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px">
-                  ${review.manager.accomplishments.slice(0,2).map(a => `<li style="font-size:12px;color:var(--text-secondary);line-height:1.45;padding-left:12px;position:relative"><span style="position:absolute;left:0;top:5px;width:5px;height:5px;border-radius:50%;background:#D1D5DB"></span>${escHtml(a.headline)}</li>`).join('')}
-                </ul>
-              </div>
-              <div style="width:1px;background:var(--border);flex-shrink:0"></div>
-              <div style="flex:1;min-width:0">
-                <div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Growth Areas</div>
-                <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px">
-                  ${review.manager.improvements.slice(0,2).map(a => `<li style="font-size:12px;color:var(--text-secondary);line-height:1.45;padding-left:12px;position:relative"><span style="position:absolute;left:0;top:5px;width:5px;height:5px;border-radius:50%;background:#D1D5DB"></span>${escHtml(a.headline)}</li>`).join('')}
-                </ul>
-              </div>
-            </div>
-          </div>
+        <button class="btn btn-secondary" onclick="state.clearConfirm='review';render()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap;color:#DC2626;border-color:#DC2626">${icon('trash-2',14,'#DC2626')} Clear all</button>
+      </div>
+
+      <!-- TWA score inputs -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+        <div class="analysis-card" style="margin:0">
+          <div class="analysis-card-header"><div class="analysis-card-title">Self — Total Weighted Average</div></div>
+          <input type="number" step="0.001" min="1" max="5" value="${selfTWA}" onblur="saveEoyScore('self',this.value)" placeholder="e.g. 3.875" style="width:100%;font-size:28px;font-weight:800;color:var(--text);border:none;border-bottom:2px solid var(--border);outline:none;background:transparent;padding:4px 0;margin-top:4px" />
+        </div>
+        <div class="analysis-card" style="margin:0">
+          <div class="analysis-card-header"><div class="analysis-card-title">Manager — Total Weighted Average</div></div>
+          <input type="number" step="0.001" min="1" max="5" value="${mgrTWA}" onblur="saveEoyScore('manager',this.value)" placeholder="e.g. 3.875" style="width:100%;font-size:28px;font-weight:800;color:var(--text);border:none;border-bottom:2px solid var(--border);outline:none;background:transparent;padding:4px 0;margin-top:4px" />
         </div>
       </div>
 
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:32px;overflow:hidden;box-shadow:var(--shadow-sm)">
-        <div style="display:grid;grid-template-columns:1fr 170px 170px 90px;padding:8px 16px;background:var(--bg);border-bottom:2px solid var(--border)">
+      <!-- Ratings table -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:24px;overflow:hidden;box-shadow:var(--shadow-sm)">
+        <div style="display:grid;grid-template-columns:1fr 220px 220px;padding:8px 16px;background:var(--bg);border-bottom:2px solid var(--border)">
           <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Category</span>
-          <span style="font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.05em">Self</span>
-          <span style="font-size:11px;font-weight:700;color:#5B21B6;text-transform:uppercase;letter-spacing:.05em">Manager</span>
-          <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;text-align:center">Delta</span>
+          <span style="font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.05em">Self Rating</span>
+          <span style="font-size:11px;font-weight:700;color:#5B21B6;text-transform:uppercase;letter-spacing:.05em">Manager Rating</span>
         </div>
-        ${(() => {
-          let rowNum = 0;
-          return EOY_CATEGORY_GROUPS.map((group, gi) => `
-            <div style="padding:8px 16px;background:var(--bg);${gi > 0 ? 'border-top:1px solid var(--border);' : ''}font-size:10px;font-weight:700;color:var(--text-secondary);letter-spacing:.07em;text-transform:uppercase">${escHtml(group.label)}</div>
-            ${group.categories.map((cat, ci) => {
-              rowNum++;
-              const selfR = review.self.ratings[cat.id];
-              const mgrR = review.manager.ratings[cat.id];
-              const isLast = ci === group.categories.length - 1;
-              return `<div style="display:grid;grid-template-columns:1fr 170px 170px 90px;align-items:center;padding:12px 16px;${!isLast ? 'border-bottom:1px solid var(--border);' : ''}">
-                <div style="display:flex;gap:10px;align-items:flex-start">
-                  <span style="font-size:12px;font-weight:700;color:var(--text-muted);min-width:18px;padding-top:1px">(${rowNum})</span>
-                  <div>
-                    <div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(cat.label)}</div>
-                    <div style="font-size:11.5px;color:var(--text-muted);margin-top:4px;line-height:1.4">${escHtml(cat.desc)}</div>
-                  </div>
-                </div>
-                <div>${ratingBadge(selfR)}</div>
-                <div>${ratingBadge(mgrR)}</div>
-                <div style="text-align:center">${deltaChip(selfR, mgrR)}</div>
-              </div>`;
-            }).join('')}
-          `).join('');
-        })()}
+        ${tableRows}
       </div>
 
-      <!-- Recognition & Accomplishments: side-by-side -->
-      <div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:16px;overflow:hidden">
-        <div style="padding:16px 24px;border-bottom:1px solid var(--border)">
-          <div style="font-size:16px;font-weight:700;color:var(--text)"><span style="color:var(--text-muted);font-weight:600;margin-right:8px">(11)</span>Recognition &amp; Accomplishments</div>
+      <!-- Item 11: Recognition & Accomplishments -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;overflow:hidden;box-shadow:var(--shadow-sm)">
+        <div style="padding:14px 20px;border-bottom:1px solid var(--border)">
+          <div style="font-size:15px;font-weight:700;color:var(--text)"><span style="color:var(--text-muted);font-weight:600;margin-right:8px">(11)</span>Recognition &amp; Accomplishments</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr">
-          <div style="padding:20px 24px;border-right:1px solid var(--border)">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);margin-bottom:14px">Self</div>
-            ${renderItems(review.self.accomplishments)}
+          <div style="padding:16px 20px;border-right:1px solid var(--border)">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);margin-bottom:8px">Self</div>
+            <textarea onblur="saveEoyText('accomplishments','self',this.value)" placeholder="Paste your self-reflection on key accomplishments..." style="${taStyle}">${selfAccomplish}</textarea>
           </div>
-          <div style="padding:20px 24px">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:14px">Manager</div>
-            ${renderItems(review.manager.accomplishments)}
+          <div style="padding:16px 20px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:8px">Manager</div>
+            <textarea onblur="saveEoyText('accomplishments','manager',this.value)" placeholder="Paste manager feedback on accomplishments..." style="${taStyle}">${mgrAccomplish}</textarea>
           </div>
         </div>
       </div>
 
-      <!-- Areas for Development: side-by-side -->
-      <div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:32px;overflow:hidden">
-        <div style="padding:16px 24px;border-bottom:1px solid var(--border)">
-          <div style="font-size:16px;font-weight:700;color:var(--text)"><span style="color:var(--text-muted);font-weight:600;margin-right:8px">(12)</span>Areas for Development</div>
+      <!-- Item 12: Areas for Development -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:32px;overflow:hidden;box-shadow:var(--shadow-sm)">
+        <div style="padding:14px 20px;border-bottom:1px solid var(--border)">
+          <div style="font-size:15px;font-weight:700;color:var(--text)"><span style="color:var(--text-muted);font-weight:600;margin-right:8px">(12)</span>Areas for Development</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr">
-          <div style="padding:20px 24px;border-right:1px solid var(--border)">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);margin-bottom:14px">Self</div>
-            ${renderItems(review.self.improvements)}
+          <div style="padding:16px 20px;border-right:1px solid var(--border)">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);margin-bottom:8px">Self</div>
+            <textarea onblur="saveEoyText('improvements','self',this.value)" placeholder="Paste your areas for development..." style="${taStyle}">${selfImprove}</textarea>
           </div>
-          <div style="padding:20px 24px">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:14px">Manager</div>
-            ${renderItems(review.manager.improvements)}
+          <div style="padding:16px 20px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:8px">Manager</div>
+            <textarea onblur="saveEoyText('improvements','manager',this.value)" placeholder="Paste manager feedback on development areas..." style="${taStyle}">${mgrImprove}</textarea>
           </div>
         </div>
       </div>
