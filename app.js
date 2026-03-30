@@ -8038,11 +8038,11 @@ function renderEOYReview() {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
         <div class="analysis-card" style="margin:0">
           <div class="analysis-card-header"><div class="analysis-card-title">Self — Total Weighted Average</div></div>
-          <input type="number" step="0.001" min="1" max="5" value="${selfTWA}" onblur="saveEoyScore('self',this.value)" placeholder="e.g. 3.875" style="width:100%;font-size:28px;font-weight:800;color:var(--text);border:none;border-bottom:2px solid var(--border);outline:none;background:transparent;padding:4px 0;margin-top:4px" />
+          <input type="number" step="0.001" min="1" max="5" value="${selfTWA}" onblur="saveEoyScore('self',this.value)" placeholder="e.g. 3.5" style="width:100%;font-size:28px;font-weight:800;color:var(--text);border:none;border-bottom:2px solid var(--border);outline:none;background:transparent;padding:4px 0;margin-top:4px" />
         </div>
         <div class="analysis-card" style="margin:0">
           <div class="analysis-card-header"><div class="analysis-card-title">Manager — Total Weighted Average</div></div>
-          <input type="number" step="0.001" min="1" max="5" value="${mgrTWA}" onblur="saveEoyScore('manager',this.value)" placeholder="e.g. 3.875" style="width:100%;font-size:28px;font-weight:800;color:var(--text);border:none;border-bottom:2px solid var(--border);outline:none;background:transparent;padding:4px 0;margin-top:4px" />
+          <input type="number" step="0.001" min="1" max="5" value="${mgrTWA}" onblur="saveEoyScore('manager',this.value)" placeholder="e.g. 3.5" style="width:100%;font-size:28px;font-weight:800;color:var(--text);border:none;border-bottom:2px solid var(--border);outline:none;background:transparent;padding:4px 0;margin-top:4px" />
         </div>
       </div>
 
