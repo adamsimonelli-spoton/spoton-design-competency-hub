@@ -8127,15 +8127,17 @@ function renderEOYReview() {
     return plain.length > max ? plain.slice(0, max).replace(/\s+\S*$/, '') + '…' : plain;
   };
 
-  const insightBullets = (cats, isStrength) => cats.map(c => {
+  const insightBullets = (cats, isStrength) => cats.slice(0, 5).map(c => {
     const n = parseInt(mgrRatings[c.id]);
     const rc = EOY_RATING_CONFIG[n];
     const insight = EOY_CAT_INSIGHTS[c.id];
     const text = insight ? (isStrength ? insight.strength : insight.growth) : c.label;
-    return `<li style="display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--text)" class="insight-bullet">
-      <span style="width:7px;height:7px;border-radius:50%;background:${rc.color};flex-shrink:0;margin-top:5px"></span>
-      <span style="flex:1;line-height:1.5">${text}</span>
-      <span style="font-size:10px;font-weight:700;color:${rc.color};background:${rc.bg};border:1px solid ${rc.border};border-radius:20px;padding:2px 7px;white-space:nowrap;flex-shrink:0">${escHtml(c.label)}</span>
+    return `<li style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)" class="insight-bullet">
+      <span style="width:6px;height:6px;border-radius:50%;background:#4B5563;flex-shrink:0;margin-top:6px"></span>
+      <span style="flex:1;line-height:1.55">
+        <span style="display:block;font-size:12px;font-weight:700;color:#1F2937;margin-bottom:2px">${escHtml(c.label)}</span>
+        <span style="font-size:12.5px;color:#4B5563;line-height:1.55">${text}</span>
+      </span>
     </li>`;
   }).join('');
 
