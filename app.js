@@ -7966,7 +7966,15 @@ function saveEoyReview(updater) {
 }
 function saveEoyYear(val) { saveEoyReview(r => r.year = val); }
 function saveEoyScore(who, val) { saveEoyReview(r => r[who].totalWeightedAvg = (val !== '' && val != null) ? parseFloat(val) : null); }
-function saveEoyRating(cat, who, val) { saveEoyReview(r => { if (!r[who].ratings) r[who].ratings = {}; if (val) r[who].ratings[cat] = parseInt(val); else delete r[who].ratings[cat]; }); }
+function saveEoyRating(cat, who, val) { saveEoyReview(r => { if (!r[who].ratings) r[who].ratings = {}; if (val) r[who].ratings[cat] = parseInt(val); else delete r[who].ratings[cat]; }); render(); }
+function styleRatingSelect(el, val) {
+  const n = parseInt(val);
+  const rc = n ? EOY_RATING_CONFIG[n] : null;
+  el.style.background = rc ? rc.bg : 'var(--surface)';
+  el.style.color = rc ? rc.color : 'var(--text-muted)';
+  el.style.borderColor = rc ? rc.border : 'var(--border)';
+  el.style.fontWeight = rc ? '700' : '400';
+}
 function saveEoyText(field, who, val) { saveEoyReview(r => { r[who][field] = val ? [{ headline: val, bullets: [] }] : []; }); }
 function getEoyText(review, who, field) {
   const items = review?.[who]?.[field];
@@ -7991,12 +7999,19 @@ function renderEOYReview() {
   const selfImprove = escHtml(getEoyText(r, 'self', 'improvements'));
   const mgrImprove = escHtml(getEoyText(r, 'manager', 'improvements'));
 
+  const ratingSelectStyle = (val) => {
+    const n = parseInt(val);
+    const rc = n ? EOY_RATING_CONFIG[n] : null;
+    return rc
+      ? `background:${rc.bg};color:${rc.color};border-color:${rc.border};font-weight:700;`
+      : 'background:var(--surface);color:var(--text-muted);border-color:var(--border);font-weight:400;';
+  };
   const ratingSelect = (catId, who, currentVal) => {
     const opts = ['<option value="">\u2014</option>'].concat([1,2,3,4,5].map(n => {
       const rc = EOY_RATING_CONFIG[n];
       return '<option value="' + n + '"' + (parseInt(currentVal) === n ? ' selected' : '') + '>' + n + ' \u2013 ' + rc.label + '</option>';
     })).join('');
-    return '<select onchange="saveEoyRating(\'' + catId + '\',\'' + who + '\',this.value)" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);width:100%;max-width:210px">' + opts + '</select>';
+    return '<select onchange="saveEoyRating(\'' + catId + '\',\'' + who + '\',this.value);styleRatingSelect(this,this.value)" style="font-size:12px;padding:5px 8px;border:1px solid;border-radius:6px;width:100%;max-width:210px;transition:background .15s,color .15s,border-color .15s;' + ratingSelectStyle(currentVal) + '">' + opts + '</select>';
   };
 
   let rowNum = 0;
@@ -8005,7 +8020,24 @@ function renderEOYReview() {
     const catRows = group.categories.map((cat, ci) => {
       rowNum++;
       const isLast = ci === group.categories.length - 1;
-      return '<div style="display:grid;grid-template-columns:1fr 220px 220px;align-items:center;padding:10px 16px;' + (!isLast ? 'border-bottom:1px solid var(--border);' : '') + '">' +
+      const sv = parseInt(selfRatings[cat.id]);
+      const mv = parseInt(mgrRatings[cat.id]);
+      const hasGap = sv && mv;
+      const gap = hasGap ? sv - mv : null;
+      let gapCell;
+      if (gap === null) {
+        gapCell = '<span style="color:var(--text-muted);font-size:13px">—</span>';
+      } else if (gap === 0) {
+        gapCell = '<span title="Aligned" style="font-size:15px">✓</span>';
+      } else {
+        const isOver = gap > 0; // self rated higher than manager
+        const gapColor = isOver ? '#D97706' : '#059669';
+        const gapBg = isOver ? '#FFFBEB' : '#F0FDF4';
+        const gapBorder = isOver ? '#FDE68A' : '#BBF7D0';
+        const label = (isOver ? '+' : '') + gap;
+        gapCell = '<span title="' + (isOver ? 'You rated yourself higher' : 'Manager rated you higher') + '" style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:12px;font-weight:700;color:' + gapColor + ';background:' + gapBg + ';border:1px solid ' + gapBorder + '">' + label + '</span>';
+      }
+      return '<div style="display:grid;grid-template-columns:1fr 220px 220px 72px;align-items:center;padding:10px 16px;' + (!isLast ? 'border-bottom:1px solid var(--border);' : '') + '">' +
         '<div style="display:flex;gap:10px;align-items:flex-start">' +
           '<span style="font-size:12px;font-weight:700;color:var(--text-muted);min-width:22px;padding-top:2px">(' + rowNum + ')</span>' +
           '<div>' +
@@ -8015,6 +8047,7 @@ function renderEOYReview() {
         '</div>' +
         '<div style="padding-right:8px">' + ratingSelect(cat.id, 'self', selfRatings[cat.id]) + '</div>' +
         '<div>' + ratingSelect(cat.id, 'manager', mgrRatings[cat.id]) + '</div>' +
+        '<div style="text-align:center">' + gapCell + '</div>' +
       '</div>';
     }).join('');
     return groupHeader + catRows;
@@ -8051,10 +8084,11 @@ function renderEOYReview() {
 
       <!-- Ratings table -->
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:24px;overflow:hidden;box-shadow:var(--shadow-sm)">
-        <div style="display:grid;grid-template-columns:1fr 220px 220px;padding:8px 16px;background:var(--bg);border-bottom:2px solid var(--border)">
+        <div style="display:grid;grid-template-columns:1fr 220px 220px 72px;padding:8px 16px;background:var(--bg);border-bottom:2px solid var(--border)">
           <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Category</span>
           <span style="font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.05em">Self Rating</span>
           <span style="font-size:11px;font-weight:700;color:#5B21B6;text-transform:uppercase;letter-spacing:.05em">Manager Rating</span>
+          <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;text-align:center">Gap</span>
         </div>
         ${tableRows}
       </div>
