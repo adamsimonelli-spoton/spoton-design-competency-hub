@@ -8035,14 +8035,17 @@ function renderEOYReview() {
       </div>
 
       <!-- TWA score inputs -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
-        <div class="analysis-card" style="margin:0">
-          <div class="analysis-card-header"><div class="analysis-card-title">Self — Total Weighted Average</div></div>
-          <input type="number" step="0.001" min="1" max="5" value="${selfTWA}" onblur="saveEoyScore('self',this.value)" placeholder="e.g. 3.5" style="width:100%;font-size:28px;font-weight:800;color:var(--text);border:none;border-bottom:2px solid var(--border);outline:none;background:transparent;padding:4px 0;margin-top:4px" />
-        </div>
-        <div class="analysis-card" style="margin:0">
-          <div class="analysis-card-header"><div class="analysis-card-title">Manager — Total Weighted Average</div></div>
-          <input type="number" step="0.001" min="1" max="5" value="${mgrTWA}" onblur="saveEoyScore('manager',this.value)" placeholder="e.g. 3.5" style="width:100%;font-size:28px;font-weight:800;color:var(--text);border:none;border-bottom:2px solid var(--border);outline:none;background:transparent;padding:4px 0;margin-top:4px" />
+      <div style="margin-bottom:24px">
+        <div class="review-cat-title" style="margin-bottom:12px">Total Weighted Average</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="analysis-card" style="margin:0">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--primary);margin-bottom:8px">Self</div>
+            <input type="number" step="0.001" min="1" max="5" value="${selfTWA}" onblur="saveEoyScore('self',this.value)" placeholder="e.g. 3.5" style="width:100%;font-size:28px;font-weight:800;color:var(--text);border:none;border-bottom:2px solid var(--border);outline:none;background:transparent;padding:4px 0" />
+          </div>
+          <div class="analysis-card" style="margin:0">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#5B21B6;margin-bottom:8px">Manager</div>
+            <input type="number" step="0.001" min="1" max="5" value="${mgrTWA}" onblur="saveEoyScore('manager',this.value)" placeholder="e.g. 3.5" style="width:100%;font-size:28px;font-weight:800;color:var(--text);border:none;border-bottom:2px solid var(--border);outline:none;background:transparent;padding:4px 0" />
+          </div>
         </div>
       </div>
 
