@@ -8132,12 +8132,9 @@ function renderEOYReview() {
     const rc = EOY_RATING_CONFIG[n];
     const insight = EOY_CAT_INSIGHTS[c.id];
     const text = insight ? (isStrength ? insight.strength : insight.growth) : c.label;
-    return `<li style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)" class="insight-bullet">
-      <span style="width:6px;height:6px;border-radius:50%;background:#4B5563;flex-shrink:0;margin-top:6px"></span>
-      <span style="flex:1;line-height:1.55">
-        <span style="display:block;font-size:12px;font-weight:700;color:#1F2937;margin-bottom:2px">${escHtml(c.label)}</span>
-        <span style="font-size:12.5px;color:#4B5563;line-height:1.55">${text}</span>
-      </span>
+    return `<li style="padding:6px 0" class="insight-bullet">
+        <div style="font-size:12px;font-weight:700;color:#1F2937;margin-bottom:2px">${escHtml(c.label)}</div>
+        <div style="font-size:12.5px;color:#4B5563;line-height:1.55">${text}</div>
     </li>`;
   }).join('');
 
