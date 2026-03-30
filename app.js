@@ -4187,7 +4187,7 @@ function renderCoreValues() {
   return `
     <div class="review-header">
       <div>
-        <h1>${escHtml(currentProfile?.name || 'Designer')}${currentProfile?.role ? ` <span style="font-size:13px;font-weight:600;color:var(--primary);background:var(--primary-light);border:1px solid rgba(99,102,241,.2);border-radius:20px;padding:4px 8px;vertical-align:middle;position:relative;top:-2px;margin-left:16px">${escHtml(shortRole(currentProfile.role))}</span>` : ''}</h1>
+        <h1>${escHtml(currentProfile?.name || 'Designer')}${currentProfile?.role ? ` <span style="font-size:13px;font-weight:600;color:#475569;background:#F1F5F9;border:1px solid #CBD5E1;border-radius:20px;padding:4px 8px;vertical-align:middle;position:relative;top:-2px;margin-left:16px">${escHtml(shortRole(currentProfile.role))}</span>` : ''}</h1>
         <p>${allRated.length} of ${CORE_VALUES_DATA.length} values rated</p>
       </div>
     </div>
@@ -5800,7 +5800,7 @@ function renderGoals() {
   return `
     <div class="review-header">
       <div>
-        <h1>${escHtml(currentProfile?.name || 'Designer')}${currentProfile?.role ? ` <span style="font-size:13px;font-weight:600;color:var(--primary);background:var(--primary-light);border:1px solid rgba(99,102,241,.2);border-radius:20px;padding:4px 8px;vertical-align:middle;position:relative;top:-2px;margin-left:16px">${escHtml(shortRole(currentProfile.role))}</span>` : ''}</h1>
+        <h1>${escHtml(currentProfile?.name || 'Designer')}${currentProfile?.role ? ` <span style="font-size:13px;font-weight:600;color:#475569;background:#F1F5F9;border:1px solid #CBD5E1;border-radius:20px;padding:4px 8px;vertical-align:middle;position:relative;top:-2px;margin-left:16px">${escHtml(shortRole(currentProfile.role))}</span>` : ''}</h1>
       </div>
     </div>
 
