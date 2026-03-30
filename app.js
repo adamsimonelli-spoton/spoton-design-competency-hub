@@ -602,6 +602,19 @@ const EOY_RATING_CONFIG = {
   5: { label: 'Truly Outstanding',   short: 'Outstanding',    color: '#7C3AED', bg: '#F5F3FF', border: '#DDD6FE' },
 };
 
+const EOY_CAT_INSIGHTS = {
+  technical:        { strength: 'Your technical expertise is a clear asset — you bring depth that raises the bar.',         growth: 'Sharpening your technical skills in your core discipline would strengthen your overall impact.' },
+  quality:          { strength: 'Your work is consistently well-crafted and reliable — people know what to expect from you.', growth: 'There\'s an opportunity to raise the consistency and polish of your deliverables.' },
+  accountability:   { strength: 'You own your outcomes — your manager trusts you to drive results without being asked twice.',  growth: 'Taking more initiative to follow through and deliver results independently would make a big difference.' },
+  we_lead:          { strength: 'You lead with ownership and integrity — you set the tone others want to follow.',             growth: 'Stepping up with more ownership and acting with greater consistency would have a meaningful impact.' },
+  we_deliver:       { strength: 'You execute and deliver — the team counts on you to follow through.',                        growth: 'Improving your ability to execute consistently and close out commitments is the key growth opportunity.' },
+  we_learn:         { strength: 'You\'re always growing — you adapt quickly and bring fresh thinking to the work.',           growth: 'Leaning into learning and being more open to change would accelerate your development.' },
+  we_care:          { strength: 'Your care for your teammates creates a positive ripple effect on the whole team.',           growth: 'Being more intentional about how you show up for and support your teammates would go a long way.' },
+  engagement:       { strength: 'Your team feels safe, recognized, and motivated — you\'re building the right culture.',     growth: 'Investing more in creating psychological safety and recognition within your team would make a real difference.' },
+  team_performance: { strength: 'You get results from your team — you delegate well and stay on top of team health.',        growth: 'There\'s an opportunity to delegate more effectively and raise the bar on how you manage team performance.' },
+  feedback_coaching:{ strength: 'Your people grow because of you — your coaching and feedback genuinely move the needle.',   growth: 'Being more consistent and intentional with feedback and coaching would unlock a lot of potential in your team.' },
+};
+
 const EOY_CATEGORY_GROUPS = [
   {
     label: 'Performance',
@@ -8114,23 +8127,25 @@ function renderEOYReview() {
     return plain.length > max ? plain.slice(0, max).replace(/\s+\S*$/, '') + '…' : plain;
   };
 
-  const insightBullets = (cats) => cats.map(c => {
+  const insightBullets = (cats, isStrength) => cats.map(c => {
     const n = parseInt(mgrRatings[c.id]);
     const rc = EOY_RATING_CONFIG[n];
-    return `<li style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;color:var(--text)">
-      <span style="width:8px;height:8px;border-radius:50%;background:${rc.color};flex-shrink:0"></span>
-      <span style="font-weight:600">${escHtml(c.label)}</span>
-      <span style="font-size:11px;font-weight:600;color:${rc.color};background:${rc.bg};border:1px solid ${rc.border};border-radius:20px;padding:1px 7px;margin-left:auto;white-space:nowrap">${rc.short}</span>
+    const insight = EOY_CAT_INSIGHTS[c.id];
+    const text = insight ? (isStrength ? insight.strength : insight.growth) : c.label;
+    return `<li style="display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--text)" class="insight-bullet">
+      <span style="width:7px;height:7px;border-radius:50%;background:${rc.color};flex-shrink:0;margin-top:5px"></span>
+      <span style="flex:1;line-height:1.5">${text}</span>
+      <span style="font-size:10px;font-weight:700;color:${rc.color};background:${rc.bg};border:1px solid ${rc.border};border-radius:20px;padding:2px 7px;white-space:nowrap;flex-shrink:0">${escHtml(c.label)}</span>
     </li>`;
   }).join('');
 
-  const insightTile = (title, dotColor, tileBorderColor, cats, textHtml, emptyMsg) => {
+  const insightTile = (title, dotColor, tileBorderColor, cats, textHtml, emptyMsg, isStrength) => {
     const hasCats = cats.length > 0;
     const excerpt = textExcerpt(textHtml);
     return `
       <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid ${tileBorderColor};border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow-sm)">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${tileBorderColor};margin-bottom:10px">${title}</div>
-        ${hasCats ? `<ul style="list-style:none;padding:0;margin:0 0 ${excerpt ? '12px' : '0'}">${insightBullets(cats)}</ul>` : ''}
+        ${hasCats ? `<ul style="list-style:none;padding:0;margin:0 0 ${excerpt ? '12px' : '0'}">${insightBullets(cats, isStrength)}</ul>` : ''}
         ${excerpt ? `<p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:0;border-top:${hasCats ? '1px solid var(--border)' : 'none'};padding-top:${hasCats ? '10px' : '0'}">${escHtml(excerpt)}</p>` : ''}
         ${!hasCats && !excerpt ? `<p style="font-size:13px;color:var(--text-muted);margin:0">${emptyMsg}</p>` : ''}
       </div>`;
@@ -8140,8 +8155,8 @@ function renderEOYReview() {
     <div style="margin-bottom:28px">
       <div class="review-cat-title" style="margin-bottom:12px">Manager Insights</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        ${insightTile('Strengths', '#059669', '#059669', goingWellCats, mgrAccomplishHtml, 'No categories rated 4–5 yet.')}
-        ${insightTile('Growth Areas', '#D97706', '#D97706', toWorkOnCats, mgrImproveHtml, 'No categories rated 1–3 yet.')}
+        ${insightTile('Strengths',    '#059669', '#059669', goingWellCats, mgrAccomplishHtml, 'No categories rated 4–5 yet.', true)}
+        ${insightTile('Growth Areas', '#D97706', '#D97706', toWorkOnCats,  mgrImproveHtml,    'No categories rated 1–3 yet.', false)}
       </div>
     </div>` : '';
 

@@ -3794,3 +3794,5 @@ body {
 .eoy-insight-text li { margin: 3px 0; }
 .eoy-insight-text p  { margin: 0 0 6px; }
 .eoy-insight-text p:last-child { margin-bottom: 0; }
+
+.insight-bullet:last-child { border-bottom: none; }
