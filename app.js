@@ -8028,7 +8028,7 @@ function renderEOYReview() {
       if (gap === null) {
         gapCell = '<span style="color:var(--text-muted);font-size:13px">—</span>';
       } else if (gap === 0) {
-        gapCell = '<span title="Aligned" style="font-size:15px">✓</span>';
+        gapCell = '<span title="Aligned" style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:12px;font-weight:700;color:#6B7280;background:#F3F4F6;border:1px solid #E5E7EB">0</span>';
       } else {
         const isOver = gap > 0; // self rated higher than manager
         const gapColor = isOver ? '#D97706' : '#059669';
