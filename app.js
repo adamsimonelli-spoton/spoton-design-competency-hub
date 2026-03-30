@@ -2499,7 +2499,7 @@ function renderHome() {
   return `
     <div class="home-header">
       <div class="home-header-text">
-        <h1>Welcome back, ${escHtml((currentProfile?.name || 'Designer').split(' ')[0])}${currentProfile?.role ? ` <span style="font-size:13px;font-weight:600;color:#475569;background:#F1F5F9;border:1px solid #CBD5E1;border-radius:20px;padding:4px 8px;vertical-align:middle;position:relative;top:-2px;margin-left:8px">${escHtml(shortRole(currentProfile.role))}</span>` : ''}</h1>
+        <h1>Welcome back, ${escHtml((currentProfile?.name || 'Designer').split(' ')[0])}</h1>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
         ${renderNoteInputCard()}
@@ -3614,7 +3614,7 @@ function renderReview() {
   return `
     <div class="review-header">
       <div>
-        <h1>${escHtml(currentProfile?.name || 'Designer')}${currentProfile?.role ? ` <span style="font-size:13px;font-weight:600;color:#475569;background:#F1F5F9;border:1px solid #CBD5E1;border-radius:20px;padding:4px 8px;vertical-align:middle;position:relative;top:-2px;margin-left:16px">${escHtml(shortRole(currentProfile.role))}</span>` : ''}</h1>
+        <h1>${escHtml(currentProfile?.name || 'Designer')}</h1>
       </div>
       <div class="review-actions">
         <div style="display:flex;gap:8px;align-items:center">
@@ -4251,7 +4251,7 @@ function renderCoreValues() {
   return `
     <div class="review-header">
       <div>
-        <h1>${escHtml(currentProfile?.name || 'Designer')}${currentProfile?.role ? ` <span style="font-size:13px;font-weight:600;color:#475569;background:#F1F5F9;border:1px solid #CBD5E1;border-radius:20px;padding:4px 8px;vertical-align:middle;position:relative;top:-2px;margin-left:16px">${escHtml(shortRole(currentProfile.role))}</span>` : ''}</h1>
+        <h1>${escHtml(currentProfile?.name || 'Designer')}</h1>
         <p>${allRated.length} of ${CORE_VALUES_DATA.length} values rated</p>
       </div>
     </div>
@@ -5864,7 +5864,7 @@ function renderGoals() {
   return `
     <div class="review-header">
       <div>
-        <h1>${escHtml(currentProfile?.name || 'Designer')}${currentProfile?.role ? ` <span style="font-size:13px;font-weight:600;color:#475569;background:#F1F5F9;border:1px solid #CBD5E1;border-radius:20px;padding:4px 8px;vertical-align:middle;position:relative;top:-2px;margin-left:16px">${escHtml(shortRole(currentProfile.role))}</span>` : ''}</h1>
+        <h1>${escHtml(currentProfile?.name || 'Designer')}</h1>
       </div>
     </div>
 
@@ -6982,8 +6982,11 @@ function render() {
         <div class="profile-label">Current Profile</div>
         <div class="profile-selector ${state.profileDropdownOpen ? 'open' : ''}" onclick="toggleProfileDropdown()">
             ${avatarHtml(currentProfile, 36, 13)}
-            <div class="profile-name">${escHtml(currentProfile?.name || 'Select Profile')}</div>
-            <span class="chevron" style="transition:transform .2s;${state.profileDropdownOpen ? 'transform:rotate(180deg)' : ''}">▼</span>
+            <div style="flex:1;min-width:0">
+              <div class="profile-name">${escHtml(currentProfile?.name || 'Select Profile')}</div>
+              ${currentProfile?.role ? `<div style="font-size:10px;color:#93C5FD;opacity:.9;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(shortRole(currentProfile.role))}</div>` : ''}
+            </div>
+            <span class="chevron" style="transition:transform .2s;flex-shrink:0;${state.profileDropdownOpen ? 'transform:rotate(180deg)' : ''}">▼</span>
           </div>
           ${state.profileDropdownOpen ? `
             <div class="profile-dropdown">
