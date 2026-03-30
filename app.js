@@ -2746,12 +2746,46 @@ function renderSkills() {
   });
   const d = getData();
 
+  const legendOpen = !!state.skillLegendOpen;
+  const legendLevels = [
+    { level: 'Learner',     desc: 'Gaining and growing knowledge and skillsets. Actively demonstrating curiosity and open to trying new things.' },
+    { level: 'Contributor', desc: 'Adds knowledge or skills to projects. Able to execute requests in a timely and high quality manner.' },
+    { level: 'Independent', desc: 'Knowledgeable and skilled in topic. Able to execute without guidance. Able to demonstrate initiative and move forward autonomously.' },
+    { level: 'Expert',      desc: 'Comprehensive knowledge of topic. Training team and raising the bar. Demonstrating leadership. Fully Autonomous.' },
+  ];
+
   return `
     <div class="filter-bar">
       ${categories.map(cat => `
         <button class="filter-btn ${state.category === cat ? 'active' : ''}" onclick="setCategory('${escHtml(cat)}')">${cat === 'all' ? 'All Skills' : escHtml(cat)}</button>
       `).join('')}
     </div>
+
+    <!-- Level guide legend -->
+    <div style="margin-bottom:16px">
+      <button onclick="state.skillLegendOpen=!state.skillLegendOpen;render()"
+        style="display:inline-flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-muted);padding:0;letter-spacing:.01em">
+        ${icon('info', 13, 'var(--text-muted)')}
+        Level guide
+        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style="transition:transform .2s;${legendOpen ? 'transform:rotate(180deg)' : ''}">
+          <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        </svg>
+      </button>
+      ${legendOpen ? `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+          ${legendLevels.map(({ level, desc }) => {
+            const lc = LEVEL_CONFIG[level];
+            return `
+              <div style="display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+                <span class="level-badge ${lc.cls}" style="font-size:10px;padding:3px 8px;white-space:nowrap;flex-shrink:0;margin-top:1px">${lc.emoji} ${level}</span>
+                <span style="font-size:12px;color:var(--text-secondary);line-height:1.5">${escHtml(desc)}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      ` : ''}
+    </div>
+
     ${filtered.length === 0 ? `
       <div class="empty-state">
         <div class="empty-state-icon">🔍</div>
