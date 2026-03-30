@@ -3743,7 +3743,7 @@ body {
 
 /* ===== PRINT STYLES ===== */
 @media print {
-  #sidebar, .topbar, .review-actions, .btn, .review-filter-bar { display: none !important; }
+  #sidebar, .review-actions, .btn, .review-filter-bar { display: none !important; }
   #main { width: 100%; }
   #content { padding: 0; overflow: visible; }
   .review-table { box-shadow: none; border: 1px solid #ccc; }

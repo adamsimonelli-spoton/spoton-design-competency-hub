@@ -2755,10 +2755,17 @@ function renderSkills() {
   ];
 
   return `
-    <div class="filter-bar">
-      ${categories.map(cat => `
-        <button class="filter-btn ${state.category === cat ? 'active' : ''}" onclick="setCategory('${escHtml(cat)}')">${cat === 'all' ? 'All Skills' : escHtml(cat)}</button>
-      `).join('')}
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+      <div class="filter-bar" style="margin-bottom:0;flex:1;flex-wrap:wrap">
+        ${categories.map(cat => `
+          <button class="filter-btn ${state.category === cat ? 'active' : ''}" onclick="setCategory('${escHtml(cat)}')">${cat === 'all' ? 'All Skills' : escHtml(cat)}</button>
+        `).join('')}
+      </div>
+      <div class="topbar-search" style="margin:0;flex-shrink:0">
+        <span class="search-icon"><svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor"><path d="M229.66,218.34l-50.06-50.07a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.31-11.31ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg></span>
+        <input type="text" placeholder="Search skills…" value="${escHtml(state.search)}" oninput="handleSearch(event)" onblur="hideSearchDropdown()" id="search-input" autocomplete="off" style="width:180px" />
+        <div class="search-dropdown" id="search-dropdown"></div>
+      </div>
     </div>
 
     <!-- Level guide legend -->
@@ -3613,9 +3620,6 @@ function renderReview() {
 
   return `
     <div class="review-header">
-      <div>
-        <h1>${escHtml(currentProfile?.name || 'Designer')}</h1>
-      </div>
       <div class="review-actions">
         <div style="display:flex;gap:8px;align-items:center">
           <button class="btn btn-secondary" onclick="state.clearConfirm='skills';render()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap;color:#DC2626;border-color:#DC2626">${icon('trash-2',14,'#DC2626')} Clear all</button>
@@ -4249,11 +4253,8 @@ function renderCoreValues() {
   const allRated = CORE_VALUES_DATA.filter(cv => getValueRating(cv.id).managerRating);
 
   return `
-    <div class="review-header">
-      <div>
-        <h1>${escHtml(currentProfile?.name || 'Designer')}</h1>
-        <p>${allRated.length} of ${CORE_VALUES_DATA.length} values rated</p>
-      </div>
+    <div style="margin-bottom:20px">
+      <p style="font-size:13px;color:var(--text-muted);margin:0">${allRated.length} of ${CORE_VALUES_DATA.length} values rated</p>
     </div>
 
     <div class="review-category-section">
@@ -5862,12 +5863,6 @@ function renderGoals() {
   const personalGoals = getPersonalGoals();
 
   return `
-    <div class="review-header">
-      <div>
-        <h1>${escHtml(currentProfile?.name || 'Designer')}</h1>
-      </div>
-    </div>
-
     ${renderGrowthThemes()}
     ${renderGoalSection('personal', 'Personal Goals', '', personalGoals, true)}
     ${renderDesignTeamGoals()}
@@ -7058,16 +7053,6 @@ function render() {
 
     <!-- MAIN -->
     <div id="main">
-      <div class="topbar">
-        <div style="flex:1">
-          <div class="topbar-title">${getViewTitle()}</div>
-        </div>
-        <div class="topbar-search" id="topbar-search-container">
-          <span class="search-icon"><svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M229.66,218.34l-50.06-50.07a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.31-11.31ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg></span>
-          <input type="text" placeholder="Search skills…" value="${escHtml(state.search)}" oninput="handleSearch(event)" onblur="hideSearchDropdown()" id="search-input" autocomplete="off" />
-          <div class="search-dropdown" id="search-dropdown"></div>
-        </div>
-      </div>
       <div id="content">
         ${state.view === 'home' ? renderHome() : ''}
         ${state.view === 'skills' ? renderSkills() : ''}
