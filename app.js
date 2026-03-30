@@ -8099,6 +8099,49 @@ function renderEOYReview() {
       </div>`;
   };
 
+  // ---- Manager insights ----
+  const allCats = EOY_CATEGORY_GROUPS.flatMap(g => g.categories);
+  const goingWellCats  = allCats.filter(c => parseInt(mgrRatings[c.id]) >= 4);
+  const toWorkOnCats   = allCats.filter(c => parseInt(mgrRatings[c.id]) > 0 && parseInt(mgrRatings[c.id]) <= 3);
+  const hasMgrRatings  = Object.values(mgrRatings).some(v => v);
+  const hasMgrText     = mgrAccomplishHtml || mgrImproveHtml;
+  const hasAnyMgrData  = hasMgrRatings || hasMgrText;
+
+  const insightCatPill = (cat) => {
+    const n = parseInt(mgrRatings[cat.id]);
+    const rc = EOY_RATING_CONFIG[n];
+    return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:${rc.bg};color:${rc.color};border:1px solid ${rc.border}">${escHtml(cat.label)}</span>`;
+  };
+
+  const insightTile = (title, iconSvg, accentColor, accentBg, cats, textHtml, emptyMsg) => {
+    const hasCats = cats.length > 0;
+    const hasText = textHtml && textHtml.replace(/<[^>]*>/g,'').trim().length > 0;
+    return `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);display:flex;flex-direction:column">
+        <div style="padding:14px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:${accentBg}">
+          ${iconSvg}
+          <span style="font-size:14px;font-weight:700;color:${accentColor}">${title}</span>
+        </div>
+        <div style="padding:16px 18px;flex:1;display:flex;flex-direction:column;gap:12px">
+          ${hasCats ? `<div style="display:flex;flex-wrap:wrap;gap:6px">${cats.map(insightCatPill).join('')}</div>` : ''}
+          ${hasText ? `<div class="eoy-insight-text" style="font-size:13px;line-height:1.7;color:var(--text)">${textHtml}</div>` : ''}
+          ${!hasCats && !hasText ? `<p style="font-size:13px;color:var(--text-muted);margin:0">${emptyMsg}</p>` : ''}
+        </div>
+      </div>`;
+  };
+
+  const goingWellIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+  const toWorkOnIcon  = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+
+  const managerInsights = hasAnyMgrData ? `
+    <div style="margin-bottom:28px">
+      <div class="review-cat-title" style="margin-bottom:12px">Manager Insights</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        ${insightTile('Going Well', goingWellIcon, '#059669', '#F0FDF4', goingWellCats, mgrAccomplishHtml, 'No categories rated 4–5 yet.')}
+        ${insightTile('To Work On', toWorkOnIcon,  '#D97706', '#FFFBEB', toWorkOnCats,  mgrImproveHtml,    'No categories rated 1–3 yet.')}
+      </div>
+    </div>` : '';
+
   return `
     <div style="max-width:960px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:24px">
@@ -8110,6 +8153,8 @@ function renderEOYReview() {
         </div>
         <button class="btn btn-secondary" onclick="state.clearConfirm='review';render()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap;color:#DC2626;border-color:#DC2626">${icon('trash-2',14,'#DC2626')} Clear all</button>
       </div>
+
+      ${managerInsights}
 
       <!-- TWA score inputs -->
       <div style="margin-bottom:24px">

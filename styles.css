@@ -3788,3 +3788,9 @@ body {
 .eoy-rte li { margin: 2px 0; }
 .eoy-rte p { margin: 0 0 6px; }
 .eoy-rte p:last-child { margin-bottom: 0; }
+
+/* Manager insight text block (rendered HTML from RTE) */
+.eoy-insight-text ul, .eoy-insight-text ol { padding-left: 20px; margin: 4px 0; }
+.eoy-insight-text li { margin: 3px 0; }
+.eoy-insight-text p  { margin: 0 0 6px; }
+.eoy-insight-text p:last-child { margin-bottom: 0; }
