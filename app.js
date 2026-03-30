@@ -7976,10 +7976,22 @@ function styleRatingSelect(el, val) {
   el.style.fontWeight = rc ? '700' : '400';
 }
 function saveEoyText(field, who, val) { saveEoyReview(r => { r[who][field] = val ? [{ headline: val, bullets: [] }] : []; }); }
+function saveEoyHtml(field, who, html) { saveEoyReview(r => { r[who][field + '_html'] = html || ''; }); }
+function getEoyHtml(review, who, field) {
+  const html = review?.[who]?.[field + '_html'];
+  if (html != null) return html;
+  // fall back: convert old array format to basic HTML
+  const items = review?.[who]?.[field];
+  if (!items || !items.length) return '';
+  return items.map(i => [i.headline, ...(i.bullets || [])].filter(Boolean).map(t => `<p>${escHtml(t)}</p>`).join('')).join('');
+}
 function getEoyText(review, who, field) {
   const items = review?.[who]?.[field];
   if (!items || !items.length) return '';
   return items.map(i => [i.headline, ...(i.bullets || [])].filter(Boolean).join('\n')).join('\n\n');
+}
+function eoyRteCmd(cmd, val) {
+  document.execCommand(cmd, false, val || null);
 }
 
 function renderEOYReview() {
@@ -8053,7 +8065,39 @@ function renderEOYReview() {
     return groupHeader + catRows;
   }).join('');
 
-  const taStyle = 'width:100%;min-height:160px;font-size:12.5px;line-height:1.6;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:10px 12px;background:var(--bg);resize:vertical;font-family:inherit;box-sizing:border-box';
+  const selfAccomplishHtml = getEoyHtml(r, 'self', 'accomplishments');
+  const mgrAccomplishHtml  = getEoyHtml(r, 'manager', 'accomplishments');
+  const selfImproveHtml    = getEoyHtml(r, 'self', 'improvements');
+  const mgrImproveHtml     = getEoyHtml(r, 'manager', 'improvements');
+
+  const rteToolbar = (field, who) => `
+    <div style="display:flex;gap:2px;padding:6px 8px;border-bottom:1px solid var(--border);background:var(--bg);flex-wrap:wrap">
+      <button onmousedown="event.preventDefault();eoyRteCmd('bold')"           title="Bold"           style="width:28px;height:28px;border:1px solid var(--border);border-radius:4px;background:var(--surface);cursor:pointer;font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;justify-content:center">B</button>
+      <button onmousedown="event.preventDefault();eoyRteCmd('italic')"         title="Italic"         style="width:28px;height:28px;border:1px solid var(--border);border-radius:4px;background:var(--surface);cursor:pointer;font-size:13px;font-style:italic;color:var(--text);display:flex;align-items:center;justify-content:center">I</button>
+      <button onmousedown="event.preventDefault();eoyRteCmd('underline')"      title="Underline"      style="width:28px;height:28px;border:1px solid var(--border);border-radius:4px;background:var(--surface);cursor:pointer;font-size:13px;text-decoration:underline;color:var(--text);display:flex;align-items:center;justify-content:center">U</button>
+      <div style="width:1px;background:var(--border);margin:2px 3px"></div>
+      <button onmousedown="event.preventDefault();eoyRteCmd('insertUnorderedList')" title="Bullet list"   style="width:28px;height:28px;border:1px solid var(--border);border-radius:4px;background:var(--surface);cursor:pointer;font-size:14px;color:var(--text);display:flex;align-items:center;justify-content:center">≡</button>
+      <button onmousedown="event.preventDefault();eoyRteCmd('insertOrderedList')"   title="Numbered list" style="width:28px;height:28px;border:1px solid var(--border);border-radius:4px;background:var(--surface);cursor:pointer;font-size:11px;font-weight:700;color:var(--text);display:flex;align-items:center;justify-content:center">1.</button>
+      <div style="width:1px;background:var(--border);margin:2px 3px"></div>
+      <button onmousedown="event.preventDefault();eoyRteCmd('removeFormat')"   title="Clear formatting" style="width:28px;height:28px;border:1px solid var(--border);border-radius:4px;background:var(--surface);cursor:pointer;font-size:11px;color:var(--text-muted);display:flex;align-items:center;justify-content:center">✕</button>
+    </div>`;
+
+  const rteEditor = (field, who, html, placeholder) => {
+    const id = `eoy-rte-${who}-${field}`;
+    const isEmpty = !html || html.replace(/<[^>]*>/g,'').trim().length === 0;
+    return `
+      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)">
+        ${rteToolbar(field, who)}
+        <div id="${id}" contenteditable="true"
+          onblur="saveEoyHtml('${field}','${who}',this.innerHTML)"
+          onfocus="this.classList.remove('rte-empty')"
+          onkeydown="if(this.textContent.trim().length>0||event.key!='Enter')this.classList.remove('rte-empty')"
+          class="eoy-rte${isEmpty ? ' rte-empty' : ''}"
+          data-placeholder="${placeholder}"
+          style="min-height:240px;padding:14px 16px;font-size:13.5px;line-height:1.75;color:var(--text);outline:none;overflow-y:auto"
+        >${html}</div>
+      </div>`;
+  };
 
   return `
     <div style="max-width:960px">
@@ -8100,12 +8144,12 @@ function renderEOYReview() {
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr">
           <div style="padding:16px 20px;border-right:1px solid var(--border)">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);margin-bottom:8px">Self</div>
-            <textarea onblur="saveEoyText('accomplishments','self',this.value)" placeholder="Paste your self-reflection on key accomplishments..." style="${taStyle}">${selfAccomplish}</textarea>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);margin-bottom:10px">Self</div>
+            ${rteEditor('accomplishments','self',selfAccomplishHtml,'Share your proudest accomplishments...')}
           </div>
           <div style="padding:16px 20px">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:8px">Manager</div>
-            <textarea onblur="saveEoyText('accomplishments','manager',this.value)" placeholder="Paste manager feedback on accomplishments..." style="${taStyle}">${mgrAccomplish}</textarea>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:10px">Manager</div>
+            ${rteEditor('accomplishments','manager',mgrAccomplishHtml,'Paste manager feedback on accomplishments...')}
           </div>
         </div>
       </div>
@@ -8117,12 +8161,12 @@ function renderEOYReview() {
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr">
           <div style="padding:16px 20px;border-right:1px solid var(--border)">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);margin-bottom:8px">Self</div>
-            <textarea onblur="saveEoyText('improvements','self',this.value)" placeholder="Paste your areas for development..." style="${taStyle}">${selfImprove}</textarea>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);margin-bottom:10px">Self</div>
+            ${rteEditor('improvements','self',selfImproveHtml,'Paste your areas for development...')}
           </div>
           <div style="padding:16px 20px">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:8px">Manager</div>
-            <textarea onblur="saveEoyText('improvements','manager',this.value)" placeholder="Paste manager feedback on development areas..." style="${taStyle}">${mgrImprove}</textarea>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#7C3AED;margin-bottom:10px">Manager</div>
+            ${rteEditor('improvements','manager',mgrImproveHtml,'Paste manager feedback on development areas...')}
           </div>
         </div>
       </div>

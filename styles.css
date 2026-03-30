@@ -3776,3 +3776,15 @@ body {
   display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;
   color: var(--text); margin-bottom: 10px;
 }
+
+/* Rich text editor for EOY review items 11 & 12 */
+.eoy-rte:empty:not(:focus)::before,
+.eoy-rte.rte-empty:not(:focus)::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.eoy-rte ul, .eoy-rte ol { padding-left: 22px; margin: 4px 0; }
+.eoy-rte li { margin: 2px 0; }
+.eoy-rte p { margin: 0 0 6px; }
+.eoy-rte p:last-child { margin-bottom: 0; }
