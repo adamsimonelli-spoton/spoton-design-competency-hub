@@ -7391,11 +7391,14 @@ function parseColumnText(rawCol) {
   // Debug: log what was found to help diagnose issues
   const engagementIdx = lower.indexOf('employee engagement');
   const psyIdx = lower.indexOf('psychological safety');
-  const raIdx = lower.search(/recognition.{0,15}accomplishments/i);
+  const tpIdx  = lower.indexOf('promote team performance');
+  const raIdx  = lower.search(/recognition.{0,15}accomplishments/i);
   console.log('[DCH] parseColumnText debug:', {
     engagement_idx: engagementIdx,
-    eng_chunk: engagementIdx >= 0 ? lower.slice(engagementIdx, engagementIdx + 200) : 'NOT FOUND',
     psy_idx: psyIdx,
+    psy_window: psyIdx >= 0 ? lower.slice(psyIdx, psyIdx + 700) : 'NOT FOUND',
+    tp_idx: tpIdx,
+    tp_window: tpIdx >= 0 ? lower.slice(tpIdx, tpIdx + 700) : 'NOT FOUND',
     ra_idx: raIdx,
     ra_chunk: raIdx >= 0 ? lower.slice(raIdx, raIdx + 300) : 'NOT FOUND',
     accomplishments_count: accomplishments.length,
