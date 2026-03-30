@@ -2497,10 +2497,8 @@ function renderHome() {
   insightBullets.splice(4);
 
   return `
-    <div class="home-header">
-      <div class="home-header-text">
-        <h1>Welcome back, ${escHtml((currentProfile?.name || 'Designer').split(' ')[0])}</h1>
-      </div>
+    <div class="review-header">
+      <h1>Welcome back, ${escHtml((currentProfile?.name || 'Designer').split(' ')[0])}</h1>
       <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
         ${renderNoteInputCard()}
       </div>
@@ -3620,12 +3618,11 @@ function renderReview() {
 
   return `
     <div class="review-header">
-      <div class="review-actions">
-        <div style="display:flex;gap:8px;align-items:center">
-          <button class="btn btn-secondary" onclick="state.clearConfirm='skills';render()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap;color:#DC2626;border-color:#DC2626">${icon('trash-2',14,'#DC2626')} Clear all</button>
-          <button class="btn btn-secondary" onclick="openImportModal('skill-matrix')" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import</button>
-          <button class="btn btn-secondary" onclick="exportReviewCSV()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('download',14)} Export</button>
-        </div>
+      <h1>Skills</h1>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-secondary" onclick="state.clearConfirm='skills';render()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap;color:#DC2626;border-color:#DC2626">${icon('trash-2',14,'#DC2626')} Clear all</button>
+        <button class="btn btn-secondary" onclick="openImportModal('skill-matrix')" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('upload',14)} Import</button>
+        <button class="btn btn-secondary" onclick="exportReviewCSV()" style="font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap">${icon('download',14)} Export</button>
         ${renderNoteInputCard()}
       </div>
     </div>
@@ -4101,10 +4098,10 @@ function renderOutreachPage() {
 
   return `
     <div class="outreach-page">
-      <div class="outreach-page-header">
+      <div class="review-header">
         <div>
-          <h2 style="margin:0 0 4px;font-size:20px;font-weight:700;color:var(--text)">Merchant Outreach</h2>
-          <div style="font-size:13px;color:var(--text-muted)">Goal: 4 touchpoints/quarter · Monthly HVE check-in</div>
+          <h1>Merchant Outreach</h1>
+          <p>Goal: 4 touchpoints/quarter · Monthly HVE check-in</p>
         </div>
         <button class="btn btn-primary" onclick="openOutreachModal(null)">+ Log Outreach</button>
       </div>
@@ -4253,8 +4250,11 @@ function renderCoreValues() {
   const allRated = CORE_VALUES_DATA.filter(cv => getValueRating(cv.id).managerRating);
 
   return `
-    <div style="margin-bottom:20px">
-      <p style="font-size:13px;color:var(--text-muted);margin:0">${allRated.length} of ${CORE_VALUES_DATA.length} values rated</p>
+    <div class="review-header">
+      <div>
+        <h1>Core Values</h1>
+        <p>${allRated.length} of ${CORE_VALUES_DATA.length} values rated</p>
+      </div>
     </div>
 
     <div class="review-category-section">
@@ -5863,6 +5863,10 @@ function renderGoals() {
   const personalGoals = getPersonalGoals();
 
   return `
+    <div class="review-header" style="margin-bottom:24px">
+      <h1>Goals</h1>
+    </div>
+
     ${renderGrowthThemes()}
     ${renderGoalSection('personal', 'Personal Goals', '', personalGoals, true)}
     ${renderDesignTeamGoals()}
@@ -8205,9 +8209,9 @@ function renderEOYReview() {
 
   return `
     <div style="max-width:960px">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:24px">
+      <div class="review-header">
         <div style="display:flex;align-items:center;gap:12px">
-          <h2 style="font-size:22px;font-weight:800;color:var(--text);margin:0">Performance Review</h2>
+          <h1>Performance Review</h1>
           <select onchange="saveEoyYear(this.value)" style="font-size:14px;font-weight:600;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text)">
             ${[2026,2025,2024,2023].map(y => `<option value="${y}" ${r.year === String(y) ? 'selected' : ''}>${y}</option>`).join('')}
           </select>
