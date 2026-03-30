@@ -7379,8 +7379,23 @@ function parseColumnText(rawCol) {
       .filter(l => l.length > 20 && l.length < 600)
       .slice(0, 30);
   };
-  const accomplishments = extractBullets(/recognition\s*[&and]+\s*accomplishments[^\n]*([\s\S]{10,8000}?)(?:areas for|$)/i);
-  const improvements    = extractBullets(/areas for (?:improvement|development)[^\n]*([\s\S]{10,8000}?)(?:$)/i);
+  const accomplishments = extractBullets(/recognition.{0,15}accomplishments[^\n]*([\s\S]{10,8000}?)(?:areas for|$)/i);
+  const improvements    = extractBullets(/areas for.{0,30}(?:improvement|development)[^\n]*([\s\S]{10,8000}?)$/i);
+  // Debug: log what was found to help diagnose issues
+  const engagementIdx = lower.indexOf('employee engagement');
+  const psyIdx = lower.indexOf('psychological safety');
+  const raIdx = lower.search(/recognition.{0,15}accomplishments/i);
+  console.log('[DCH] parseColumnText debug:', {
+    engagement_idx: engagementIdx,
+    eng_chunk: engagementIdx >= 0 ? lower.slice(engagementIdx, engagementIdx + 200) : 'NOT FOUND',
+    psy_idx: psyIdx,
+    ra_idx: raIdx,
+    ra_chunk: raIdx >= 0 ? lower.slice(raIdx, raIdx + 300) : 'NOT FOUND',
+    accomplishments_count: accomplishments.length,
+    improvements_count: improvements.length,
+    ratings_found: Object.keys(ratings).filter(k => ratings[k] !== 3).length + ' / ' + Object.keys(ratings).length,
+    ratings,
+  });
   return { ratings, totalWeightedAvg, accomplishments, improvements };
 }
 
@@ -7471,7 +7486,7 @@ const PERF_CAT_ANCHORS = {
   we_deliver:        ['we deliver:', 'we: deliver', 'create solutions, not excuses', 'core value - we deliver'],
   we_learn:          ['we learn:', 'we: learn', 'take risks to find better', 'core value - we learn'],
   we_care:           ['we care:', 'we: care', 'hospitality mindset', 'core value - we care'],
-  engagement:        ['promote cultures of psychological safety', 'employee engagement', 'psychological safety and recognition'],
+  engagement:        ['promote cultures of psychological safety', 'employee engagement', 'psychological safety and recognition', 'retention issues are addressed', 'promote engagement'],
   team_performance:  ['promote team performance', 'team performance', 'delegate to their teams'],
   feedback_coaching: ['feedback and coaching', 'feedback & coaching', 'provide regular feedback'],
 };
