@@ -2510,49 +2510,6 @@ function renderHome() {
       <!-- LEFT COL (2/3): Insights + Charts -->
       <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
 
-        <!-- Metric tiles -->
-        ${hasAssessments && currentProfile?.role ? `
-          <div class="analysis-counts-row">
-            <div class="skill-snapshot-card">
-              <div class="skill-snapshot-stats">
-                <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('gap')">
-                  <span class="skill-snapshot-label">Below Target</span>
-                  <span class="skill-snapshot-num" style="color:var(--red)">${allGaps.length}</span>
-                </button>
-                <div class="skill-snapshot-divider"></div>
-                <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('strength')">
-                  <span class="skill-snapshot-label">Above Target</span>
-                  <span class="skill-snapshot-num" style="color:var(--green)">${allOverperforming.length}</span>
-                </button>
-                <div class="skill-snapshot-divider"></div>
-                <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('unknown')">
-                  <span class="skill-snapshot-label">Not Assessed</span>
-                  <span class="skill-snapshot-num" style="color:#94A3B8">${allUnknown.length}</span>
-                </button>
-              </div>
-            </div>
-            ${(() => {
-              const _firstName = (currentProfile?.name || '').split(' ')[0].toLowerCase();
-              const _saved = (() => { try { return JSON.parse(localStorage.getItem('dch_review_' + state.profile)); } catch(e) { return null; } })();
-              const er = _saved || null;
-              if (!er) return '';
-              const avgNum = er.manager.totalWeightedAvg != null
-                ? er.manager.totalWeightedAvg
-                : (Object.values(er.manager.ratings).reduce((a,b)=>a+b,0) / Object.values(er.manager.ratings).length);
-              const avg = er.manager.totalWeightedAvg != null ? avgNum.toFixed(3) : avgNum.toFixed(1);
-              const fullStars = Math.round(avgNum);
-              const stars = Array.from({length: 5}, (_, i) =>
-                `<span style="color:${i < fullStars ? '#F59E0B' : '#CBD5E1'};font-size:11px;line-height:1">★</span>`
-              ).join('');
-              return `<button class="analysis-count-chip analysis-count-review" onclick="navigate('eoy')">
-                <span class="analysis-count-label">Review Score</span>
-                <span class="analysis-count-num">${avg}</span>
-                <div style="display:flex;gap:1px;margin-top:2px">${stars}</div>
-              </button>`;
-            })()}
-          </div>
-        ` : ''}
-
         <!-- Skill Insights -->
         <div class="analysis-card">
           <div class="analysis-card-header">
@@ -2668,8 +2625,51 @@ function renderHome() {
         </div>
       </div>
 
-      <!-- RIGHT RAIL (1/3): Progress (Personal Goals + Outreach) -->
+      <!-- RIGHT RAIL (1/3): Metrics + Progress (Personal Goals + Outreach) -->
       <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+
+        <!-- Metric tiles -->
+        ${hasAssessments && currentProfile?.role ? `
+          <div class="analysis-counts-row" style="flex-direction:column;gap:8px">
+            <div class="skill-snapshot-card" style="width:100%;box-sizing:border-box">
+              <div class="skill-snapshot-stats">
+                <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('gap')">
+                  <span class="skill-snapshot-label">Below Target</span>
+                  <span class="skill-snapshot-num" style="color:var(--red)">${allGaps.length}</span>
+                </button>
+                <div class="skill-snapshot-divider"></div>
+                <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('strength')">
+                  <span class="skill-snapshot-label">Above Target</span>
+                  <span class="skill-snapshot-num" style="color:var(--green)">${allOverperforming.length}</span>
+                </button>
+                <div class="skill-snapshot-divider"></div>
+                <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('unknown')">
+                  <span class="skill-snapshot-label">Not Assessed</span>
+                  <span class="skill-snapshot-num" style="color:#94A3B8">${allUnknown.length}</span>
+                </button>
+              </div>
+            </div>
+            ${(() => {
+              const _saved = (() => { try { return JSON.parse(localStorage.getItem('dch_review_' + state.profile)); } catch(e) { return null; } })();
+              const er = _saved || null;
+              if (!er) return '';
+              const avgNum = er.manager.totalWeightedAvg != null
+                ? er.manager.totalWeightedAvg
+                : (Object.values(er.manager.ratings).reduce((a,b)=>a+b,0) / Object.values(er.manager.ratings).length);
+              const avg = er.manager.totalWeightedAvg != null ? avgNum.toFixed(3) : avgNum.toFixed(1);
+              const fullStars = Math.round(avgNum);
+              const stars = Array.from({length: 5}, (_, i) =>
+                `<span style="color:${i < fullStars ? '#F59E0B' : '#CBD5E1'};font-size:11px;line-height:1">★</span>`
+              ).join('');
+              return `<button class="analysis-count-chip analysis-count-review" onclick="navigate('eoy')" style="width:100%;box-sizing:border-box;text-align:left">
+                <span class="analysis-count-label">Review Score</span>
+                <span class="analysis-count-num">${avg}</span>
+                <div style="display:flex;gap:1px;margin-top:2px">${stars}</div>
+              </button>`;
+            })()}
+          </div>
+        ` : ''}
+
         ${(() => {
           const od = getOutreachData();
           const { year: oYear, q } = getCurrentQuarter();
