@@ -2731,7 +2731,7 @@ function renderHome() {
                   <span style="font-size:13px;color:var(--text-secondary)">Q${q} touchpoints</span>
                   <span style="font-size:13px;font-weight:600;color:${allTouchpointsThisQ >= goalQ ? 'var(--green)' : 'var(--text)'}">${allTouchpointsThisQ} / ${goalQ}</span>
                 </div>
-                <div class="outreach-progress-track" style="margin:0 0 10px">
+                <div style="height:5px;background:var(--border);border-radius:99px;overflow:hidden;margin:0 0 10px">
                   <div style="${pctBar(pct)}"></div>
                 </div>
                 <div style="display:flex;align-items:center;justify-content:space-between">
