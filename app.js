@@ -2687,6 +2687,7 @@ function renderHome() {
 
           const personalGoals = getPersonalGoals();
           const statusPct = { completed: 100, on_track: 75, in_progress: 40, at_risk: 20, not_started: 0 };
+          const pctColor = p => p >= 100 ? '#16A34A' : p >= 66 ? '#22C55E' : p >= 40 ? '#F59E0B' : p >= 20 ? '#F97316' : '#EF4444';
           const subLabel = (t, linkLabel, linkFn) => `
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
               <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">${t}</div>
@@ -2714,7 +2715,7 @@ function renderHome() {
                             <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:${sc.bg};color:${sc.color};white-space:nowrap;flex-shrink:0">${sc.label}</span>
                           </div>
                           <div style="height:5px;background:var(--border);border-radius:99px;overflow:hidden">
-                            <div style="height:100%;width:${gpct}%;background:${sc.color};border-radius:99px;transition:width .4s ease"></div>
+                            <div style="height:100%;width:${gpct}%;background:${pctColor(gpct)};border-radius:99px;transition:width .4s ease"></div>
                           </div>
                         </div>`;
                     }).join('')}
@@ -2729,7 +2730,7 @@ function renderHome() {
                   <span style="font-size:13px;font-weight:600;color:${allTouchpointsThisQ >= goalQ ? 'var(--green)' : 'var(--text)'}">${allTouchpointsThisQ} / ${goalQ}</span>
                 </div>
                 <div class="outreach-progress-track" style="margin:0 0 10px">
-                  <div class="outreach-progress-fill${pct >= 100 ? ' complete' : ''}" style="width:${pct}%"></div>
+                  <div style="height:100%;width:${pct}%;background:${pctColor(pct)};border-radius:99px;transition:width .4s ease"></div>
                 </div>
                 <div style="display:flex;align-items:center;justify-content:space-between">
                   <div style="font-size:13px;font-weight:600;color:${hveOk ? 'var(--green)' : 'var(--text-muted)'}">
