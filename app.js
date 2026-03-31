@@ -2564,9 +2564,12 @@ function renderHome() {
           const subLabel = (t) => `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px">${t}</div>`;
           return `
             <div class="analysis-card">
+              <div class="analysis-card-header">
+                <div class="analysis-card-title">Growth Opportunities</div>
+              </div>
               ${hasGrowth ? `
                 <div${hasWins ? ' style="padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--border)"' : ''}>
-                  ${subLabel('Growth Opportunities')}
+                  ${subLabel('Skill Gaps')}
                   <div class="growth-table">
                     <div class="growth-table-header">
                       <span class="growth-col-skill">Skill</span>
