@@ -2598,41 +2598,66 @@ function renderHome() {
           `}
         </div>
 
-        <!-- Growth Opportunities -->
-        ${growthAreas.length > 0 ? `
-          <div class="analysis-card">
-            <div class="analysis-card-header">
-              <div class="analysis-card-title">Growth Opportunities</div>
+        <!-- Growth Opportunities + Quick Wins (combined) -->
+        ${(() => {
+          const wins = getQuickWins().slice(0, 3);
+          const hasGrowth = growthAreas.length > 0;
+          const hasWins = wins.length > 0;
+          if (!hasGrowth && !hasWins) return '';
+          const subLabel = (t) => `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px">${t}</div>`;
+          return `
+            <div class="analysis-card">
+              ${hasGrowth ? `
+                <div${hasWins ? ' style="padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--border)"' : ''}>
+                  ${subLabel('Growth Opportunities')}
+                  <div class="growth-table">
+                    <div class="growth-table-header">
+                      <span class="growth-col-skill">Skill</span>
+                      <span class="growth-col-level">Current</span>
+                      <span class="growth-col-gap">Gap</span>
+                    </div>
+                    ${growthAreas.map(s => {
+                      const lc = LEVEL_CONFIG[assessments[s.id].managerLevel];
+                      const exp = getExpectedLevelForSkill(s.id);
+                      const mgrOrder = getLevelOrder(assessments[s.id].managerLevel);
+                      const expOrder = exp ? getLevelOrder(exp) : mgrOrder;
+                      const isUnknown = assessments[s.id].managerLevel === 'Unknown';
+                      const isGap = !isUnknown && mgrOrder < expOrder;
+                      const isOver = !isUnknown && mgrOrder > expOrder;
+                      const gapDiff = isGap ? expOrder - mgrOrder : isOver ? mgrOrder - expOrder : 0;
+                      const gapHtml = isGap
+                        ? `<span class="review-gap-badge review-gap-under-${Math.min(gapDiff,3)}">−${gapDiff}</span>`
+                        : isOver
+                        ? `<span class="review-gap-badge review-gap-over-${Math.min(gapDiff,3)}">+${gapDiff}</span>`
+                        : `<span style="color:var(--text-muted);font-size:12px">—</span>`;
+                      return `<div class="growth-table-row" onclick="navigate('skill','${s.id}')">
+                        <span class="growth-col-skill">${escHtml(s.name)}</span>
+                        <span class="growth-col-level"><span class="level-badge ${lc.cls}">${icon(lc.iconName, 11, lc.color)} ${assessments[s.id].managerLevel}</span></span>
+                        <span class="growth-col-gap">${gapHtml}</span>
+                      </div>`;
+                    }).join('')}
+                  </div>
+                </div>
+              ` : ''}
+              ${hasWins ? `
+                <div>
+                  ${subLabel('Quick Wins')}
+                  <div class="dash-quick-wins-list">
+                    ${wins.map((w, i) => `
+                      <div class="dash-qw-item" onclick="openQuickWinModal(${i})">
+                        <div class="dash-qw-body">
+                          <div class="dash-qw-title">${escHtml(w.title)}</div>
+                          <div class="dash-qw-meta">${w.matchingNames.length} skill${w.matchingNames.length !== 1 ? 's' : ''} addressed</div>
+                        </div>
+                        <svg class="dash-qw-arrow" width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              ` : ''}
             </div>
-            <div class="growth-table">
-              <div class="growth-table-header">
-                <span class="growth-col-skill">Skill</span>
-                <span class="growth-col-level">Current</span>
-                <span class="growth-col-gap">Gap</span>
-              </div>
-              ${growthAreas.map(s => {
-                const lc = LEVEL_CONFIG[assessments[s.id].managerLevel];
-                const exp = getExpectedLevelForSkill(s.id);
-                const mgrOrder = getLevelOrder(assessments[s.id].managerLevel);
-                const expOrder = exp ? getLevelOrder(exp) : mgrOrder;
-                const isUnknown = assessments[s.id].managerLevel === 'Unknown';
-                const isGap = !isUnknown && mgrOrder < expOrder;
-                const isOver = !isUnknown && mgrOrder > expOrder;
-                const gapDiff = isGap ? expOrder - mgrOrder : isOver ? mgrOrder - expOrder : 0;
-                const gapHtml = isGap
-                  ? `<span class="review-gap-badge review-gap-under-${Math.min(gapDiff,3)}">−${gapDiff}</span>`
-                  : isOver
-                  ? `<span class="review-gap-badge review-gap-over-${Math.min(gapDiff,3)}">+${gapDiff}</span>`
-                  : `<span style="color:var(--text-muted);font-size:12px">—</span>`;
-                return `<div class="growth-table-row" onclick="navigate('skill','${s.id}')">
-                  <span class="growth-col-skill">${escHtml(s.name)}</span>
-                  <span class="growth-col-level"><span class="level-badge ${lc.cls}">${icon(lc.iconName, 11, lc.color)} ${assessments[s.id].managerLevel}</span></span>
-                  <span class="growth-col-gap">${gapHtml}</span>
-                </div>`;
-              }).join('')}
-            </div>
-          </div>
-        ` : ''}
+          `;
+        })()}
 
         <!-- Star charts side by side -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
@@ -2643,88 +2668,73 @@ function renderHome() {
         </div>
       </div>
 
-      <!-- RIGHT RAIL (1/3): Goal Progress + Merchant Outreach -->
+      <!-- RIGHT RAIL (1/3): Progress (Personal Goals + Outreach) -->
       <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
         ${(() => {
-          const d = getData();
-          const themes = d.growthThemes || [];
+          const od = getOutreachData();
+          const { year: oYear, q } = getCurrentQuarter();
+          const quarterEntries = getEntriesForQuarter(od.entries, oYear, q);
+          const allTouchpointsThisQ = quarterEntries.length;
+          const goalQ = 4;
+          const pct = Math.min(100, Math.round((allTouchpointsThisQ / goalQ) * 100));
+          const now = new Date();
+          const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+          const hveThisMonth = od.entries.filter(e => e.type === 'hve' && new Date(e.date) >= thisMonthStart).length;
+          const hveOk = hveThisMonth >= 1;
+
           const personalGoals = getPersonalGoals();
           const statusPct = { completed: 100, on_track: 75, in_progress: 40, at_risk: 20, not_started: 0 };
-          const subHeader = (label) => `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">${label}</div>`;
-          return `
-            <div class="dash-module">
-              <div class="dash-module-header">
-                <span class="section-title">Goals</span>
-                <button class="section-link" onclick="navigate('goals')">View all →</button>
-              </div>
-              <div style="display:flex;flex-direction:column;gap:0">
-                <div style="padding-bottom:14px">
-                  ${subHeader('Growth Themes')}
-                  ${themes.length ? `
-                    <div class="dash-quick-wins-list">
-                      ${themes.map(t => `
-                        <div class="dash-qw-item" onclick="navigate('goals')">
-                          <div class="dash-qw-body">
-                            <div class="dash-qw-title">${escHtml(t.theme)}</div>
-                          </div>
-                          <svg class="dash-qw-arrow" width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
-                        </div>`).join('')}
-                    </div>` : `<div style="font-size:13px;color:var(--text-muted)">No growth themes created yet.</div>`}
-                </div>
-                <div style="${themes.length ? 'padding-top:14px' : ''}">
-                  ${subHeader('Personal Goals')}
-                  ${personalGoals.length === 0
-                    ? `<div style="font-size:13px;color:var(--text-muted)">No personal goals created yet.</div>`
-                    : `<div style="display:flex;flex-direction:column;gap:14px">
-                        ${personalGoals.map(g => {
-                          const sc = GOAL_STATUS_CONFIG[g.status || 'not_started'] || GOAL_STATUS_CONFIG['not_started'];
-                          const pct = statusPct[g.status] ?? 0;
-                          return `
-                            <div onclick="navigate('goals')" style="cursor:pointer" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
-                              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px">
-                                <span style="font-size:12px;color:var(--text);font-weight:500;flex:1;min-width:0;line-height:1.5">${escHtml(g.goal)}</span>
-                                <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:${sc.bg};color:${sc.color};white-space:nowrap;flex-shrink:0">${sc.label}</span>
-                              </div>
-                              <div style="height:5px;background:var(--border);border-radius:99px;overflow:hidden">
-                                <div style="height:100%;width:${pct}%;background:${sc.color};border-radius:99px;transition:width .4s ease"></div>
-                              </div>
-                            </div>`;
-                        }).join('')}
-                      </div>`
-                  }
-                </div>
-              </div>
+          const subLabel = (t, linkLabel, linkFn) => `
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">${t}</div>
+              ${linkLabel ? `<button class="section-link" onclick="${linkFn}">${linkLabel}</button>` : ''}
             </div>`;
-        })()}
-        <div class="dash-module" style="padding:0;overflow:hidden">
-          ${renderOutreachWidget()}
-        </div>
 
-        <!-- Quick Wins -->
-        ${(() => {
-          const wins = getQuickWins().slice(0, 3);
           return `
             <div class="dash-module">
               <div class="dash-module-header">
-                <span class="section-title">Quick Wins</span>
-                <button class="section-link" onclick="navigate('review')">View all →</button>
+                <span class="section-title">Progress</span>
               </div>
-              ${wins.length === 0 ? `
-                <div class="dash-empty-state">No quick wins yet — assess more skills to get recommendations.</div>
-              ` : `
-                <div class="dash-quick-wins-list">
-                  ${wins.map((w, i) => `
-                    <div class="dash-qw-item" onclick="openQuickWinModal(${i})">
 
-                      <div class="dash-qw-body">
-                        <div class="dash-qw-title">${escHtml(w.title)}</div>
-                        <div class="dash-qw-meta">${w.matchingNames.length} skill${w.matchingNames.length !== 1 ? 's' : ''} addressed</div>
-                      </div>
-                      <svg class="dash-qw-arrow" width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
-                    </div>
-                  `).join('')}
+              <!-- Personal Goals -->
+              ${subLabel('Personal Goals', 'View all →', "navigate('goals')")}
+              ${personalGoals.length === 0
+                ? `<div style="font-size:13px;color:var(--text-muted);margin-bottom:18px">No personal goals yet.</div>`
+                : `<div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+                    ${personalGoals.map(g => {
+                      const sc = GOAL_STATUS_CONFIG[g.status || 'not_started'] || GOAL_STATUS_CONFIG['not_started'];
+                      const gpct = statusPct[g.status] ?? 0;
+                      return `
+                        <div onclick="navigate('goals')" style="cursor:pointer" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+                          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px">
+                            <span style="font-size:12px;color:var(--text);font-weight:500;flex:1;min-width:0;line-height:1.5">${escHtml(g.goal)}</span>
+                            <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:${sc.bg};color:${sc.color};white-space:nowrap;flex-shrink:0">${sc.label}</span>
+                          </div>
+                          <div style="height:5px;background:var(--border);border-radius:99px;overflow:hidden">
+                            <div style="height:100%;width:${gpct}%;background:${sc.color};border-radius:99px;transition:width .4s ease"></div>
+                          </div>
+                        </div>`;
+                    }).join('')}
+                  </div>`
+              }
+
+              <!-- Merchant Outreach -->
+              <div style="border-top:1px solid var(--border);padding-top:16px">
+                ${subLabel('Merchant Outreach', 'View all →', "navigate('outreach')")}
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                  <span style="font-size:13px;color:var(--text-secondary)">Q${q} touchpoints</span>
+                  <span style="font-size:13px;font-weight:600;color:${allTouchpointsThisQ >= goalQ ? 'var(--green)' : 'var(--text)'}">${allTouchpointsThisQ} / ${goalQ}</span>
                 </div>
-              `}
+                <div class="outreach-progress-track" style="margin:0 0 10px">
+                  <div class="outreach-progress-fill${pct >= 100 ? ' complete' : ''}" style="width:${pct}%"></div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <div style="font-size:13px;font-weight:600;color:${hveOk ? 'var(--green)' : 'var(--text-muted)'}">
+                    ${hveOk ? '✓ HVE done!' : `<span style="display:inline-flex;align-items:center;gap:5px">${icon('alert-triangle', 13, 'var(--text-muted)')} HVE due this month</span>`}
+                  </div>
+                  <button class="btn btn-secondary btn-sm" onclick="openOutreachModal(null)">Log Outreach</button>
+                </div>
+              </div>
             </div>
           `;
         })()}
