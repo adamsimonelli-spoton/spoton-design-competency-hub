@@ -2523,9 +2523,9 @@ function renderHome() {
               <button class="btn btn-secondary" style="font-size:12px;padding:6px 14px" onclick="openImportModal('skill-matrix')">${icon('upload',13)} Import skills</button>
             </div>
           ` : `
-            <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column;gap:16px">
               ${persona ? `
-                <div class="analysis-persona" style="flex:0 0 300px;margin-bottom:0">
+                <div class="analysis-persona" style="margin-bottom:0">
                   <div class="analysis-persona-top">
                     <div style="flex:1">
                       <div class="analysis-persona-label">${escHtml(persona.label)}</div>
@@ -2537,7 +2537,7 @@ function renderHome() {
                 </div>
               ` : ''}
               ${insightBullets.length > 0 ? `
-                <div class="analysis-narrative-blocks" style="flex:1;min-width:220px">
+                <div class="analysis-narrative-blocks">
                   ${insightBullets.map(b => {
                     const dashIdx = b.indexOf(' — ');
                     if (dashIdx !== -1) {
