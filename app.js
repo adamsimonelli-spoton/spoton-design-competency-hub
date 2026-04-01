@@ -8193,7 +8193,6 @@ function renderEOYReview() {
           '<span style="font-size:12px;font-weight:700;color:var(--text-muted);min-width:22px;padding-top:2px">(' + rowNum + ')</span>' +
           '<div>' +
             '<div style="font-size:13px;font-weight:600;color:var(--text)">' + escHtml(cat.label) + ' <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted);vertical-align:middle;margin-left:2px"><polyline points="9 18 15 12 9 6"/></svg></div>' +
-            '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;line-height:1.4">' + escHtml(cat.desc) + '</div>' +
           '</div>' +
         '</div>' +
         '<div style="padding-right:8px" onclick="event.stopPropagation()">' + ratingSelect(cat.id, 'self', selfRatings[cat.id]) + '</div>' +
