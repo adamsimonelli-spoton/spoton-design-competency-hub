@@ -8425,29 +8425,29 @@ function renderEOYDetail() {
       </div>
     </div>
 
-    <div class="analysis-card" style="margin-bottom:20px">
+    <div class="analysis-card" style="margin-bottom:20px;height:auto">
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:6px">${escHtml(group.label)}</div>
       <h1 style="margin:0 0 8px;font-size:24px;font-weight:800;color:var(--text)">${escHtml(cat.label)}</h1>
       <p style="margin:0;font-size:14px;color:var(--text-secondary);line-height:1.5">${escHtml(cat.desc)}</p>
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-      <div class="analysis-card" style="margin:0">
+      <div class="analysis-card" style="margin:0;height:auto">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--primary);margin-bottom:10px">Self</div>
         ${ratingSelect(cat.id, 'self', selfRatings[cat.id])}
       </div>
-      <div class="analysis-card" style="margin:0">
+      <div class="analysis-card" style="margin:0;height:auto">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#5B21B6;margin-bottom:10px">Manager</div>
         ${ratingSelect(cat.id, 'manager', mgrRatings[cat.id])}
       </div>
     </div>
 
-    <div class="analysis-card" style="margin-bottom:20px;display:flex;align-items:center;gap:12px">
+    <div class="analysis-card" style="margin-bottom:20px;height:auto;flex-direction:row;align-items:center;gap:12px">
       <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)">Gap</span>
       ${gapBadge}
     </div>
 
-    <div class="analysis-card">
+    <div class="analysis-card" style="height:auto">
       <div class="review-cat-title" style="margin-bottom:16px">Key Behaviors</div>
       <div style="display:flex;flex-direction:column;gap:10px">
         ${detail.behaviors.map(b => `
