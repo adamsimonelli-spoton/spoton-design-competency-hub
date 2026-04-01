@@ -643,6 +643,65 @@ const EOY_CATEGORY_GROUPS = [
   },
 ];
 
+const EOY_CATEGORY_DETAIL = {
+  technical: { behaviors: [
+    'Demonstrates deep knowledge of tools, systems, and methods relevant to the role.',
+    'Stays current with industry trends and applies new knowledge to improve outcomes.',
+    'Solves complex problems using specialized expertise without needing significant guidance.',
+    'Shares knowledge proactively to raise the team\'s collective skill level.',
+  ]},
+  quality: { behaviors: [
+    'Delivers work products that are accurate, complete, and meet defined standards.',
+    'Reviews own work carefully before submission; errors are rare and quickly corrected.',
+    'Applies domain expertise to produce outputs that reflect professional standards.',
+    'Solicits and incorporates feedback to continuously improve the quality of deliverables.',
+  ]},
+  accountability: { behaviors: [
+    'Owns outcomes end-to-end — does not wait to be directed on next steps.',
+    'Meets commitments consistently; proactively flags risks before they become issues.',
+    'Applies feedback and iterates quickly when results fall short of expectations.',
+    'Sets a high bar for self and takes responsibility for both successes and setbacks.',
+  ]},
+  we_lead: { behaviors: [
+    'We anticipate, prioritize, and deliver what our clients value most.',
+    'We do what\'s right because it\'s right.',
+    'We work with honesty, transparency, integrity, and ownership.',
+  ]},
+  we_deliver: { behaviors: [
+    'We create solutions, not excuses.',
+    'We build systems to move fast and efficiently.',
+    'We don\'t let perfect get in the way of progress.',
+  ]},
+  we_learn: { behaviors: [
+    'We take risks to find faster, better ways to help our clients.',
+    'We embrace feedback and data to make better decisions.',
+    'We adapt and innovate.',
+  ]},
+  we_care: { behaviors: [
+    'We embrace a hospitality mindset in every action.',
+    'We believe we win and lose as a team.',
+    'We act with empathy.',
+  ]},
+  engagement: { behaviors: [
+    'Promotes a culture of psychological safety where team members feel heard and valued.',
+    'Recognizes and celebrates contributions regularly and meaningfully.',
+    'Addresses retention risks early and creates conditions for team members to thrive.',
+    'Models inclusive behavior and encourages diverse perspectives.',
+  ]},
+  team_performance: { behaviors: [
+    'Delegates effectively, matching tasks to team members\' strengths and growth goals.',
+    'Maintains awareness of team health, velocity, and blockers.',
+    'Achieves expected productivity outcomes while sustaining team wellbeing.',
+    'Removes obstacles so the team can focus on high-impact work.',
+  ]},
+  feedback_coaching: { behaviors: [
+    'Provides regular, specific, and actionable feedback — both reinforcing and corrective.',
+    'Conducts meaningful 1:1s that support each team member\'s development.',
+    'Identifies potential in team members and creates pathways for growth.',
+    'Coaches through challenges rather than solving problems for others.',
+  ]},
+};
+
 // Keyed by lowercase first name of the profile. 'adam' holds real data; others are mock.
 const EOY_REVIEWS = {
   'adam': {
@@ -1099,6 +1158,7 @@ let state = {
   addResourceOpen: false,
   cvAddResourceOpen: false,
   eoyTextTab: 'self',
+  eoyDetailId: null,
   tableSort: {},
   growthThemeModal: null,
   growthThemeId: null,
@@ -7047,7 +7107,7 @@ function render() {
           <span>Core Values</span>
         </button>
 
-        <button class="nav-item ${state.view === 'eoy' ? 'active' : ''}" onclick="navigate('eoy')">
+        <button class="nav-item ${state.view === 'eoy' || state.view === 'eoy-detail' ? 'active' : ''}" onclick="navigate('eoy')">
           <span class="nav-icon">${icon('bar-chart-2', 18)}</span>
           <span>Performance Review</span>
         </button>
@@ -7080,6 +7140,7 @@ function render() {
         ${state.view === 'review' ? renderReview() : ''}
         ${state.view === 'resources' ? renderResources() : ''}
         ${state.view === 'eoy' ? renderEOYReview() : ''}
+        ${state.view === 'eoy-detail' ? renderEOYDetail() : ''}
         ${state.view === 'outreach' ? renderOutreachPage() : ''}
         ${state.view === 'values' ? renderCoreValues() : ''}
         ${state.view === 'value' ? renderCoreValueDetail() : ''}
@@ -8041,6 +8102,13 @@ function saveEoyReview(updater) {
   updater(r);
   localStorage.setItem(key, JSON.stringify(r));
 }
+function openEoyDetail(catId) {
+  state.prevView = 'eoy';
+  state.eoyDetailId = catId;
+  state.view = 'eoy-detail';
+  render();
+}
+
 function saveEoyYear(val) { saveEoyReview(r => r.year = val); }
 function saveEoyScore(who, val) { saveEoyReview(r => r[who].totalWeightedAvg = (val !== '' && val != null) ? parseFloat(val) : null); }
 function saveEoyRating(cat, who, val) { saveEoyReview(r => { if (!r[who].ratings) r[who].ratings = {}; if (val) r[who].ratings[cat] = parseInt(val); else delete r[who].ratings[cat]; }); render(); }
@@ -8126,16 +8194,16 @@ function renderEOYReview() {
         const label = (isOver ? '+' : '') + gap;
         gapCell = '<span title="' + (isOver ? 'You rated yourself higher' : 'Manager rated you higher') + '" style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:12px;font-weight:700;color:' + gapColor + ';background:' + gapBg + ';border:1px solid ' + gapBorder + '">' + label + '</span>';
       }
-      return '<div style="display:grid;grid-template-columns:1fr 220px 220px 72px;align-items:center;padding:10px 16px;' + (!isLast ? 'border-bottom:1px solid var(--border);' : '') + '">' +
+      return '<div onclick="openEoyDetail(\'' + cat.id + '\')" style="display:grid;grid-template-columns:1fr 220px 220px 72px;align-items:center;padding:10px 16px;cursor:pointer;transition:background .1s;' + (!isLast ? 'border-bottom:1px solid var(--border);' : '') + '" onmouseenter="this.style.background=\'var(--bg)\'" onmouseleave="this.style.background=\'\'">' +
         '<div style="display:flex;gap:10px;align-items:flex-start">' +
           '<span style="font-size:12px;font-weight:700;color:var(--text-muted);min-width:22px;padding-top:2px">(' + rowNum + ')</span>' +
           '<div>' +
-            '<div style="font-size:13px;font-weight:600;color:var(--text)">' + escHtml(cat.label) + '</div>' +
+            '<div style="font-size:13px;font-weight:600;color:var(--text)">' + escHtml(cat.label) + ' <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted);vertical-align:middle;margin-left:2px"><polyline points="9 18 15 12 9 6"/></svg></div>' +
             '<div style="font-size:11px;color:var(--text-muted);margin-top:2px;line-height:1.4">' + escHtml(cat.desc) + '</div>' +
           '</div>' +
         '</div>' +
-        '<div style="padding-right:8px">' + ratingSelect(cat.id, 'self', selfRatings[cat.id]) + '</div>' +
-        '<div>' + ratingSelect(cat.id, 'manager', mgrRatings[cat.id]) + '</div>' +
+        '<div style="padding-right:8px" onclick="event.stopPropagation()">' + ratingSelect(cat.id, 'self', selfRatings[cat.id]) + '</div>' +
+        '<div onclick="event.stopPropagation()">' + ratingSelect(cat.id, 'manager', mgrRatings[cat.id]) + '</div>' +
         '<div style="text-align:center">' + gapCell + '</div>' +
       '</div>';
     }).join('');
@@ -8301,6 +8369,104 @@ function renderEOYReview() {
 }
 
 function setEoyTextTab(tab) { state.eoyTextTab = tab; render(); }
+
+function renderEOYDetail() {
+  const allCats = EOY_CATEGORY_GROUPS.flatMap(g => g.categories);
+  const cat = allCats.find(c => c.id === state.eoyDetailId);
+  if (!cat) return '<div class="empty-state"><div class="empty-state-title">Category not found</div></div>';
+
+  const group = EOY_CATEGORY_GROUPS.find(g => g.categories.some(c => c.id === cat.id));
+  const catIdx = allCats.indexOf(cat);
+  const prevCat = allCats[(catIdx - 1 + allCats.length) % allCats.length];
+  const nextCat = allCats[(catIdx + 1) % allCats.length];
+  const detail = EOY_CATEGORY_DETAIL[cat.id] || { behaviors: [] };
+
+  const key = 'dch_review_' + state.profile;
+  let review;
+  try { review = JSON.parse(localStorage.getItem(key)); } catch(e) {}
+  const r = review || { self: { ratings: {} }, manager: { ratings: {} } };
+  const selfRatings = r.self?.ratings || {};
+  const mgrRatings = r.manager?.ratings || {};
+
+  const ratingSelectStyle = (val) => {
+    const n = parseInt(val);
+    const rc = n ? EOY_RATING_CONFIG[n] : null;
+    return rc ? `background:${rc.bg};color:${rc.color};border-color:${rc.border};font-weight:700;` : 'background:var(--surface);color:var(--text-muted);border-color:var(--border);font-weight:400;';
+  };
+  const ratingSelect = (catId, who, currentVal) => {
+    const opts = ['<option value="">\u2014</option>'].concat([1,2,3,4,5].map(n => {
+      const rc = EOY_RATING_CONFIG[n];
+      return '<option value="' + n + '"' + (parseInt(currentVal) === n ? ' selected' : '') + '>' + n + ' \u2013 ' + rc.label + '</option>';
+    })).join('');
+    return '<select onchange="saveEoyRating(\'' + catId + '\',\'' + who + '\',this.value);styleRatingSelect(this,this.value)" style="font-size:13px;padding:8px 10px;border:1px solid;border-radius:8px;width:100%;transition:background .15s,color .15s,border-color .15s;' + ratingSelectStyle(currentVal) + '">' + opts + '</select>';
+  };
+
+  const sv = parseInt(selfRatings[cat.id]);
+  const mv = parseInt(mgrRatings[cat.id]);
+  const hasGap = sv && mv;
+  const gap = hasGap ? sv - mv : null;
+  let gapBadge = '';
+  if (gap === null) {
+    gapBadge = '<span style="color:var(--text-muted);font-size:13px">— enter both ratings to see gap</span>';
+  } else if (gap === 0) {
+    gapBadge = '<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700;color:#6B7280;background:#F3F4F6;border:1px solid #E5E7EB">Aligned <span style="font-weight:800">0</span></span>';
+  } else {
+    const isOver = gap > 0;
+    const gapColor = isOver ? '#D97706' : '#059669';
+    const gapBg = isOver ? '#FFFBEB' : '#F0FDF4';
+    const gapBorder = isOver ? '#FDE68A' : '#BBF7D0';
+    const label = (isOver ? '+' : '') + gap;
+    const msg = isOver ? 'You rated yourself higher' : 'Manager rated you higher';
+    gapBadge = '<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700;color:' + gapColor + ';background:' + gapBg + ';border:1px solid ' + gapBorder + '">' + msg + ' <span style="font-weight:800">' + label + '</span></span>';
+  }
+
+  return `
+    <div class="breadcrumb" style="margin-bottom:20px">
+      <button class="back-arrow-btn" onclick="navigate('eoy')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Performance Review
+      </button>
+      <div class="skill-nav-arrows">
+        <button class="skill-nav-btn" onclick="openEoyDetail('${prevCat.id}')" title="${escHtml(prevCat.label)}">&#8249; Prev</button>
+        <button class="skill-nav-btn" onclick="openEoyDetail('${nextCat.id}')" title="${escHtml(nextCat.label)}">Next &#8250;</button>
+      </div>
+    </div>
+
+    <div class="analysis-card" style="margin-bottom:20px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:6px">${escHtml(group.label)}</div>
+      <h1 style="margin:0 0 8px;font-size:24px;font-weight:800;color:var(--text)">${escHtml(cat.label)}</h1>
+      <p style="margin:0;font-size:14px;color:var(--text-secondary);line-height:1.5">${escHtml(cat.desc)}</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div class="analysis-card" style="margin:0">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--primary);margin-bottom:10px">Self</div>
+        ${ratingSelect(cat.id, 'self', selfRatings[cat.id])}
+      </div>
+      <div class="analysis-card" style="margin:0">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#5B21B6;margin-bottom:10px">Manager</div>
+        ${ratingSelect(cat.id, 'manager', mgrRatings[cat.id])}
+      </div>
+    </div>
+
+    <div class="analysis-card" style="margin-bottom:20px;display:flex;align-items:center;gap:12px">
+      <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)">Gap</span>
+      ${gapBadge}
+    </div>
+
+    <div class="analysis-card">
+      <div class="review-cat-title" style="margin-bottom:16px">Key Behaviors</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${detail.behaviors.map(b => `
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="width:6px;height:6px;border-radius:50%;background:var(--primary);flex-shrink:0;margin-top:6px"></div>
+            <span style="font-size:14px;color:#374151;line-height:1.6">${escHtml(b)}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
 
 function setTableSort(tableId, field) {
   const cur = state.tableSort[tableId] || { field: null, dir: 'asc' };
