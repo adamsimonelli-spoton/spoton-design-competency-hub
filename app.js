@@ -648,19 +648,16 @@ const EOY_CATEGORY_DETAIL = {
     'Demonstrates deep knowledge of tools, systems, and methods relevant to the role.',
     'Stays current with industry trends and applies new knowledge to improve outcomes.',
     'Solves complex problems using specialized expertise without needing significant guidance.',
-    'Shares knowledge proactively to raise the team\'s collective skill level.',
   ]},
   quality: { behaviors: [
     'Delivers work products that are accurate, complete, and meet defined standards.',
     'Reviews own work carefully before submission; errors are rare and quickly corrected.',
-    'Applies domain expertise to produce outputs that reflect professional standards.',
     'Solicits and incorporates feedback to continuously improve the quality of deliverables.',
   ]},
   accountability: { behaviors: [
     'Owns outcomes end-to-end — does not wait to be directed on next steps.',
     'Meets commitments consistently; proactively flags risks before they become issues.',
     'Applies feedback and iterates quickly when results fall short of expectations.',
-    'Sets a high bar for self and takes responsibility for both successes and setbacks.',
   ]},
   we_lead: { behaviors: [
     'We anticipate, prioritize, and deliver what our clients value most.',
@@ -686,18 +683,15 @@ const EOY_CATEGORY_DETAIL = {
     'Promotes a culture of psychological safety where team members feel heard and valued.',
     'Recognizes and celebrates contributions regularly and meaningfully.',
     'Addresses retention risks early and creates conditions for team members to thrive.',
-    'Models inclusive behavior and encourages diverse perspectives.',
   ]},
   team_performance: { behaviors: [
     'Delegates effectively, matching tasks to team members\' strengths and growth goals.',
     'Maintains awareness of team health, velocity, and blockers.',
     'Achieves expected productivity outcomes while sustaining team wellbeing.',
-    'Removes obstacles so the team can focus on high-impact work.',
   ]},
   feedback_coaching: { behaviors: [
     'Provides regular, specific, and actionable feedback — both reinforcing and corrective.',
     'Conducts meaningful 1:1s that support each team member\'s development.',
-    'Identifies potential in team members and creates pathways for growth.',
     'Coaches through challenges rather than solving problems for others.',
   ]},
 };
