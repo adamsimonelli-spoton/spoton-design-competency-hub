@@ -2681,8 +2681,8 @@ function renderHome() {
 
         <!-- Metric tiles -->
         ${hasAssessments && currentProfile?.role ? `
-          <div class="analysis-counts-row" style="flex-direction:column;gap:8px">
-            <div class="skill-snapshot-card" style="width:100%;box-sizing:border-box">
+          <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+          <div class="skill-snapshot-card" style="width:100%;box-sizing:border-box">
               <div class="skill-snapshot-stats">
                 <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('gap')">
                   <span class="skill-snapshot-label">Below Target</span>
@@ -2698,6 +2698,27 @@ function renderHome() {
                   <span class="skill-snapshot-label">Not Assessed</span>
                   <span class="skill-snapshot-num" style="color:#94A3B8">${allUnknown.length}</span>
                 </button>
+              </div>
+              <!-- Radar -->
+              <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                  <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Radar</div>
+                  <button class="section-link" onclick="${state.dashRadarTab==='skills' ? "navigate('review')" : "navigate('values')"}">${state.dashRadarTab==='skills' ? 'View skills →' : 'View values →'}</button>
+                </div>
+                <div style="display:flex;gap:0;margin-bottom:14px;background:var(--bg);border-radius:8px;padding:3px">
+                  <button onclick="state.dashRadarTab='skills';render()" style="flex:1;padding:5px 10px;font-size:12px;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:background .15s,color .15s;background:${state.dashRadarTab==='skills'?'var(--surface)':'transparent'};color:${state.dashRadarTab==='skills'?'var(--primary)':'var(--text-muted)'}">Skills</button>
+                  <button onclick="state.dashRadarTab='values';render()" style="flex:1;padding:5px 10px;font-size:12px;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:background .15s,color .15s;background:${state.dashRadarTab==='values'?'var(--surface)':'transparent'};color:${state.dashRadarTab==='values'?'var(--primary)':'var(--text-muted)'}">Core Values</button>
+                </div>
+                ${state.dashRadarTab === 'skills' ? `
+                  <div id="radar-card">${renderRadarCardInner(true)}</div>
+                ` : (() => {
+                  const rated = CORE_VALUES_DATA.filter(cv => getValueRating(cv.id).managerRating);
+                  return `
+                    ${rated.length === 0 ? `<div class="radar-card-subtitle" style="margin-bottom:8px">Rate your core values to see your shape</div><div style="text-align:center;margin-bottom:10px"><button class="btn btn-secondary" style="font-size:12px;padding:6px 14px" onclick="navigate('values')">Rate values →</button></div>` : ''}
+                    <div class="radar-chart-wrap" style="${rated.length === 0 ? 'opacity:.35;filter:grayscale(1)' : ''}">
+                      ${renderValuesRadarChart(290)}
+                    </div>`;
+                })()}
               </div>
             </div>
             ${(() => {
@@ -2718,27 +2739,6 @@ function renderHome() {
                 <div style="display:flex;gap:1px;margin-top:2px">${stars}</div>
               </button>`;
             })()}
-            <!-- Radar -->
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Radar</div>
-                <button class="section-link" onclick="${state.dashRadarTab==='skills' ? "navigate('review')" : "navigate('values')"}">${state.dashRadarTab==='skills' ? 'View skills →' : 'View values →'}</button>
-              </div>
-              <div style="display:flex;gap:0;margin-bottom:14px;background:var(--bg);border-radius:8px;padding:3px">
-                <button onclick="state.dashRadarTab='skills';render()" style="flex:1;padding:5px 10px;font-size:12px;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:background .15s,color .15s;background:${state.dashRadarTab==='skills'?'var(--surface)':'transparent'};color:${state.dashRadarTab==='skills'?'var(--primary)':'var(--text-muted)'}">Skills</button>
-                <button onclick="state.dashRadarTab='values';render()" style="flex:1;padding:5px 10px;font-size:12px;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:background .15s,color .15s;background:${state.dashRadarTab==='values'?'var(--surface)':'transparent'};color:${state.dashRadarTab==='values'?'var(--primary)':'var(--text-muted)'}">Core Values</button>
-              </div>
-              ${state.dashRadarTab === 'skills' ? `
-                <div id="radar-card">${renderRadarCardInner(true)}</div>
-              ` : (() => {
-                const rated = CORE_VALUES_DATA.filter(cv => getValueRating(cv.id).managerRating);
-                return `
-                  ${rated.length === 0 ? `<div class="radar-card-subtitle" style="margin-bottom:8px">Rate your core values to see your shape</div><div style="text-align:center;margin-bottom:10px"><button class="btn btn-secondary" style="font-size:12px;padding:6px 14px" onclick="navigate('values')">Rate values →</button></div>` : ''}
-                  <div class="radar-chart-wrap" style="${rated.length === 0 ? 'opacity:.35;filter:grayscale(1)' : ''}">
-                    ${renderValuesRadarChart(290)}
-                  </div>`;
-              })()}
-            </div>
           </div>
         ` : ''}
 
