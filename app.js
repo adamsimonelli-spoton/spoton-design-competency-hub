@@ -2703,7 +2703,7 @@ function renderHome() {
                 </button>
               </div>
               <!-- Radar -->
-              <div style="border-top:1px solid var(--border);padding:14px 16px 16px;margin-top:14px">
+              <div style="padding:14px 16px 16px;margin-top:0">
                 <div style="display:flex;gap:0;margin-bottom:14px;background:var(--bg);border-radius:8px;padding:3px">
                   <button onclick="state.dashRadarTab='skills';render()" style="flex:1;padding:5px 10px;font-size:12px;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:background .15s,color .15s;background:${state.dashRadarTab==='skills'?'var(--surface)':'transparent'};color:${state.dashRadarTab==='skills'?'var(--primary)':'var(--text-muted)'}">Skills</button>
                   <button onclick="state.dashRadarTab='values';render()" style="flex:1;padding:5px 10px;font-size:12px;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:background .15s,color .15s;background:${state.dashRadarTab==='values'?'var(--surface)':'transparent'};color:${state.dashRadarTab==='values'?'var(--primary)':'var(--text-muted)'}">Core Values</button>
@@ -2716,15 +2716,12 @@ function renderHome() {
                     <div class="radar-chart-wrap" style="${!hasAssessments2 ? 'opacity:.35;filter:grayscale(1)' : ''}">
                       ${renderRadarChart(290, layers)}
                     </div>
-                    <div class="radar-toggle" style="justify-content:space-between;margin-top:10px;align-items:center">
-                      <div style="display:flex;gap:6px">
-                        ${RADAR_LAYER_OPTIONS.map(opt => {
-                          const active = layers.includes(opt.id);
-                          const style = active ? `background:${opt.color};color:white;border-color:${opt.color};` : `--btn-hover-color:${opt.color};`;
-                          return `<button class="radar-toggle-btn${active ? ' active' : ''}" style="${style}" onclick="toggleRadarLayer('${opt.id}')">${escHtml(opt.label)}</button>`;
-                        }).join('')}
-                      </div>
-                      <button class="section-link" onclick="navigate('review')">View skills →</button>
+                    <div class="radar-toggle" style="justify-content:center;margin-top:10px">
+                      ${RADAR_LAYER_OPTIONS.map(opt => {
+                        const active = layers.includes(opt.id);
+                        const style = active ? `background:${opt.color};color:white;border-color:${opt.color};` : `--btn-hover-color:${opt.color};`;
+                        return `<button class="radar-toggle-btn${active ? ' active' : ''}" style="${style}" onclick="toggleRadarLayer('${opt.id}')">${escHtml(opt.label)}</button>`;
+                      }).join('')}
                     </div>`;
                 })() : (() => {
                   const rated = CORE_VALUES_DATA.filter(cv => getValueRating(cv.id).managerRating);
@@ -2733,9 +2730,7 @@ function renderHome() {
                     <div class="radar-chart-wrap" style="${rated.length === 0 ? 'opacity:.35;filter:grayscale(1)' : ''}">
                       ${renderValuesRadarChart(290)}
                     </div>
-                    <div style="display:flex;justify-content:flex-end;margin-top:10px">
-                      <button class="section-link" onclick="navigate('values')">View values →</button>
-                    </div>`;
+`;
                 })()}
               </div>
             </div>
