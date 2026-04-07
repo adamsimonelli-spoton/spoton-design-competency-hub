@@ -2682,25 +2682,29 @@ function renderHome() {
         <!-- Metric tiles -->
         ${hasAssessments && currentProfile?.role ? `
           <div class="skill-snapshot-card" style="width:100%;box-sizing:border-box">
-              <div style="padding:14px 16px 0;display:flex;align-items:center;justify-content:space-between">
+              <div style="padding:14px 16px 0">
                 <span class="section-title" style="font-size:13px">Skill Snapshot</span>
-                <button class="section-link" onclick="navigate('review')">View all →</button>
               </div>
-              <div class="skill-snapshot-stats" style="margin-top:10px">
-                <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('gap')">
-                  <span class="skill-snapshot-label">Below Target</span>
-                  <span class="skill-snapshot-num" style="color:var(--red)">${allGaps.length}</span>
-                </button>
-                <div class="skill-snapshot-divider"></div>
-                <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('strength')">
-                  <span class="skill-snapshot-label">Above Target</span>
-                  <span class="skill-snapshot-num" style="color:var(--green)">${allOverperforming.length}</span>
-                </button>
-                <div class="skill-snapshot-divider"></div>
-                <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('unknown')">
-                  <span class="skill-snapshot-label">Not Assessed</span>
-                  <span class="skill-snapshot-num" style="color:#94A3B8">${allUnknown.length}</span>
-                </button>
+              <div style="display:flex;align-items:stretch;margin-top:10px">
+                <div class="skill-snapshot-stats" style="flex:1">
+                  <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('gap')">
+                    <span class="skill-snapshot-label">Below<br>Target</span>
+                    <span class="skill-snapshot-num" style="color:var(--red)">${allGaps.length}</span>
+                  </button>
+                  <div class="skill-snapshot-divider"></div>
+                  <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('strength')">
+                    <span class="skill-snapshot-label">Above<br>Target</span>
+                    <span class="skill-snapshot-num" style="color:var(--green)">${allOverperforming.length}</span>
+                  </button>
+                  <div class="skill-snapshot-divider"></div>
+                  <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('unknown')">
+                    <span class="skill-snapshot-label">Not<br>Assessed</span>
+                    <span class="skill-snapshot-num" style="color:#94A3B8">${allUnknown.length}</span>
+                  </button>
+                </div>
+                <div style="display:flex;align-items:flex-end;padding:0 14px 12px 0">
+                  <button class="section-link" onclick="navigate('review')">View all →</button>
+                </div>
               </div>
               <!-- Radar -->
               <div style="border-top:1px solid var(--border);padding:14px 16px 16px;margin-top:14px">
