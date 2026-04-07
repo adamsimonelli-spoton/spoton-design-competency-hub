@@ -7053,7 +7053,7 @@ function render() {
   app.innerHTML = `
     <!-- SIDEBAR -->
     <aside id="sidebar">
-      <button class="sidebar-brand" onclick="navigate('home')" style="background:none;border:none;cursor:pointer;text-align:left;padding:0;width:100%">
+      <button class="sidebar-brand" onclick="navigate('home')" style="background:none;border:none;cursor:pointer;text-align:left;width:100%">
         <img src="brand-logo.svg" alt="SpotOn" style="height:22px;width:auto;display:block;margin-bottom:6px" />
         <div style="font-size:14px;font-weight:600;color:#93C5FD;letter-spacing:.04em">Design Growth Hub</div>
       </button>
