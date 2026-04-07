@@ -6001,9 +6001,11 @@ function renderGrowthPlan() {
     <div style="max-width:800px">
 
       <!-- Page header -->
-      <div style="margin-bottom:32px">
-        <h1 style="font-size:24px;font-weight:800;color:var(--text);margin:0 0 8px">Growth plan</h1>
-        <div style="font-size:13.5px;color:var(--text-muted);line-height:1.6;max-width:560px">Write honestly, update it when things shift, and bring this to your next 1:1.</div>
+      <div class="review-header" style="margin-bottom:24px">
+        <div>
+          <h1>Growth Plan</h1>
+          <div style="font-size:13.5px;color:var(--text-muted);line-height:1.6;max-width:560px;margin-top:4px">Write honestly, update it when things shift, and bring this to your next 1:1.</div>
+        </div>
       </div>
 
       <!-- 01 Your sweet spot -->
