@@ -2682,48 +2682,59 @@ function renderHome() {
         <!-- Metric tiles -->
         ${hasAssessments && currentProfile?.role ? `
           <div class="skill-snapshot-card" style="width:100%;box-sizing:border-box">
-              <div style="padding:14px 16px 0">
-                <span class="section-title" style="font-size:13px">Skill Snapshot</span>
+              <div class="dash-module-header" style="padding:16px 16px 0;margin-bottom:0">
+                <span class="section-title">Skill Snapshot</span>
+                <button class="section-link" onclick="navigate('review')">View all →</button>
               </div>
-              <div style="display:flex;align-items:stretch;margin-top:10px">
-                <div class="skill-snapshot-stats" style="flex:1">
-                  <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('gap')">
-                    <span class="skill-snapshot-label">Below<br>Target</span>
-                    <span class="skill-snapshot-num" style="color:var(--red)">${allGaps.length}</span>
-                  </button>
-                  <div class="skill-snapshot-divider"></div>
-                  <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('strength')">
-                    <span class="skill-snapshot-label">Above<br>Target</span>
-                    <span class="skill-snapshot-num" style="color:var(--green)">${allOverperforming.length}</span>
-                  </button>
-                  <div class="skill-snapshot-divider"></div>
-                  <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('unknown')">
-                    <span class="skill-snapshot-label">Not<br>Assessed</span>
-                    <span class="skill-snapshot-num" style="color:#94A3B8">${allUnknown.length}</span>
-                  </button>
-                </div>
-                <div style="display:flex;align-items:flex-end;padding:0 14px 12px 0">
-                  <button class="section-link" onclick="navigate('review')">View all →</button>
-                </div>
+              <div class="skill-snapshot-stats" style="margin-top:12px">
+                <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('gap')">
+                  <span class="skill-snapshot-label">Below<br>Target</span>
+                  <span class="skill-snapshot-num" style="color:var(--red)">${allGaps.length}</span>
+                </button>
+                <div class="skill-snapshot-divider"></div>
+                <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('strength')">
+                  <span class="skill-snapshot-label">Above<br>Target</span>
+                  <span class="skill-snapshot-num" style="color:var(--green)">${allOverperforming.length}</span>
+                </button>
+                <div class="skill-snapshot-divider"></div>
+                <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('unknown')">
+                  <span class="skill-snapshot-label">Not<br>Assessed</span>
+                  <span class="skill-snapshot-num" style="color:#94A3B8">${allUnknown.length}</span>
+                </button>
               </div>
               <!-- Radar -->
               <div style="border-top:1px solid var(--border);padding:14px 16px 16px;margin-top:14px">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-                  <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Radar</div>
-                  <button class="section-link" onclick="${state.dashRadarTab==='skills' ? "navigate('review')" : "navigate('values')"}">${state.dashRadarTab==='skills' ? 'View skills →' : 'View values →'}</button>
-                </div>
                 <div style="display:flex;gap:0;margin-bottom:14px;background:var(--bg);border-radius:8px;padding:3px">
                   <button onclick="state.dashRadarTab='skills';render()" style="flex:1;padding:5px 10px;font-size:12px;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:background .15s,color .15s;background:${state.dashRadarTab==='skills'?'var(--surface)':'transparent'};color:${state.dashRadarTab==='skills'?'var(--primary)':'var(--text-muted)'}">Skills</button>
                   <button onclick="state.dashRadarTab='values';render()" style="flex:1;padding:5px 10px;font-size:12px;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:background .15s,color .15s;background:${state.dashRadarTab==='values'?'var(--surface)':'transparent'};color:${state.dashRadarTab==='values'?'var(--primary)':'var(--text-muted)'}">Core Values</button>
                 </div>
-                ${state.dashRadarTab === 'skills' ? `
-                  <div id="radar-card">${renderRadarCardInner(true)}</div>
-                ` : (() => {
+                ${state.dashRadarTab === 'skills' ? (() => {
+                  const layers = state.radarLayers || ['self', 'manager'];
+                  const hasAssessments2 = getAssessedCount() > 0;
+                  return `
+                    ${!hasAssessments2 ? `<div class="radar-card-subtitle" style="margin-bottom:8px">Complete assessments to see your skill shape</div><div style="text-align:center;margin-bottom:10px"><button class="btn btn-secondary" style="font-size:12px;padding:6px 14px" onclick="openImportModal('skill-matrix')">${icon('upload',13)} Import skills</button></div>` : ''}
+                    <div class="radar-chart-wrap" style="${!hasAssessments2 ? 'opacity:.35;filter:grayscale(1)' : ''}">
+                      ${renderRadarChart(290, layers)}
+                    </div>
+                    <div class="radar-toggle" style="justify-content:space-between;margin-top:10px;align-items:center">
+                      <div style="display:flex;gap:6px">
+                        ${RADAR_LAYER_OPTIONS.map(opt => {
+                          const active = layers.includes(opt.id);
+                          const style = active ? `background:${opt.color};color:white;border-color:${opt.color};` : `--btn-hover-color:${opt.color};`;
+                          return `<button class="radar-toggle-btn${active ? ' active' : ''}" style="${style}" onclick="toggleRadarLayer('${opt.id}')">${escHtml(opt.label)}</button>`;
+                        }).join('')}
+                      </div>
+                      <button class="section-link" onclick="navigate('review')">View skills →</button>
+                    </div>`;
+                })() : (() => {
                   const rated = CORE_VALUES_DATA.filter(cv => getValueRating(cv.id).managerRating);
                   return `
                     ${rated.length === 0 ? `<div class="radar-card-subtitle" style="margin-bottom:8px">Rate your core values to see your shape</div><div style="text-align:center;margin-bottom:10px"><button class="btn btn-secondary" style="font-size:12px;padding:6px 14px" onclick="navigate('values')">Rate values →</button></div>` : ''}
                     <div class="radar-chart-wrap" style="${rated.length === 0 ? 'opacity:.35;filter:grayscale(1)' : ''}">
                       ${renderValuesRadarChart(290)}
+                    </div>
+                    <div style="display:flex;justify-content:flex-end;margin-top:10px">
+                      <button class="section-link" onclick="navigate('values')">View values →</button>
                     </div>`;
                 })()}
               </div>
