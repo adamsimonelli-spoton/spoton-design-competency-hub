@@ -2681,9 +2681,12 @@ function renderHome() {
 
         <!-- Metric tiles -->
         ${hasAssessments && currentProfile?.role ? `
-          <div style="display:flex;flex-direction:column;gap:8px;width:100%">
           <div class="skill-snapshot-card" style="width:100%;box-sizing:border-box">
-              <div class="skill-snapshot-stats">
+              <div style="padding:14px 16px 0;display:flex;align-items:center;justify-content:space-between">
+                <span class="section-title" style="font-size:13px">Skill Snapshot</span>
+                <button class="section-link" onclick="navigate('review')">View all →</button>
+              </div>
+              <div class="skill-snapshot-stats" style="margin-top:10px">
                 <button class="skill-snapshot-stat" onclick="navigate('review');setReviewFilter('gap')">
                   <span class="skill-snapshot-label">Below Target</span>
                   <span class="skill-snapshot-num" style="color:var(--red)">${allGaps.length}</span>
@@ -2700,7 +2703,7 @@ function renderHome() {
                 </button>
               </div>
               <!-- Radar -->
-              <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px">
+              <div style="border-top:1px solid var(--border);padding:14px 16px 16px;margin-top:14px">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
                   <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Radar</div>
                   <button class="section-link" onclick="${state.dashRadarTab==='skills' ? "navigate('review')" : "navigate('values')"}">${state.dashRadarTab==='skills' ? 'View skills →' : 'View values →'}</button>
@@ -2721,25 +2724,6 @@ function renderHome() {
                 })()}
               </div>
             </div>
-            ${(() => {
-              const _saved = (() => { try { return JSON.parse(localStorage.getItem('dch_review_' + state.profile)); } catch(e) { return null; } })();
-              const er = _saved || null;
-              if (!er) return '';
-              const avgNum = er.manager.totalWeightedAvg != null
-                ? er.manager.totalWeightedAvg
-                : (Object.values(er.manager.ratings).reduce((a,b)=>a+b,0) / Object.values(er.manager.ratings).length);
-              const avg = er.manager.totalWeightedAvg != null ? avgNum.toFixed(3) : avgNum.toFixed(1);
-              const fullStars = Math.round(avgNum);
-              const stars = Array.from({length: 5}, (_, i) =>
-                `<span style="color:${i < fullStars ? '#F59E0B' : '#CBD5E1'};font-size:11px;line-height:1">★</span>`
-              ).join('');
-              return `<button class="analysis-count-chip analysis-count-review" onclick="navigate('eoy')" style="width:100%;box-sizing:border-box;text-align:left">
-                <span class="analysis-count-label">Review Score</span>
-                <span class="analysis-count-num">${avg}</span>
-                <div style="display:flex;gap:1px;margin-top:2px">${stars}</div>
-              </button>`;
-            })()}
-          </div>
         ` : ''}
 
         ${(() => {
