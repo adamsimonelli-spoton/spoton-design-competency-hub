@@ -1153,6 +1153,7 @@ let state = {
   cvAddResourceOpen: false,
   eoyTextTab: 'self',
   eoyDetailId: null,
+  dashRadarTab: 'skills',
   tableSort: {},
   growthThemeModal: null,
   growthThemeId: null,
@@ -2673,17 +2674,28 @@ function renderHome() {
           `;
         })()}
 
-        <!-- Star charts side by side -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
-          <div class="radar-card" id="radar-card">
-            ${renderRadarCardInner()}
-          </div>
-          ${renderValuesRadarCard()}
-        </div>
       </div>
 
-      <!-- RIGHT RAIL (1/3): Metrics + Progress (Personal Goals + Outreach) -->
+      <!-- RIGHT RAIL (1/3): Radar + Metrics + Progress (Personal Goals + Outreach) -->
       <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+
+        <!-- Tabbed radar card -->
+        <div class="radar-card" style="height:auto">
+          <div style="display:flex;gap:0;margin-bottom:14px;background:var(--bg);border-radius:8px;padding:3px">
+            <button onclick="state.dashRadarTab='skills';render()" style="flex:1;padding:5px 10px;font-size:12px;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:background .15s,color .15s;background:${state.dashRadarTab==='skills'?'var(--surface)':'transparent'};color:${state.dashRadarTab==='skills'?'var(--primary)':'var(--text-muted)'}">Skills</button>
+            <button onclick="state.dashRadarTab='values';render()" style="flex:1;padding:5px 10px;font-size:12px;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:background .15s,color .15s;background:${state.dashRadarTab==='values'?'var(--surface)':'transparent'};color:${state.dashRadarTab==='values'?'var(--primary)':'var(--text-muted)'}">Core Values</button>
+          </div>
+          ${state.dashRadarTab === 'skills' ? `
+            <div id="radar-card">${renderRadarCardInner()}</div>
+          ` : (() => {
+            const rated = CORE_VALUES_DATA.filter(cv => getValueRating(cv.id).managerRating);
+            return `
+              ${rated.length === 0 ? `<div class="radar-card-subtitle" style="margin-bottom:8px">Rate your core values to see your shape</div><div style="text-align:center;margin-bottom:10px"><button class="btn btn-secondary" style="font-size:12px;padding:6px 14px" onclick="navigate('values')">Rate values →</button></div>` : ''}
+              <div class="radar-chart-wrap" style="${rated.length === 0 ? 'opacity:.35;filter:grayscale(1)' : ''}">
+                ${renderValuesRadarChart(290)}
+              </div>`;
+          })()}
+        </div>
 
         <!-- Metric tiles -->
         ${hasAssessments && currentProfile?.role ? `
@@ -7042,10 +7054,10 @@ function render() {
   app.innerHTML = `
     <!-- SIDEBAR -->
     <aside id="sidebar">
-      <div class="sidebar-brand">
+      <button class="sidebar-brand" onclick="navigate('home')" style="background:none;border:none;cursor:pointer;text-align:left;padding:0;width:100%">
         <img src="brand-logo.svg" alt="SpotOn" style="height:22px;width:auto;display:block;margin-bottom:6px" />
         <div style="font-size:14px;font-weight:600;color:#93C5FD;letter-spacing:.04em">Design Growth Hub</div>
-      </div>
+      </button>
 
       <div class="sidebar-profile">
         <div class="profile-label">Current Profile</div>
