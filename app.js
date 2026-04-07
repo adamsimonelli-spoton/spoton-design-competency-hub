@@ -8105,7 +8105,37 @@ function openEoyDetail(catId) {
 
 function saveEoyYear(val) { saveEoyReview(r => r.year = val); }
 function saveEoyScore(who, val) { saveEoyReview(r => r[who].totalWeightedAvg = (val !== '' && val != null) ? parseFloat(val) : null); }
-function saveEoyRating(cat, who, val) { saveEoyReview(r => { if (!r[who].ratings) r[who].ratings = {}; if (val) r[who].ratings[cat] = parseInt(val); else delete r[who].ratings[cat]; }); render(); }
+function saveEoyRating(cat, who, val) {
+  saveEoyReview(r => { if (!r[who].ratings) r[who].ratings = {}; if (val) r[who].ratings[cat] = parseInt(val); else delete r[who].ratings[cat]; });
+  updateEoyGapCell(cat);
+}
+function updateEoyGapCell(catId) {
+  const el = document.getElementById('eoy-gap-' + catId);
+  if (!el) return;
+  let r; try { r = JSON.parse(localStorage.getItem('dch_review_' + state.profile)); } catch(e) {}
+  const sv = parseInt(r?.self?.ratings?.[catId]);
+  const mv = parseInt(r?.manager?.ratings?.[catId]);
+  const gap = (sv && mv) ? sv - mv : null;
+  let html;
+  if (gap === null) {
+    html = '<span style="color:var(--text-muted);font-size:13px">—</span>';
+  } else if (gap === 0) {
+    html = '<span title="Aligned" style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:12px;font-weight:700;color:#6B7280;background:#F3F4F6;border:1px solid #E5E7EB">0</span>';
+  } else {
+    const isOver = gap > 0;
+    const color = isOver ? '#D97706' : '#059669';
+    const bg    = isOver ? '#FFFBEB' : '#F0FDF4';
+    const border= isOver ? '#FDE68A' : '#BBF7D0';
+    const title = isOver ? 'You rated yourself higher' : 'Manager rated you higher';
+    html = '<span title="' + title + '" style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:12px;font-weight:700;color:' + color + ';background:' + bg + ';border:1px solid ' + border + '">' + (isOver ? '+' : '') + gap + '</span>';
+  }
+  el.innerHTML = html;
+}
+function focusNextEoySelect(el) {
+  const all = Array.from(document.querySelectorAll('#eoy-ratings-table select'));
+  const idx = all.indexOf(el);
+  if (idx !== -1 && idx + 1 < all.length) all[idx + 1].focus();
+}
 function styleRatingSelect(el, val) {
   const n = parseInt(val);
   const rc = n ? EOY_RATING_CONFIG[n] : null;
@@ -8162,11 +8192,12 @@ function renderEOYReview() {
       const rc = EOY_RATING_CONFIG[n];
       return '<option value="' + n + '"' + (parseInt(currentVal) === n ? ' selected' : '') + '>' + n + ' \u2013 ' + rc.label + '</option>';
     })).join('');
-    return '<select onchange="saveEoyRating(\'' + catId + '\',\'' + who + '\',this.value);styleRatingSelect(this,this.value)" style="font-size:12px;padding:5px 8px;border:1px solid;border-radius:6px;width:100%;max-width:210px;transition:background .15s,color .15s,border-color .15s;' + ratingSelectStyle(currentVal) + '">' + opts + '</select>';
+    return '<select onchange="saveEoyRating(\'' + catId + '\',\'' + who + '\',this.value);styleRatingSelect(this,this.value);focusNextEoySelect(this)" style="font-size:12px;padding:5px 8px;border:1px solid;border-radius:6px;width:100%;max-width:210px;transition:background .15s,color .15s,border-color .15s;' + ratingSelectStyle(currentVal) + '">' + opts + '</select>';
   };
 
+  const visibleGroups = EOY_CATEGORY_GROUPS.filter(g => g.label !== 'People Leadership' || currentIsManager());
   let rowNum = 0;
-  const tableRows = EOY_CATEGORY_GROUPS.map((group, gi) => {
+  const tableRows = visibleGroups.map((group, gi) => {
     const groupHeader = '<div style="padding:8px 16px;background:var(--bg);' + (gi > 0 ? 'border-top:2px solid var(--border);' : '') + 'font-size:10px;font-weight:700;color:var(--text-secondary);letter-spacing:.07em;text-transform:uppercase">' + escHtml(group.label) + '</div>';
     const catRows = group.categories.map((cat, ci) => {
       rowNum++;
@@ -8197,7 +8228,7 @@ function renderEOYReview() {
         '</div>' +
         '<div style="padding-right:8px" onclick="event.stopPropagation()">' + ratingSelect(cat.id, 'self', selfRatings[cat.id]) + '</div>' +
         '<div onclick="event.stopPropagation()">' + ratingSelect(cat.id, 'manager', mgrRatings[cat.id]) + '</div>' +
-        '<div style="text-align:center">' + gapCell + '</div>' +
+        '<div id="eoy-gap-' + cat.id + '" style="text-align:center">' + gapCell + '</div>' +
       '</div>';
     }).join('');
     return groupHeader + catRows;
@@ -8238,7 +8269,7 @@ function renderEOYReview() {
   };
 
   // ---- Manager insights ----
-  const allCats = EOY_CATEGORY_GROUPS.flatMap(g => g.categories);
+  const allCats = visibleGroups.flatMap(g => g.categories);
   const goingWellCats  = allCats.filter(c => parseInt(mgrRatings[c.id]) >= 4);
   const toWorkOnCats   = allCats.filter(c => parseInt(mgrRatings[c.id]) > 0 && parseInt(mgrRatings[c.id]) <= 3);
   const hasMgrRatings  = Object.values(mgrRatings).some(v => v);
@@ -8314,7 +8345,7 @@ function renderEOYReview() {
       </div>
 
       <!-- Ratings table -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:24px;overflow:hidden;box-shadow:var(--shadow-sm)">
+      <div id="eoy-ratings-table" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:24px;overflow:hidden;box-shadow:var(--shadow-sm)">
         <div style="display:grid;grid-template-columns:1fr 220px 220px 72px;padding:8px 16px;background:var(--bg);border-bottom:2px solid var(--border)">
           <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Category</span>
           <span style="font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.05em">Self Rating</span>
@@ -8364,7 +8395,7 @@ function renderEOYReview() {
 function setEoyTextTab(tab) { state.eoyTextTab = tab; render(); }
 
 function renderEOYDetail() {
-  const allCats = EOY_CATEGORY_GROUPS.flatMap(g => g.categories);
+  const allCats = EOY_CATEGORY_GROUPS.filter(g => g.label !== 'People Leadership' || currentIsManager()).flatMap(g => g.categories);
   const cat = allCats.find(c => c.id === state.eoyDetailId);
   if (!cat) return '<div class="empty-state"><div class="empty-state-title">Category not found</div></div>';
 
