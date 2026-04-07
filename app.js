@@ -1675,14 +1675,14 @@ function renderRadarChart(size, layers) {
   </svg>`;
 }
 
-function renderRadarCardInner() {
+function renderRadarCardInner(hideHeader = false) {
   const layers = state.radarLayers || ['manager', 'expected'];
   const hasAssessments = getAssessedCount() > 0;
   return `
-    <div class="radar-card-header">
+    ${hideHeader ? '' : `<div class="radar-card-header">
       <div class="radar-card-title">Skills</div>
       <button class="section-link" onclick="navigate('review')">View all →</button>
-    </div>
+    </div>`}
     ${!hasAssessments ? `<div class="radar-card-subtitle" style="margin-bottom:8px">Complete assessments to see your skill shape</div><div style="text-align:center;margin-bottom:10px"><button class="btn btn-secondary" style="font-size:12px;padding:6px 14px" onclick="openImportModal('skill-matrix')">${icon('upload',13)} Import skills</button></div>` : ''}
     <div class="radar-chart-wrap" style="${!hasAssessments ? 'opacity:.35;filter:grayscale(1)' : ''}">
       ${renderRadarChart(290, layers)}
@@ -2676,26 +2676,8 @@ function renderHome() {
 
       </div>
 
-      <!-- RIGHT RAIL (1/3): Radar + Metrics + Progress (Personal Goals + Outreach) -->
+      <!-- RIGHT RAIL (1/3): Metrics + Progress + Radar -->
       <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
-
-        <!-- Tabbed radar card -->
-        <div class="radar-card" style="height:auto">
-          <div style="display:flex;gap:0;margin-bottom:14px;background:var(--bg);border-radius:8px;padding:3px">
-            <button onclick="state.dashRadarTab='skills';render()" style="flex:1;padding:5px 10px;font-size:12px;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:background .15s,color .15s;background:${state.dashRadarTab==='skills'?'var(--surface)':'transparent'};color:${state.dashRadarTab==='skills'?'var(--primary)':'var(--text-muted)'}">Skills</button>
-            <button onclick="state.dashRadarTab='values';render()" style="flex:1;padding:5px 10px;font-size:12px;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:background .15s,color .15s;background:${state.dashRadarTab==='values'?'var(--surface)':'transparent'};color:${state.dashRadarTab==='values'?'var(--primary)':'var(--text-muted)'}">Core Values</button>
-          </div>
-          ${state.dashRadarTab === 'skills' ? `
-            <div id="radar-card">${renderRadarCardInner()}</div>
-          ` : (() => {
-            const rated = CORE_VALUES_DATA.filter(cv => getValueRating(cv.id).managerRating);
-            return `
-              ${rated.length === 0 ? `<div class="radar-card-subtitle" style="margin-bottom:8px">Rate your core values to see your shape</div><div style="text-align:center;margin-bottom:10px"><button class="btn btn-secondary" style="font-size:12px;padding:6px 14px" onclick="navigate('values')">Rate values →</button></div>` : ''}
-              <div class="radar-chart-wrap" style="${rated.length === 0 ? 'opacity:.35;filter:grayscale(1)' : ''}">
-                ${renderValuesRadarChart(290)}
-              </div>`;
-          })()}
-        </div>
 
         <!-- Metric tiles -->
         ${hasAssessments && currentProfile?.role ? `
@@ -2807,9 +2789,29 @@ function renderHome() {
                   <button class="btn btn-secondary btn-sm" onclick="openOutreachModal(null)">Log Outreach</button>
                 </div>
               </div>
+
+              <!-- Radar -->
+              <div style="border-top:1px solid var(--border);padding-top:16px;margin-top:4px">
+                ${subLabel('Radar', state.dashRadarTab==='skills' ? 'View skills →' : 'View values →', state.dashRadarTab==='skills' ? "navigate('review')" : "navigate('values')")}
+                <div style="display:flex;gap:0;margin-bottom:14px;background:var(--bg);border-radius:8px;padding:3px">
+                  <button onclick="state.dashRadarTab='skills';render()" style="flex:1;padding:5px 10px;font-size:12px;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:background .15s,color .15s;background:${state.dashRadarTab==='skills'?'var(--surface)':'transparent'};color:${state.dashRadarTab==='skills'?'var(--primary)':'var(--text-muted)'}">Skills</button>
+                  <button onclick="state.dashRadarTab='values';render()" style="flex:1;padding:5px 10px;font-size:12px;font-weight:600;border:none;border-radius:6px;cursor:pointer;transition:background .15s,color .15s;background:${state.dashRadarTab==='values'?'var(--surface)':'transparent'};color:${state.dashRadarTab==='values'?'var(--primary)':'var(--text-muted)'}">Core Values</button>
+                </div>
+                ${state.dashRadarTab === 'skills' ? `
+                  <div id="radar-card">${renderRadarCardInner(true)}</div>
+                ` : (() => {
+                  const rated = CORE_VALUES_DATA.filter(cv => getValueRating(cv.id).managerRating);
+                  return `
+                    ${rated.length === 0 ? `<div class="radar-card-subtitle" style="margin-bottom:8px">Rate your core values to see your shape</div><div style="text-align:center;margin-bottom:10px"><button class="btn btn-secondary" style="font-size:12px;padding:6px 14px" onclick="navigate('values')">Rate values →</button></div>` : ''}
+                    <div class="radar-chart-wrap" style="${rated.length === 0 ? 'opacity:.35;filter:grayscale(1)' : ''}">
+                      ${renderValuesRadarChart(290)}
+                    </div>`;
+                })()}
+              </div>
             </div>
           `;
         })()}
+
       </div>
 
     </div>
