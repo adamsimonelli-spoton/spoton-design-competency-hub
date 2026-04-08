@@ -1687,14 +1687,12 @@ function renderRadarCardInner(hideHeader = false) {
     <div class="radar-chart-wrap" style="${!hasAssessments ? 'opacity:.35;filter:grayscale(1)' : ''}">
       ${renderRadarChart(290, layers)}
     </div>
-    <div class="radar-toggle" style="justify-content:center;margin-top:10px">
-      ${RADAR_LAYER_OPTIONS.map(opt => {
-        const active = layers.includes(opt.id);
-        const style = active
-          ? `background:${opt.color};color:white;border-color:${opt.color};`
-          : `--btn-hover-color:${opt.color};`;
-        return `<button class="radar-toggle-btn${active ? ' active' : ''}" style="${style}" onclick="toggleRadarLayer('${opt.id}')">${escHtml(opt.label)}</button>`;
-      }).join('')}
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:10px">
+      ${RADAR_LAYER_OPTIONS.map(opt => `
+        <div style="display:flex;align-items:center;gap:5px">
+          <span style="width:8px;height:8px;border-radius:50%;background:${opt.color};flex-shrink:0;display:inline-block"></span>
+          <span style="font-size:11px;color:var(--text-muted);font-weight:500">${escHtml(opt.label)}</span>
+        </div>`).join('')}
     </div>
   `;
 }
@@ -2716,12 +2714,12 @@ function renderHome() {
                     <div class="radar-chart-wrap" style="${!hasAssessments2 ? 'opacity:.35;filter:grayscale(1)' : ''}">
                       ${renderRadarChart(290, layers)}
                     </div>
-                    <div class="radar-toggle" style="justify-content:center;margin-top:10px">
-                      ${RADAR_LAYER_OPTIONS.map(opt => {
-                        const active = layers.includes(opt.id);
-                        const style = active ? `background:${opt.color};color:white;border-color:${opt.color};` : `--btn-hover-color:${opt.color};`;
-                        return `<button class="radar-toggle-btn${active ? ' active' : ''}" style="${style}" onclick="toggleRadarLayer('${opt.id}')">${escHtml(opt.label)}</button>`;
-                      }).join('')}
+                    <div style="display:flex;gap:12px;justify-content:center;margin-top:10px">
+                      ${RADAR_LAYER_OPTIONS.map(opt => `
+                        <div style="display:flex;align-items:center;gap:5px">
+                          <span style="width:8px;height:8px;border-radius:50%;background:${opt.color};flex-shrink:0;display:inline-block"></span>
+                          <span style="font-size:11px;color:var(--text-muted);font-weight:500">${escHtml(opt.label)}</span>
+                        </div>`).join('')}
                     </div>`;
                 })() : (() => {
                   const rated = CORE_VALUES_DATA.filter(cv => getValueRating(cv.id).managerRating);
