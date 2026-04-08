@@ -1690,7 +1690,7 @@ function renderRadarCardInner(hideHeader = false) {
     <div style="display:flex;gap:12px;justify-content:center;margin-top:10px">
       ${RADAR_LAYER_OPTIONS.map(opt => `
         <div style="display:flex;align-items:center;gap:5px">
-          <span style="width:8px;height:8px;border-radius:50%;background:${opt.color};flex-shrink:0;display:inline-block"></span>
+          <span style="width:8px;height:8px;border-radius:50%;background:${opt.color};flex-shrink:0;display:inline-block;vertical-align:middle"></span>
           <span style="font-size:11px;color:var(--text-muted);font-weight:500">${escHtml(opt.label)}</span>
         </div>`).join('')}
     </div>
@@ -2717,7 +2717,7 @@ function renderHome() {
                     <div style="display:flex;gap:12px;justify-content:center;margin-top:10px">
                       ${RADAR_LAYER_OPTIONS.map(opt => `
                         <div style="display:flex;align-items:center;gap:5px">
-                          <span style="width:8px;height:8px;border-radius:50%;background:${opt.color};flex-shrink:0;display:inline-block"></span>
+                          <span style="width:8px;height:8px;border-radius:50%;background:${opt.color};flex-shrink:0;display:inline-block;vertical-align:middle"></span>
                           <span style="font-size:11px;color:var(--text-muted);font-weight:500">${escHtml(opt.label)}</span>
                         </div>`).join('')}
                     </div>`;
