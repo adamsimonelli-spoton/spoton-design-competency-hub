@@ -6001,7 +6001,7 @@ function renderGrowthPlan() {
       <!-- Page header -->
       <div class="review-header" style="margin-bottom:24px">
         <div>
-          <h1>Growth Plan</h1>
+          <h1>One-on-Ones</h1>
           <div style="font-size:13.5px;color:var(--text-muted);line-height:1.6;max-width:560px;margin-top:4px">Write honestly, update it when things shift, and bring this to your next 1:1.</div>
         </div>
       </div>
@@ -7092,19 +7092,11 @@ function render() {
           <span>Dashboard</span>
         </button>
 
+        <div class="nav-section-label">Assessment</div>
+
         <button class="nav-item ${state.view === 'review' || state.view === 'skill' ? 'active' : ''}" onclick="navigate('review')">
           <span class="nav-icon">${icon('layers', 18)}</span>
           <span>Skills</span>
-        </button>
-
-        <button class="nav-item ${['goals','personal-goal','design-goal','growth-theme'].includes(state.view) ? 'active' : ''}" onclick="navigate('goals')">
-          <span class="nav-icon">${icon('target', 18)}</span>
-          <span>Goals</span>
-        </button>
-
-        <button class="nav-item ${state.view === 'growth-plan' ? 'active' : ''}" onclick="navigate('growth-plan')">
-          <span class="nav-icon">${icon('trending-up', 18)}</span>
-          <span>Growth Plan</span>
         </button>
 
         <button class="nav-item ${state.view === 'values' || state.view === 'value' ? 'active' : ''}" onclick="navigate('values')">
@@ -7117,12 +7109,24 @@ function render() {
           <span>Performance Review</span>
         </button>
 
+        <div class="nav-section-label">Tools</div>
+
+        <button class="nav-item ${['goals','personal-goal','design-goal','growth-theme'].includes(state.view) ? 'active' : ''}" onclick="navigate('goals')">
+          <span class="nav-icon">${icon('target', 18)}</span>
+          <span>Goals</span>
+        </button>
+
         <button class="nav-item ${state.view === 'outreach' ? 'active' : ''}" onclick="navigate('outreach')">
           <span class="nav-icon">${icon('store', 18)}</span>
           <span>Merchant Outreach</span>
         </button>
 
-        <button class="nav-item ${state.view === 'resources' ? 'active' : ''}" onclick="navigate('resources')" style="margin-top:12px">
+        <button class="nav-item ${state.view === 'growth-plan' ? 'active' : ''}" onclick="navigate('growth-plan')">
+          <span class="nav-icon">${icon('trending-up', 18)}</span>
+          <span>One-on-Ones</span>
+        </button>
+
+        <button class="nav-item ${state.view === 'resources' ? 'active' : ''}" onclick="navigate('resources')">
           <span class="nav-icon">${icon('book-open', 18)}</span>
           <span>Resources</span>
         </button>
