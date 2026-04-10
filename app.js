@@ -7111,6 +7111,11 @@ function render() {
 
         <div class="nav-section-label">Tools</div>
 
+        <button class="nav-item ${state.view === 'growth-plan' ? 'active' : ''}" onclick="navigate('growth-plan')">
+          <span class="nav-icon">${icon('trending-up', 18)}</span>
+          <span>One-on-Ones</span>
+        </button>
+
         <button class="nav-item ${['goals','personal-goal','design-goal','growth-theme'].includes(state.view) ? 'active' : ''}" onclick="navigate('goals')">
           <span class="nav-icon">${icon('target', 18)}</span>
           <span>Goals</span>
@@ -7119,11 +7124,6 @@ function render() {
         <button class="nav-item ${state.view === 'outreach' ? 'active' : ''}" onclick="navigate('outreach')">
           <span class="nav-icon">${icon('store', 18)}</span>
           <span>Merchant Outreach</span>
-        </button>
-
-        <button class="nav-item ${state.view === 'growth-plan' ? 'active' : ''}" onclick="navigate('growth-plan')">
-          <span class="nav-icon">${icon('trending-up', 18)}</span>
-          <span>One-on-Ones</span>
         </button>
 
         <button class="nav-item ${state.view === 'resources' ? 'active' : ''}" onclick="navigate('resources')">
