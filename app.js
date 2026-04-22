@@ -35,6 +35,7 @@ const LUCIDE_PATHS = {
   'chevron-left': '<path d="m15 18-6-6 6-6"/>',
   'chevron-right':'<path d="m9 18 6-6-6-6"/>',
   'alert-triangle':'<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  'log-out':      '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>',
 };
 function icon(name, size = 16, color = 'currentColor', extraStyle = '') {
   const paths = LUCIDE_PATHS[name] || '';
@@ -1188,6 +1189,9 @@ let state = {
   aiSuggestions: [],
   deleteConfirm: null,
   clearConfirm: null,
+  managerMode: false,
+  managerProfileId: null,
+  loginPinModal: null,
 };
 
 // ============ STORAGE ============
@@ -1353,9 +1357,9 @@ function getProfiles() {
 function saveProfiles(profiles) {
   localStorage.setItem('dch_profiles', JSON.stringify(profiles));
 }
-function addProfile(name, role, isManager = false, pin) {
+function addProfile(name, role, isManager = false, pin, userRole = 'employee', managerId = null) {
   const profiles = getProfiles();
-  const profile = { name, role, id: `p_${Date.now()}`, created: new Date().toISOString(), photo: null, isManager, pin: pin || null };
+  const profile = { name, role, id: `p_${Date.now()}`, created: new Date().toISOString(), photo: null, isManager, pin: pin || null, userRole: userRole || 'employee', managerId: managerId || null };
   profiles.push(profile);
   saveProfiles(profiles);
   return profile;
@@ -1388,6 +1392,79 @@ function deleteProfile(id) {
 function setCurrentProfile(id) {
   state.profile = id;
   localStorage.setItem('dch_current_profile', id);
+}
+
+// ============ SESSION ============
+function getSession() {
+  try { return JSON.parse(localStorage.getItem('dch_session')); } catch(e) { return null; }
+}
+function setSession(profileId) {
+  localStorage.setItem('dch_session', JSON.stringify({ profileId }));
+}
+function clearSession() {
+  localStorage.removeItem('dch_session');
+}
+function getSessionProfile() {
+  const s = getSession();
+  if (!s) return null;
+  return getProfiles().find(p => p.id === s.profileId) || null;
+}
+function getSessionUserRole() {
+  const p = getSessionProfile();
+  return p?.userRole || 'employee';
+}
+function logout() {
+  clearSession();
+  state.managerMode = false;
+  state.managerProfileId = null;
+  state.profileDropdownOpen = false;
+  const app = document.getElementById('app');
+  if (app) app.innerHTML = renderLogin();
+}
+function userRoleBadge(userRole) {
+  if (!userRole || userRole === 'employee') return '';
+  const cfg = {
+    admin:   { label: 'Admin',   bg: '#FEF3C7', color: '#92400E' },
+    manager: { label: 'Manager', bg: '#EDE9FE', color: '#5B21B6' },
+  };
+  const c = cfg[userRole];
+  if (!c) return '';
+  return `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:${c.bg};color:${c.color};white-space:nowrap">${c.label}</span>`;
+}
+function getProfileStats(profileId) {
+  const data = JSON.parse(localStorage.getItem('dch_data_' + profileId) || '{}');
+  const assessments = data.assessments || {};
+  const profiles = getProfiles();
+  const prof = profiles.find(p => p.id === profileId);
+  let below = 0, above = 0, notAssessed = 0;
+  SKILLS_DATA.skills.forEach(s => {
+    const ml = (assessments[s.id] || {}).managerLevel;
+    let exp = null;
+    try {
+      const custom = JSON.parse(localStorage.getItem('dch_expected_' + profileId) || 'null');
+      if (custom && custom[s.id]) exp = custom[s.id];
+    } catch(e) {}
+    if (!exp && prof?.role) {
+      const rd = ROLES_DATA[prof.role];
+      if (rd) exp = rd.skills[s.id] || null;
+    }
+    if (!ml) { notAssessed++; }
+    else if (exp) {
+      const mi = SKILL_LEVELS.indexOf(ml), ei = SKILL_LEVELS.indexOf(exp);
+      if (mi < ei) below++;
+      else if (mi > ei) above++;
+    }
+  });
+  let reviewScore = null;
+  try {
+    const rev = JSON.parse(localStorage.getItem('dch_review_' + profileId));
+    if (rev?.manager?.totalWeightedAvg != null) reviewScore = parseFloat(rev.manager.totalWeightedAvg).toFixed(2);
+    else if (rev?.manager?.ratings) {
+      const vals = Object.values(rev.manager.ratings).filter(Number);
+      if (vals.length) reviewScore = (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1);
+    }
+  } catch(e) {}
+  return { below, above, notAssessed, reviewScore };
 }
 
 // ============ UTILITIES ============
@@ -3938,6 +4015,17 @@ function renderTeamModal() {
                 <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">
                   <input class="modal-input" style="margin:0;padding:4px 8px;font-size:13px;font-weight:600" id="name-edit-${p.id}" value="${escHtml(p.name)}" placeholder="Name" />
                   ${renderRoleSelect('role-select-'+p.id, p.role || '', true)}
+                  <div style="display:flex;gap:6px">
+                    <select class="modal-input" id="user-role-${p.id}" style="flex:1;margin:0;font-size:12px;padding:4px 8px">
+                      <option value="employee" ${(p.userRole||'employee')==='employee'?'selected':''}>Employee</option>
+                      <option value="manager"  ${p.userRole==='manager'?'selected':''}>Manager</option>
+                      <option value="admin"    ${p.userRole==='admin'?'selected':''}>Admin</option>
+                    </select>
+                    <select class="modal-input" id="manager-id-${p.id}" style="flex:1;margin:0;font-size:12px;padding:4px 8px">
+                      <option value="">— Reports to —</option>
+                      ${profiles.filter(m => m.id !== p.id && (m.userRole === 'manager' || m.userRole === 'admin')).map(m => `<option value="${m.id}" ${p.managerId===m.id?'selected':''}>${escHtml(m.name)}</option>`).join('')}
+                    </select>
+                  </div>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0">
                   <button onclick="deleteProfileFromTeam('${p.id}')" title="Remove member" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:16px;padding:4px;line-height:1">✕</button>
@@ -3999,13 +4087,18 @@ function saveTeamRoles() {
   profiles.forEach(p => {
     const nameInput = document.getElementById('name-edit-' + p.id);
     const roleSelect = document.getElementById('role-select-' + p.id);
+    const userRoleSelect = document.getElementById('user-role-' + p.id);
+    const managerIdSelect = document.getElementById('manager-id-' + p.id);
     const newName = nameInput?.value?.trim();
-    if (newName && newName !== p.name) {
-      const all = getProfiles();
-      const idx = all.findIndex(x => x.id === p.id);
-      if (idx !== -1) { all[idx].name = newName; saveProfiles(all); }
+    const all = getProfiles();
+    const idx = all.findIndex(x => x.id === p.id);
+    if (idx !== -1) {
+      if (newName) all[idx].name = newName;
+      if (roleSelect) all[idx].role = roleSelect.value;
+      if (userRoleSelect) all[idx].userRole = userRoleSelect.value;
+      if (managerIdSelect) all[idx].managerId = managerIdSelect.value || null;
+      saveProfiles(all);
     }
-    if (roleSelect) updateProfileRole(p.id, roleSelect.value);
   });
   closeTeamModal();
   render();
@@ -6934,8 +7027,12 @@ function createProfileAndStart() {
   const isManager = document.getElementById('new-profile-manager')?.checked || false;
   const pin = document.getElementById('new-profile-pin')?.value?.trim() || null;
   if (!name) { alert('Please enter your name.'); return; }
-  const profile = addProfile(name, role, isManager, pin);
+  // First profile is always admin
+  const existingProfiles = getProfiles();
+  const userRole = existingProfiles.length === 0 ? 'admin' : 'employee';
+  const profile = addProfile(name, role, isManager, pin, userRole);
   if (pin) state.unlockedProfiles.push(profile.id);
+  setSession(profile.id);
   selectProfile(profile.id);
 }
 function closeProfileModal() {
@@ -7058,36 +7155,74 @@ function render() {
         <div style="font-size:14px;font-weight:600;color:#93C5FD;letter-spacing:.04em">Design Growth Hub</div>
       </button>
 
-      <div class="sidebar-profile">
-        <div class="profile-label">Current Profile</div>
-        <div class="profile-selector ${state.profileDropdownOpen ? 'open' : ''}" onclick="toggleProfileDropdown()">
-            ${avatarHtml(currentProfile, 36, 13)}
-            <div style="flex:1;min-width:0">
-              <div class="profile-name">${escHtml(currentProfile?.name || 'Select Profile')}</div>
-              ${currentProfile?.role ? `<div style="font-size:10px;color:#93C5FD;opacity:.9;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(shortRole(currentProfile.role))}</div>` : ''}
-            </div>
-            <span class="chevron" style="transition:transform .2s;flex-shrink:0;${state.profileDropdownOpen ? 'transform:rotate(180deg)' : ''}">▼</span>
-          </div>
-          ${state.profileDropdownOpen ? `
-            <div class="profile-dropdown">
-              ${profiles.map(p => `
-                <div class="profile-dropdown-item-wrap" style="display:flex;align-items:center;gap:4px;padding:2px 8px">
-                  <button class="profile-dropdown-item ${state.profile === p.id ? 'active' : ''}" style="flex:1;padding:6px 4px" onclick="selectProfile('${p.id}')">
-                    ${avatarHtml(p, 26, 10)}
-                    <div style="flex:1;min-width:0;text-align:left">
-                      <div style="font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(p.name)}${p.pin ? ' 🔒' : ''}</div>
-                      <div style="font-size:11px;color:var(--text-muted)">${escHtml(p.role ? shortRole(p.role) : 'No role')}</div>
-                    </div>
-                    ${state.profile === p.id ? '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><path d="M2 7l4 4 6-6" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
-                  </button>
+      ${(() => {
+        const sessionRole = getSessionUserRole();
+        const sessionProf = getSessionProfile();
+        if (sessionRole === 'admin') {
+          // Admin: full profile switcher
+          return `
+            <div class="sidebar-profile">
+              <div class="profile-label">Current Profile</div>
+              <div class="profile-selector ${state.profileDropdownOpen ? 'open' : ''}" onclick="toggleProfileDropdown()">
+                  ${avatarHtml(currentProfile, 36, 13)}
+                  <div style="flex:1;min-width:0">
+                    <div class="profile-name">${escHtml(currentProfile?.name || 'Select Profile')}</div>
+                    ${currentProfile?.role ? `<div style="font-size:10px;color:#93C5FD;opacity:.9;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(shortRole(currentProfile.role))}</div>` : ''}
+                  </div>
+                  <span class="chevron" style="transition:transform .2s;flex-shrink:0;${state.profileDropdownOpen ? 'transform:rotate(180deg)' : ''}">▼</span>
                 </div>
-              `).join('')}
-            </div>
-          ` : ''}
-      </div>
+                ${state.profileDropdownOpen ? `
+                  <div class="profile-dropdown">
+                    ${profiles.map(p => `
+                      <div class="profile-dropdown-item-wrap" style="display:flex;align-items:center;gap:4px;padding:2px 8px">
+                        <button class="profile-dropdown-item ${state.profile === p.id ? 'active' : ''}" style="flex:1;padding:6px 4px" onclick="selectProfile('${p.id}')">
+                          ${avatarHtml(p, 26, 10)}
+                          <div style="flex:1;min-width:0;text-align:left">
+                            <div style="font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(p.name)}${p.pin ? ' 🔒' : ''}</div>
+                            <div style="font-size:11px;color:var(--text-muted)">${escHtml(p.role ? shortRole(p.role) : 'No role')}</div>
+                          </div>
+                          ${state.profile === p.id ? '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><path d="M2 7l4 4 6-6" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
+                        </button>
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : ''}
+            </div>`;
+        } else if (sessionRole === 'manager' && state.managerMode) {
+          // Manager viewing a report: show "viewing" banner
+          return `
+            <div class="sidebar-profile">
+              <button onclick="backToTeam()" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:none;border-radius:8px;padding:6px 10px;cursor:pointer;color:#93C5FD;font-size:12px;font-weight:600;margin-bottom:10px;width:100%">
+                ← Back to My Team
+              </button>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#64748B;margin-bottom:6px">Viewing</div>
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.06);border-radius:8px">
+                ${avatarHtml(currentProfile, 32, 12)}
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:#E2E8F0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(currentProfile?.name || '')}</div>
+                  ${currentProfile?.role ? `<div style="font-size:10px;color:#93C5FD;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(shortRole(currentProfile.role))}</div>` : ''}
+                </div>
+              </div>
+            </div>`;
+        } else {
+          // Manager (own view) or Employee: show logged-in user, no switcher
+          return `
+            <div class="sidebar-profile">
+              <div class="profile-label">Signed in as</div>
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.06);border-radius:8px">
+                ${avatarHtml(sessionProf || currentProfile, 32, 12)}
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:#E2E8F0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml((sessionProf || currentProfile)?.name || '')}</div>
+                  ${(sessionProf || currentProfile)?.role ? `<div style="font-size:10px;color:#93C5FD;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(shortRole((sessionProf || currentProfile).role))}</div>` : ''}
+                </div>
+                ${userRoleBadge(sessionRole)}
+              </div>
+            </div>`;
+        }
+      })()}
 
       <nav class="sidebar-nav">
-        <button class="nav-item ${state.view === 'home' ? 'active' : ''}" onclick="navigate('home')">
+        <button class="nav-item ${state.view === 'home' || state.view === 'manager-home' ? 'active' : ''}" onclick="${getSessionUserRole() === 'manager' && !state.managerMode ? "navigate('manager-home')" : "navigate('home')"}">
           <span class="nav-icon">${icon('layout-dashboard', 18)}</span>
           <span>Dashboard</span>
         </button>
@@ -7133,10 +7268,16 @@ function render() {
       </nav>
 
       <div class="sidebar-footer">
-        <button class="nav-item" onclick="manageTeam()" style="width:100%">
+        ${getSessionUserRole() === 'admin' ? `
+          <button class="nav-item" onclick="manageTeam()" style="width:100%">
             <span class="nav-icon">${icon('users', 18)}</span>
             <span style="font-size:12.5px">Manage Team</span>
           </button>
+        ` : ''}
+        <button class="nav-item" onclick="logout()" style="width:100%;margin-top:2px">
+          <span class="nav-icon">${icon('log-out', 18)}</span>
+          <span style="font-size:12.5px">Sign out</span>
+        </button>
       </div>
     </aside>
 
@@ -7144,6 +7285,7 @@ function render() {
     <div id="main">
       <div id="content">
         ${state.view === 'home' ? renderHome() : ''}
+        ${state.view === 'manager-home' ? renderManagerDashboard() : ''}
         ${state.view === 'skills' ? renderSkills() : ''}
         ${state.view === 'skill' ? renderSkillDetail() : ''}
         ${state.view === 'review' ? renderReview() : ''}
@@ -8537,23 +8679,212 @@ function applySortToRows(rows, tableId, getters) {
 }
 
 // ============ INIT ============
+// ============ LOGIN SCREEN ============
+function renderLogin() {
+  const profiles = getProfiles();
+  return `
+    <div style="width:100vw;height:100vh;background:#F1F5F9;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto">
+      <div style="width:100%;max-width:400px">
+        <div style="text-align:center;margin-bottom:32px">
+          <img src="brand-logo.svg" alt="SpotOn" style="height:28px;margin:0 auto 12px;display:block" />
+          <div style="font-size:22px;font-weight:700;color:#0F172A;margin-bottom:6px">Design Growth Hub</div>
+          <div style="font-size:14px;color:#64748B">Select your account to sign in</div>
+        </div>
+        <div style="background:#fff;border:1px solid #E2E8F0;border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06)">
+          ${profiles.length === 0
+            ? `<div style="padding:32px;text-align:center;color:#94A3B8;font-size:14px">No accounts found.</div>`
+            : profiles.map((p, i) => `
+              <button onclick="loginAs('${p.id}')" style="width:100%;display:flex;align-items:center;gap:14px;padding:16px 20px;background:none;border:none;border-bottom:${i < profiles.length-1 ? '1px solid #F1F5F9' : 'none'};cursor:pointer;text-align:left;transition:background .12s" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='none'">
+                ${avatarHtml(p, 42, 15)}
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:14px;font-weight:600;color:#0F172A">${escHtml(p.name)}</div>
+                  <div style="font-size:12px;color:#94A3B8;margin-top:2px">${escHtml(shortRole(p.role) || 'No role assigned')}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  ${userRoleBadge(p.userRole)}
+                  ${p.pin ? '<span style="font-size:12px;color:#94A3B8">🔒</span>' : ''}
+                  <span style="color:#CBD5E1;font-size:20px;font-weight:300">›</span>
+                </div>
+              </button>
+            `).join('')
+          }
+        </div>
+      </div>
+    </div>
+    ${state.loginPinModal ? renderLoginPinModal() : ''}
+  `;
+}
+function loginAs(profileId) {
+  const profiles = getProfiles();
+  const profile = profiles.find(p => p.id === profileId);
+  if (!profile) return;
+  if (profile.pin) {
+    state.loginPinModal = { profileId };
+    const app = document.getElementById('app');
+    if (app) app.innerHTML = renderLogin();
+    return;
+  }
+  completeLogin(profileId);
+}
+function renderLoginPinModal() {
+  const profiles = getProfiles();
+  const profile = profiles.find(p => p.id === state.loginPinModal?.profileId);
+  return `
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000" onclick="if(event.target===this){state.loginPinModal=null;const app=document.getElementById('app');app.innerHTML=renderLogin()}">
+      <div style="background:#fff;border-radius:14px;padding:28px;width:320px;box-shadow:0 8px 32px rgba(0,0,0,.18)" onclick="event.stopPropagation()">
+        <div style="text-align:center;margin-bottom:20px">
+          ${avatarHtml(profile, 48, 17)}
+          <div style="font-size:16px;font-weight:700;color:#0F172A;margin-top:12px">${escHtml(profile?.name || '')}</div>
+          <div style="font-size:13px;color:#94A3B8;margin-top:4px">Enter your PIN to continue</div>
+        </div>
+        <input id="login-pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="PIN" class="modal-input" style="text-align:center;font-size:20px;letter-spacing:6px;margin-bottom:8px" onkeydown="if(event.key==='Enter')submitLoginPin()" autofocus />
+        <div id="login-pin-error" style="color:#EF4444;font-size:12px;text-align:center;margin-bottom:12px;display:none">Incorrect PIN. Try again.</div>
+        <button class="btn btn-primary" style="width:100%" onclick="submitLoginPin()">Sign In</button>
+      </div>
+    </div>
+  `;
+}
+function submitLoginPin() {
+  const input = document.getElementById('login-pin-input');
+  if (!input) return;
+  const val = input.value.trim();
+  const profileId = state.loginPinModal?.profileId;
+  const profile = getProfiles().find(p => p.id === profileId);
+  if (!profile) return;
+  if (String(profile.pin) === String(val)) {
+    state.loginPinModal = null;
+    completeLogin(profileId);
+  } else {
+    const err = document.getElementById('login-pin-error');
+    if (err) { err.textContent = 'Incorrect PIN. Try again.'; err.style.display = 'block'; }
+    input.value = ''; input.focus();
+  }
+}
+function completeLogin(profileId) {
+  const profile = getProfiles().find(p => p.id === profileId);
+  if (!profile) return;
+  setSession(profileId);
+  state.profile = profileId;
+  state.managerMode = false;
+  state.managerProfileId = null;
+  state.loginPinModal = null;
+  state.unlockedProfiles.push(profileId);
+  const role = profile.userRole || 'employee';
+  state.view = role === 'manager' ? 'manager-home' : 'home';
+  render();
+}
+
+// ============ MANAGER DASHBOARD ============
+function renderManagerDashboard() {
+  const sessionProfile = getSessionProfile();
+  if (!sessionProfile) return '';
+  const profiles = getProfiles();
+  const reports = profiles.filter(p => p.managerId === sessionProfile.id);
+  return `
+    <div>
+      <div class="review-header" style="margin-bottom:8px">
+        <h1>My Team</h1>
+      </div>
+      <p style="font-size:14px;color:var(--text-muted);margin:0 0 28px">${reports.length} direct report${reports.length !== 1 ? 's' : ''}</p>
+      ${reports.length === 0 ? `
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--text-muted)">
+          <div style="font-size:32px;margin-bottom:12px">👥</div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px">No direct reports yet</div>
+          <div style="font-size:13px">Ask your admin to assign team members to you in Manage Team.</div>
+        </div>
+      ` : `
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
+          ${reports.map(p => renderReportCard(p)).join('')}
+        </div>
+      `}
+    </div>
+  `;
+}
+function renderReportCard(p) {
+  const stats = getProfileStats(p.id);
+  const hasData = stats.below + stats.above > 0;
+  return `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        ${avatarHtml(p, 44, 15)}
+        <div style="flex:1;min-width:0">
+          <div style="font-size:15px;font-weight:600;color:var(--text)">${escHtml(p.name)}</div>
+          <div style="font-size:12px;color:var(--text-muted)">${escHtml(shortRole(p.role) || 'No role assigned')}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1;text-align:center;padding:10px 6px;background:var(--bg);border-radius:8px">
+          <div style="font-size:22px;font-weight:800;color:var(--red);line-height:1">${stats.below}</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:3px">Below</div>
+        </div>
+        <div style="flex:1;text-align:center;padding:10px 6px;background:var(--bg);border-radius:8px">
+          <div style="font-size:22px;font-weight:800;color:var(--green);line-height:1">${stats.above}</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:3px">Above</div>
+        </div>
+        <div style="flex:1;text-align:center;padding:10px 6px;background:var(--bg);border-radius:8px">
+          <div style="font-size:22px;font-weight:800;color:#94A3B8;line-height:1">${stats.notAssessed}</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:3px">N/A</div>
+        </div>
+        ${stats.reviewScore ? `
+          <div style="flex:1;text-align:center;padding:10px 6px;background:var(--bg);border-radius:8px">
+            <div style="font-size:18px;font-weight:800;color:var(--primary);line-height:1">${stats.reviewScore}</div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:3px">Review</div>
+          </div>
+        ` : ''}
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:auto" onclick="viewReport('${p.id}')">View Profile →</button>
+    </div>
+  `;
+}
+function viewReport(profileId) {
+  const sessionProfile = getSessionProfile();
+  state.managerMode = true;
+  state.managerProfileId = sessionProfile.id;
+  state.profile = profileId;
+  localStorage.setItem('dch_current_profile', profileId);
+  state.view = 'home';
+  render();
+}
+function backToTeam() {
+  if (state.managerProfileId) {
+    state.profile = state.managerProfileId;
+    localStorage.setItem('dch_current_profile', state.managerProfileId);
+  }
+  state.managerMode = false;
+  state.managerProfileId = null;
+  state.view = 'manager-home';
+  render();
+}
+
 function init() {
-  const lastProfile = localStorage.getItem('dch_current_profile');
   const profiles = getProfiles();
 
-  if (lastProfile && profiles.find(p => p.id === lastProfile)) {
-    state.profile = lastProfile;
-    render();
-  } else if (profiles.length === 1) {
-    // Auto-select if only one profile
-    setCurrentProfile(profiles[0].id);
-    render();
-  } else {
-    // Show modal over a blank render
+  // First-ever run: no profiles yet → show create screen
+  if (profiles.length === 0) {
     state.profile = 'guest';
     render();
     showProfileModal();
+    return;
   }
+
+  // Check for valid session
+  const session = getSession();
+  const sessionProfile = session ? profiles.find(p => p.id === session.profileId) : null;
+
+  if (!sessionProfile) {
+    // No valid session → show login
+    const app = document.getElementById('app');
+    if (app) app.innerHTML = renderLogin();
+    return;
+  }
+
+  // Valid session → set profile and render
+  state.profile = sessionProfile.id;
+  const role = sessionProfile.userRole || 'employee';
+  if (role === 'manager') {
+    state.view = 'manager-home';
+  }
+  render();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
