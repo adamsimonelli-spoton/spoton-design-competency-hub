@@ -3988,7 +3988,14 @@ function renderProfileModal() {
 
 // ============ TEAM MODAL ============
 function renderTeamModal() {
-  const profiles = getProfiles();
+  const allProfiles = getProfiles();
+  const sessionRole = getSessionUserRole();
+  const sessionProf = getSessionProfile();
+  const isAdmin = sessionRole === 'admin';
+  // Managers only see/edit their own direct reports
+  const visibleProfiles = isAdmin
+    ? allProfiles
+    : allProfiles.filter(p => p.managerId === sessionProf?.id);
   return `
     <div class="modal-overlay" id="team-modal" onclick="if(event.target===this)closeTeamModal()">
       <div class="modal" style="width:540px;max-width:95vw;max-height:90vh;display:flex;flex-direction:column;padding:0;overflow:hidden">
@@ -3999,13 +4006,15 @@ function renderTeamModal() {
             <div class="modal-title" style="margin-bottom:0">Manage Team</div>
             <button onclick="closeTeamModal()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);padding:4px">✕</button>
           </div>
-          <div class="modal-subtitle" style="margin:0">Add team members and assign roles to set expected skill levels.</div>
+          <div class="modal-subtitle" style="margin:0">
+            ${isAdmin ? 'Add team members and manage roles across the org.' : 'Add and edit your direct reports.'}
+          </div>
         </div>
 
         <!-- Scrollable body -->
         <div style="flex:1;overflow-y:auto;padding:20px 24px">
           <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
-            ${profiles.map(p => `
+            ${visibleProfiles.map(p => `
               <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm)">
                 <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
                   ${avatarHtml(p, 40, 14)}
@@ -4015,17 +4024,19 @@ function renderTeamModal() {
                 <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">
                   <input class="modal-input" style="margin:0;padding:4px 8px;font-size:13px;font-weight:600" id="name-edit-${p.id}" value="${escHtml(p.name)}" placeholder="Name" />
                   ${renderRoleSelect('role-select-'+p.id, p.role || '', true)}
-                  <div style="display:flex;gap:6px">
-                    <select class="modal-input" id="user-role-${p.id}" style="flex:1;margin:0;font-size:12px;padding:4px 8px">
-                      <option value="employee" ${(p.userRole||'employee')==='employee'?'selected':''}>Employee</option>
-                      <option value="manager"  ${p.userRole==='manager'?'selected':''}>Manager</option>
-                      <option value="admin"    ${p.userRole==='admin'?'selected':''}>Admin</option>
-                    </select>
-                    <select class="modal-input" id="manager-id-${p.id}" style="flex:1;margin:0;font-size:12px;padding:4px 8px">
-                      <option value="">— Reports to —</option>
-                      ${profiles.filter(m => m.id !== p.id && (m.userRole === 'manager' || m.userRole === 'admin')).map(m => `<option value="${m.id}" ${p.managerId===m.id?'selected':''}>${escHtml(m.name)}</option>`).join('')}
-                    </select>
-                  </div>
+                  ${isAdmin ? `
+                    <div style="display:flex;gap:6px">
+                      <select class="modal-input" id="user-role-${p.id}" style="flex:1;margin:0;font-size:12px;padding:4px 8px">
+                        <option value="employee" ${(p.userRole||'employee')==='employee'?'selected':''}>Employee</option>
+                        <option value="manager"  ${p.userRole==='manager'?'selected':''}>Manager</option>
+                        <option value="admin"    ${p.userRole==='admin'?'selected':''}>Admin</option>
+                      </select>
+                      <select class="modal-input" id="manager-id-${p.id}" style="flex:1;margin:0;font-size:12px;padding:4px 8px">
+                        <option value="">— Reports to —</option>
+                        ${allProfiles.filter(m => m.id !== p.id && (m.userRole === 'manager' || m.userRole === 'admin')).map(m => `<option value="${m.id}" ${p.managerId===m.id?'selected':''}>${escHtml(m.name)}</option>`).join('')}
+                      </select>
+                    </div>
+                  ` : ''}
                 </div>
                 <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0">
                   <button onclick="deleteProfileFromTeam('${p.id}')" title="Remove member" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:16px;padding:4px;line-height:1">✕</button>
@@ -4033,7 +4044,7 @@ function renderTeamModal() {
                 </div>
               </div>
             `).join('')}
-            ${profiles.length === 0 ? `<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:16px 0">No team members yet.</div>` : ''}
+            ${visibleProfiles.length === 0 ? `<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:16px 0">No team members yet. Add your first one below.</div>` : ''}
           </div>
 
           <hr class="modal-divider" style="margin-bottom:16px">
@@ -4047,12 +4058,14 @@ function renderTeamModal() {
               <label class="modal-label">Role</label>
               ${renderRoleSelect('new-profile-role', '', true)}
             </div>
-            <button class="btn btn-secondary btn-sm" onclick="createProfileFromTeam()" style="white-space:nowrap;flex-shrink:0">+ Add another</button>
+            <button class="btn btn-secondary btn-sm" onclick="createProfileFromTeam()" style="white-space:nowrap;flex-shrink:0">+ Add member</button>
           </div>
-          <label style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer">
-            <input type="checkbox" id="new-profile-manager-team" style="width:15px;height:15px;accent-color:var(--primary);cursor:pointer" />
-            <span style="font-size:12px;color:var(--text-secondary)">Manager — can switch profiles and manage team</span>
-          </label>
+          ${isAdmin ? `
+            <label style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer">
+              <input type="checkbox" id="new-profile-manager-team" style="width:15px;height:15px;accent-color:var(--primary);cursor:pointer" />
+              <span style="font-size:12px;color:var(--text-secondary)">Manager — can switch profiles and manage team</span>
+            </label>
+          ` : ''}
         </div>
 
         <!-- Sticky footer -->
@@ -4075,18 +4088,24 @@ function closeTeamModal() {
   if (m) m.remove();
 }
 function saveTeamRoles() {
+  const sessionRole = getSessionUserRole();
+  const sessionProf = getSessionProfile();
+  const isAdmin = sessionRole === 'admin';
   // Auto-create any pending new member if a name is filled in
   const pendingName = document.getElementById('new-profile-name')?.value?.trim();
   if (pendingName) {
     const role = document.getElementById('new-profile-role')?.value?.trim();
-    const isManager = document.getElementById('new-profile-manager-team')?.checked || false;
-    addProfile(pendingName, role, isManager);
+    const isManagerCheck = document.getElementById('new-profile-manager-team')?.checked || false;
+    // Managers auto-assign themselves; admins leave unassigned
+    const autoManagerId = isAdmin ? null : sessionProf?.id || null;
+    addProfile(pendingName, role, isManagerCheck, null, 'employee', autoManagerId);
   }
-  // Save edits to existing members
+  // Save edits to existing members (only profiles with DOM elements are updated)
   const profiles = getProfiles();
   profiles.forEach(p => {
     const nameInput = document.getElementById('name-edit-' + p.id);
     const roleSelect = document.getElementById('role-select-' + p.id);
+    if (!nameInput && !roleSelect) return; // not visible in this modal, skip
     const userRoleSelect = document.getElementById('user-role-' + p.id);
     const managerIdSelect = document.getElementById('manager-id-' + p.id);
     const newName = nameInput?.value?.trim();
@@ -4106,9 +4125,12 @@ function saveTeamRoles() {
 function createProfileFromTeam() {
   const name = document.getElementById('new-profile-name')?.value?.trim();
   const role = document.getElementById('new-profile-role')?.value?.trim();
-  const isManager = document.getElementById('new-profile-manager-team')?.checked || false;
+  const isManagerCheck = document.getElementById('new-profile-manager-team')?.checked || false;
   if (!name) { alert('Please enter a name.'); return; }
-  addProfile(name, role, isManager);
+  const sessionRole = getSessionUserRole();
+  const sessionProf = getSessionProfile();
+  const autoManagerId = sessionRole === 'manager' ? sessionProf?.id || null : null;
+  addProfile(name, role, isManagerCheck, null, 'employee', autoManagerId);
   manageTeam(); // re-render modal with new member
 }
 function deleteProfileFromTeam(id) {
@@ -7268,7 +7290,7 @@ function render() {
       </nav>
 
       <div class="sidebar-footer">
-        ${getSessionUserRole() === 'admin' ? `
+        ${(getSessionUserRole() === 'admin' || getSessionUserRole() === 'manager') ? `
           <button class="nav-item" onclick="manageTeam()" style="width:100%">
             <span class="nav-icon">${icon('users', 18)}</span>
             <span style="font-size:12.5px">Manage Team</span>
@@ -8851,13 +8873,15 @@ function renderManagerDashboard() {
     <div>
       <div class="review-header" style="margin-bottom:8px">
         <h1>My Team</h1>
+        <button class="btn btn-secondary btn-sm" onclick="manageTeam()">Manage Team</button>
       </div>
       <p style="font-size:14px;color:var(--text-muted);margin:0 0 28px">${reports.length} direct report${reports.length !== 1 ? 's' : ''}</p>
       ${reports.length === 0 ? `
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--text-muted)">
           <div style="font-size:32px;margin-bottom:12px">👥</div>
           <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px">No direct reports yet</div>
-          <div style="font-size:13px">Ask your admin to assign team members to you in Manage Team.</div>
+          <div style="font-size:13px;margin-bottom:20px">Add your team members to get started.</div>
+          <button class="btn btn-primary" onclick="manageTeam()">+ Add team members</button>
         </div>
       ` : `
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
