@@ -6,7 +6,7 @@
 //  Bump ORG_VERSION to force-refresh names/roles/reporting on all browsers.
 // ============================================================
 (function () {
-  var ORG_VERSION = 2;
+  var ORG_VERSION = 3;
 
   // ── Real org members ─────────────────────────────────────────────────────────
   // Reporting structure follows the design org chart (April 2026).
@@ -20,8 +20,8 @@
     // ── Tier 2 — Nicole's directs ────────────────────────────────────────────────
     { id: 'p_cam_001',        name: 'Cam Cheline',       role: 'Product Design Manager',      userRole: 'manager',  isManager: true,  managerId: 'p_nicole_001',    created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
     { id: 'p_marina_001',     name: 'Marina Beric',      role: 'Director of Product Design',  userRole: 'manager',  isManager: true,  managerId: 'p_nicole_001',    created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
-    { id: 'p_julia_001',      name: 'Julia Church',      role: 'Principal Design Strategist', userRole: 'manager',  isManager: true,  managerId: 'p_nicole_001',    created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
-    { id: 'p_paulina_001',    name: 'Paulina de Aragon', role: 'Principal Product Designer',  userRole: 'manager',  isManager: true,  managerId: 'p_nicole_001',    created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
+    { id: 'p_julia_001',      name: 'Julia Church',      role: 'Principal Design Strategist', userRole: 'employee', isManager: false, managerId: 'p_nicole_001',    created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
+    { id: 'p_paulina_001',    name: 'Paulina de Aragon', role: 'Principal Product Designer',  userRole: 'employee', isManager: false, managerId: 'p_nicole_001',    created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
     { id: 'p_mario_001',      name: 'Mario Ayerbe',      role: 'Product Design Manager',      userRole: 'manager',  isManager: true,  managerId: 'p_nicole_001',    created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
     { id: 'p_adam_001',       name: 'Adam Simonelli',    role: 'Product Design Manager',      userRole: 'admin',    isManager: true,  managerId: 'p_nicole_001',    created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
 
@@ -33,21 +33,19 @@
     { id: 'p_fnocedal_001',   name: 'Fernanda Nocedal',      role: 'Product Designer',        userRole: 'employee', isManager: false, managerId: 'p_marina_001',    created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
     { id: 'p_bjura_001',      name: 'Barbara Jura',          role: 'Senior Product Designer', userRole: 'employee', isManager: false, managerId: 'p_marina_001',    created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
 
-    // ── Julia's reports ──────────────────────────────────────────────────────────
-    { id: 'p_mbanzhoff_001',  name: 'Mark Banzhoff',         role: 'Product Designer',        userRole: 'employee', isManager: false, managerId: 'p_julia_001',     created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
-    { id: 'p_sling_001',      name: 'Shannon Ling',          role: 'Senior Product Designer', userRole: 'employee', isManager: false, managerId: 'p_julia_001',     created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
-
-    // ── Paulina's reports ────────────────────────────────────────────────────────
-    { id: 'p_jalvarez_001',   name: 'Jonas Alvarez',         role: 'Product Designer',        userRole: 'employee', isManager: false, managerId: 'p_paulina_001',   created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
-    { id: 'p_akarlinska_001', name: 'Anna Karlińska',        role: 'Senior Product Designer', userRole: 'employee', isManager: false, managerId: 'p_paulina_001',   created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
+    // ── Marina's additional reports (Mark + Shannon moved from Julia) ───────────
+    { id: 'p_mbanzhoff_001',  name: 'Mark Banzhoff',         role: 'Product Designer',        userRole: 'employee', isManager: false, managerId: 'p_marina_001',    created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
+    { id: 'p_sling_001',      name: 'Shannon Ling',          role: 'Senior Product Designer', userRole: 'employee', isManager: false, managerId: 'p_marina_001',    created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
 
     // ── Mario's reports ──────────────────────────────────────────────────────────
     { id: 'p_martinpech_001', name: 'Martin Pech',           role: 'Senior Product Designer', userRole: 'employee', isManager: false, managerId: 'p_mario_001',     created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
-    { id: 'p_gvazquez_001',   name: 'Gaby Vazquez',          role: 'Product Designer',        userRole: 'employee', isManager: false, managerId: 'p_mario_001',     created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
-    { id: 'p_briejames_001',  name: 'Brie James',            role: 'UX Researcher',           userRole: 'employee', isManager: false, managerId: 'p_mario_001',     created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
+    { id: 'p_jalvarez_001',   name: 'Jonas Alvarez',         role: 'Product Designer',        userRole: 'employee', isManager: false, managerId: 'p_mario_001',     created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
+    { id: 'p_akarlinska_001', name: 'Anna Karlińska',        role: 'Senior Product Designer', userRole: 'employee', isManager: false, managerId: 'p_mario_001',     created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
 
     // ── Adam's reports ───────────────────────────────────────────────────────────
-    { id: 'p_pfisher_001',    name: 'Paige Fisher',          role: 'Senior Product Designer', userRole: 'employee', isManager: false, managerId: 'p_adam_001',      created: '2026-01-01T09:00:00.000Z', photo: null, pin: null }
+    { id: 'p_pfisher_001',    name: 'Paige Fisher',          role: 'Senior Product Designer', userRole: 'employee', isManager: false, managerId: 'p_adam_001',      created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
+    { id: 'p_briejames_001',  name: 'Brie James',            role: 'UX Researcher',           userRole: 'employee', isManager: false, managerId: 'p_adam_001',      created: '2026-01-01T09:00:00.000Z', photo: null, pin: null },
+    { id: 'p_gvazquez_001',   name: 'Gaby Vazquez',          role: 'Product Designer',        userRole: 'employee', isManager: false, managerId: 'p_adam_001',      created: '2026-01-01T09:00:00.000Z', photo: null, pin: null }
   ];
 
   // ── Fictional demo profiles to remove ────────────────────────────────────────
