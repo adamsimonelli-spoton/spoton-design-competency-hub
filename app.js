@@ -8868,15 +8868,23 @@ function renderManagerDashboard() {
   const sessionProfile = getSessionProfile();
   if (!sessionProfile) return '';
   const profiles = getProfiles();
-  const reports = profiles.filter(p => p.managerId === sessionProfile.id);
+  // Top-level (no manager above them) sees the full org; others see direct reports only
+  const isTopLevel = !sessionProfile.managerId;
+  const visible = isTopLevel
+    ? profiles.filter(p => p.id !== sessionProfile.id)
+    : profiles.filter(p => p.managerId === sessionProfile.id);
+  const title    = isTopLevel ? 'Design Org' : 'My Team';
+  const subtitle = isTopLevel
+    ? `${visible.length} people`
+    : `${visible.length} direct report${visible.length !== 1 ? 's' : ''}`;
   return `
     <div>
       <div class="review-header" style="margin-bottom:8px">
-        <h1>My Team</h1>
+        <h1>${title}</h1>
         <button class="btn btn-secondary btn-sm" onclick="manageTeam()">Manage Team</button>
       </div>
-      <p style="font-size:14px;color:var(--text-muted);margin:0 0 28px">${reports.length} direct report${reports.length !== 1 ? 's' : ''}</p>
-      ${reports.length === 0 ? `
+      <p style="font-size:14px;color:var(--text-muted);margin:0 0 28px">${subtitle}</p>
+      ${visible.length === 0 ? `
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--text-muted)">
           <div style="font-size:32px;margin-bottom:12px">👥</div>
           <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px">No direct reports yet</div>
@@ -8885,7 +8893,7 @@ function renderManagerDashboard() {
         </div>
       ` : `
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
-          ${reports.map(p => renderReportCard(p)).join('')}
+          ${visible.map(p => renderReportCard(p)).join('')}
         </div>
       `}
     </div>
