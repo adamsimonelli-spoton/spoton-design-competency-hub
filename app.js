@@ -8705,7 +8705,7 @@ function applySortToRows(rows, tableId, getters) {
 function renderLogin() {
   const profiles = getProfiles();
   return `
-    <div style="width:100vw;height:100vh;background:#F1F5F9;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto">
+    <div style="width:100vw;min-height:100vh;background:#F1F5F9;display:flex;align-items:flex-start;justify-content:center;padding:48px 24px 48px;box-sizing:border-box">
       <div style="width:100%;max-width:400px">
         <div style="text-align:center;margin-bottom:32px">
           <div style="display:inline-block;background:#1E293B;border-radius:10px;padding:10px 16px;margin-bottom:14px">
@@ -8714,7 +8714,7 @@ function renderLogin() {
           <div style="font-size:22px;font-weight:700;color:#0F172A;margin-bottom:6px">Design Growth Hub</div>
           <div style="font-size:14px;color:#64748B">Select your account to sign in</div>
         </div>
-        <div style="background:#fff;border:1px solid #E2E8F0;border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06)">
+        <div style="background:#fff;border:1px solid #E2E8F0;border-radius:14px;overflow-x:hidden;overflow-y:auto;max-height:calc(100vh - 260px);box-shadow:0 2px 12px rgba(0,0,0,.06)">
           ${profiles.length === 0
             ? `<div style="padding:32px;text-align:center;color:#94A3B8;font-size:14px">No accounts yet.</div>`
             : profiles.map((p, i) => `
