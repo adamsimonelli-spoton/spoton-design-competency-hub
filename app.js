@@ -8686,13 +8686,15 @@ function renderLogin() {
     <div style="width:100vw;height:100vh;background:#F1F5F9;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto">
       <div style="width:100%;max-width:400px">
         <div style="text-align:center;margin-bottom:32px">
-          <img src="brand-logo.svg" alt="SpotOn" style="height:28px;margin:0 auto 12px;display:block" />
+          <div style="display:inline-block;background:#1E293B;border-radius:10px;padding:10px 16px;margin-bottom:14px">
+            <img src="brand-logo.svg" alt="SpotOn" style="height:26px;display:block" />
+          </div>
           <div style="font-size:22px;font-weight:700;color:#0F172A;margin-bottom:6px">Design Growth Hub</div>
           <div style="font-size:14px;color:#64748B">Select your account to sign in</div>
         </div>
         <div style="background:#fff;border:1px solid #E2E8F0;border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06)">
           ${profiles.length === 0
-            ? `<div style="padding:32px;text-align:center;color:#94A3B8;font-size:14px">No accounts found.</div>`
+            ? `<div style="padding:32px;text-align:center;color:#94A3B8;font-size:14px">No accounts yet.</div>`
             : profiles.map((p, i) => `
               <button onclick="loginAs('${p.id}')" style="width:100%;display:flex;align-items:center;gap:14px;padding:16px 20px;background:none;border:none;border-bottom:${i < profiles.length-1 ? '1px solid #F1F5F9' : 'none'};cursor:pointer;text-align:left;transition:background .12s" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='none'">
                 ${avatarHtml(p, 42, 15)}
@@ -8708,6 +8710,9 @@ function renderLogin() {
               </button>
             `).join('')
           }
+        </div>
+        <div style="text-align:center;margin-top:20px">
+          <button onclick="showLoginCreateModal()" style="background:none;border:none;cursor:pointer;font-size:13px;color:#6366F1;font-weight:600">+ Create account</button>
         </div>
       </div>
     </div>
@@ -8772,6 +8777,68 @@ function completeLogin(profileId) {
   const role = profile.userRole || 'employee';
   state.view = role === 'manager' ? 'manager-home' : 'home';
   render();
+}
+function showLoginCreateModal() {
+  const existing = document.getElementById('login-create-modal');
+  if (existing) existing.remove();
+  const html = `
+    <div id="login-create-modal" style="position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:2000;padding:24px" onclick="if(event.target===this)closeLoginCreateModal()">
+      <div style="background:#fff;border-radius:16px;padding:28px;width:100%;max-width:400px;box-shadow:0 12px 40px rgba(0,0,0,.2)" onclick="event.stopPropagation()">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <div style="font-size:17px;font-weight:700;color:#0F172A">Create account</div>
+          <button onclick="closeLoginCreateModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:#94A3B8;padding:0;line-height:1">×</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:6px">Your name</label>
+            <input id="lc-name" class="modal-input" placeholder="e.g. Jamie Chen" style="margin:0" onkeydown="if(event.key==='Enter')createLoginAccount()" />
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:6px">Role</label>
+            ${renderRoleSelect('lc-role', '', true)}
+          </div>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;border:1px solid #E2E8F0;border-radius:8px;background:#F8FAFC">
+            <input type="checkbox" id="lc-manager" style="width:16px;height:16px;accent-color:#6366F1;cursor:pointer" />
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#0F172A">I'm a manager</div>
+              <div style="font-size:11px;color:#94A3B8;margin-top:1px">Enables team management and manager dashboard</div>
+            </div>
+          </label>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:#475569;display:block;margin-bottom:6px">PIN (optional)</label>
+            <input id="lc-pin" type="password" inputmode="numeric" maxlength="6" class="modal-input" placeholder="Leave blank for no PIN" style="margin:0" />
+            <div style="font-size:11px;color:#94A3B8;margin-top:4px">Others must enter this PIN to view your profile.</div>
+          </div>
+          <div id="lc-error" style="color:#EF4444;font-size:12px;display:none"></div>
+          <button onclick="createLoginAccount()" style="background:#6366F1;color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px">Create account</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', html);
+  setTimeout(() => { const el = document.getElementById('lc-name'); if (el) el.focus(); }, 50);
+}
+function closeLoginCreateModal() {
+  const m = document.getElementById('login-create-modal');
+  if (m) m.remove();
+}
+function createLoginAccount() {
+  const name = (document.getElementById('lc-name')?.value || '').trim();
+  const role = (document.getElementById('lc-role')?.value || '').trim();
+  const isManager = document.getElementById('lc-manager')?.checked || false;
+  const pin = (document.getElementById('lc-pin')?.value || '').trim() || null;
+  const errEl = document.getElementById('lc-error');
+  if (!name) {
+    if (errEl) { errEl.textContent = 'Please enter your name.'; errEl.style.display = 'block'; }
+    document.getElementById('lc-name')?.focus();
+    return;
+  }
+  const existingProfiles = getProfiles();
+  const userRole = existingProfiles.length === 0 ? 'admin' : 'employee';
+  const profile = addProfile(name, role, isManager, pin, userRole);
+  if (pin) state.unlockedProfiles.push(profile.id);
+  closeLoginCreateModal();
+  completeLogin(profile.id);
 }
 
 // ============ MANAGER DASHBOARD ============
