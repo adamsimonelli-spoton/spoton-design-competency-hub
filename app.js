@@ -6449,6 +6449,8 @@ function navigate(view, param) {
     state.levelTab = expLevel || a.selfLevel || 'Learner';
   } else if (view === 'home') {
     state.view = 'home';
+  } else if (view === 'manager-home') {
+    state.view = 'manager-home';
   } else if (view === 'my-dashboard') {
     state.view = 'my-dashboard';
   } else if (view === 'review') {
