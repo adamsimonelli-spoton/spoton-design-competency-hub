@@ -7188,80 +7188,83 @@ function render() {
       ${(() => {
         const sessionRole = getSessionUserRole();
         const sessionProf = getSessionProfile();
-        if (sessionRole === 'admin') {
-          // Admin: full profile switcher + Me/My Team toggle if also a manager
-          const adminTab = state.managerTab || 'team';
+        const tab = state.managerTab || 'team';
+
+        if (sessionProf?.isManager) {
+          // ── All people-managers (admin or manager role) ──────────────────────────
+          // Always show the LOGGED-IN user as the identity.
+          // If viewing a report, show a context chip — never swap the profile card.
+          const viewingProf = state.managerMode ? profiles.find(p => p.id === state.profile) : null;
+          const meActive    = !state.managerMode && tab === 'me';
+          const teamActive  = state.managerMode  || tab === 'team';
+          return `
+            <div class="sidebar-profile">
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.06);border-radius:8px;margin-bottom:10px">
+                ${avatarHtml(sessionProf, 32, 12)}
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:#E2E8F0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(sessionProf.name || '')}</div>
+                  ${sessionProf.role ? `<div style="font-size:10px;color:#93C5FD;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(shortRole(sessionProf.role))}</div>` : ''}
+                </div>
+              </div>
+              <div style="display:flex;gap:2px;background:rgba(255,255,255,.08);border-radius:8px;padding:2px${viewingProf ? ';margin-bottom:8px' : ''}">
+                <button onclick="switchToMeTab()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${meActive?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">Me</button>
+                <button onclick="backToTeamView()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${teamActive?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">My Team</button>
+              </div>
+              ${viewingProf ? `
+                <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.22);border-radius:8px">
+                  ${avatarHtml(viewingProf, 24, 9)}
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#93C5FD;margin-bottom:1px">Viewing</div>
+                    <div style="font-size:12px;font-weight:600;color:#E2E8F0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(viewingProf.name)}</div>
+                  </div>
+                  <button onclick="backToTeamView()" title="Back to team" style="background:none;border:none;cursor:pointer;color:#64748B;font-size:18px;line-height:1;padding:0 2px;transition:color .12s" onmouseover="this.style.color='#93C5FD'" onmouseout="this.style.color='#64748B'">×</button>
+                </div>
+              ` : ''}
+            </div>`;
+
+        } else if (sessionRole === 'admin') {
+          // ── Admin without manager role: full profile switcher ─────────────────
           return `
             <div class="sidebar-profile">
               <div class="profile-label">Current Profile</div>
               <div class="profile-selector ${state.profileDropdownOpen ? 'open' : ''}" onclick="toggleProfileDropdown()">
-                  ${avatarHtml(currentProfile, 36, 13)}
-                  <div style="flex:1;min-width:0">
-                    <div class="profile-name">${escHtml(currentProfile?.name || 'Select Profile')}</div>
-                    ${currentProfile?.role ? `<div style="font-size:10px;color:#93C5FD;opacity:.9;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(shortRole(currentProfile.role))}</div>` : ''}
-                  </div>
-                  <span class="chevron" style="transition:transform .2s;flex-shrink:0;${state.profileDropdownOpen ? 'transform:rotate(180deg)' : ''}">▼</span>
-                </div>
-                ${state.profileDropdownOpen ? `
-                  <div class="profile-dropdown">
-                    ${profiles.map(p => `
-                      <div class="profile-dropdown-item-wrap" style="display:flex;align-items:center;gap:4px;padding:2px 8px">
-                        <button class="profile-dropdown-item ${state.profile === p.id ? 'active' : ''}" style="flex:1;padding:6px 4px" onclick="selectProfile('${p.id}')">
-                          ${avatarHtml(p, 26, 10)}
-                          <div style="flex:1;min-width:0;text-align:left">
-                            <div style="font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(p.name)}${p.pin ? ' 🔒' : ''}</div>
-                            <div style="font-size:11px;color:var(--text-muted)">${escHtml(p.role ? shortRole(p.role) : 'No role')}</div>
-                          </div>
-                          ${state.profile === p.id ? '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><path d="M2 7l4 4 6-6" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
-                        </button>
-                      </div>
-                    `).join('')}
-                  </div>
-                ` : ''}
-                ${sessionProf?.isManager ? `
-                  <div style="display:flex;gap:2px;background:rgba(255,255,255,.08);border-radius:8px;padding:2px;margin-top:10px">
-                    <button onclick="state.managerTab='me';state.view='home';render()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${adminTab==='me'?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">Me</button>
-                    <button onclick="state.managerTab='team';state.view='manager-home';render()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${adminTab==='team'?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">My Team</button>
-                  </div>
-                ` : ''}
-            </div>`;
-        } else if (sessionRole === 'manager' && state.managerMode) {
-          // Manager viewing a report: show "viewing" banner
-          return `
-            <div class="sidebar-profile">
-              <button onclick="backToTeam()" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:none;border-radius:8px;padding:6px 10px;cursor:pointer;color:#93C5FD;font-size:12px;font-weight:600;margin-bottom:10px;width:100%">
-                ← Back to My Team
-              </button>
-              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#64748B;margin-bottom:6px">Viewing</div>
-              <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.06);border-radius:8px">
-                ${avatarHtml(currentProfile, 32, 12)}
+                ${avatarHtml(currentProfile, 36, 13)}
                 <div style="flex:1;min-width:0">
-                  <div style="font-size:13px;font-weight:600;color:#E2E8F0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(currentProfile?.name || '')}</div>
-                  ${currentProfile?.role ? `<div style="font-size:10px;color:#93C5FD;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(shortRole(currentProfile.role))}</div>` : ''}
+                  <div class="profile-name">${escHtml(currentProfile?.name || 'Select Profile')}</div>
+                  ${currentProfile?.role ? `<div style="font-size:10px;color:#93C5FD;opacity:.9;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(shortRole(currentProfile.role))}</div>` : ''}
                 </div>
+                <span class="chevron" style="transition:transform .2s;flex-shrink:0;${state.profileDropdownOpen ? 'transform:rotate(180deg)' : ''}">▼</span>
               </div>
-            </div>`;
-        } else {
-          // Manager (own view) or Employee: show logged-in user, no switcher
-          const isManagerOwnView = sessionProf?.isManager && !state.managerMode;
-          const mgTab = state.managerTab || 'team';
-          const dispProf = sessionProf || currentProfile;
-          return `
-            <div class="sidebar-profile">
-              <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.06);border-radius:8px${isManagerOwnView ? ';margin-bottom:10px' : ''}">
-                ${avatarHtml(dispProf, 32, 12)}
-                <div style="flex:1;min-width:0">
-                  <div style="font-size:13px;font-weight:600;color:#E2E8F0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(dispProf?.name || '')}</div>
-                  ${dispProf?.role ? `<div style="font-size:10px;color:#93C5FD;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(shortRole(dispProf.role))}</div>` : ''}
-                </div>
-                ${isManagerOwnView ? '' : userRoleBadge(sessionRole)}
-              </div>
-              ${isManagerOwnView ? `
-                <div style="display:flex;gap:2px;background:rgba(255,255,255,.08);border-radius:8px;padding:2px">
-                  <button onclick="state.managerTab='me';state.view='home';render()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${mgTab==='me'?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">Me</button>
-                  <button onclick="state.managerTab='team';state.view='manager-home';render()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${mgTab==='team'?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">My Team</button>
+              ${state.profileDropdownOpen ? `
+                <div class="profile-dropdown">
+                  ${profiles.map(p => `
+                    <div class="profile-dropdown-item-wrap" style="display:flex;align-items:center;gap:4px;padding:2px 8px">
+                      <button class="profile-dropdown-item ${state.profile === p.id ? 'active' : ''}" style="flex:1;padding:6px 4px" onclick="selectProfile('${p.id}')">
+                        ${avatarHtml(p, 26, 10)}
+                        <div style="flex:1;min-width:0;text-align:left">
+                          <div style="font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(p.name)}${p.pin ? ' 🔒' : ''}</div>
+                          <div style="font-size:11px;color:var(--text-muted)">${escHtml(p.role ? shortRole(p.role) : 'No role')}</div>
+                        </div>
+                        ${state.profile === p.id ? '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><path d="M2 7l4 4 6-6" stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
+                      </button>
+                    </div>
+                  `).join('')}
                 </div>
               ` : ''}
+            </div>`;
+
+        } else {
+          // ── Employee: simple profile card, no toggle ──────────────────────────
+          return `
+            <div class="sidebar-profile">
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.06);border-radius:8px">
+                ${avatarHtml(sessionProf || currentProfile, 32, 12)}
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:#E2E8F0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml((sessionProf || currentProfile)?.name || '')}</div>
+                  ${(sessionProf || currentProfile)?.role ? `<div style="font-size:10px;color:#93C5FD;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(shortRole((sessionProf || currentProfile).role))}</div>` : ''}
+                </div>
+                ${userRoleBadge(sessionRole)}
+              </div>
             </div>`;
         }
       })()}
@@ -9004,7 +9007,8 @@ function viewReport(profileId) {
   state.view = 'home';
   render();
 }
-function backToTeam() {
+function backToTeam() { backToTeamView(); }
+function backToTeamView() {
   if (state.managerProfileId) {
     state.profile = state.managerProfileId;
     localStorage.setItem('dch_current_profile', state.managerProfileId);
@@ -9013,6 +9017,17 @@ function backToTeam() {
   state.managerProfileId = null;
   state.managerTab = 'team';
   state.view = 'manager-home';
+  render();
+}
+function switchToMeTab() {
+  if (state.managerMode && state.managerProfileId) {
+    state.profile = state.managerProfileId;
+    localStorage.setItem('dch_current_profile', state.managerProfileId);
+  }
+  state.managerMode = false;
+  state.managerProfileId = null;
+  state.managerTab = 'me';
+  state.view = 'home';
   render();
 }
 
