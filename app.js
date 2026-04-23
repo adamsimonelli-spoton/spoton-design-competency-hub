@@ -1451,7 +1451,7 @@ function getProfileStats(profileId) {
     }
     if (!ml) { notAssessed++; }
     else if (exp) {
-      const mi = SKILL_LEVELS.indexOf(ml), ei = SKILL_LEVELS.indexOf(exp);
+      const mi = getLevelOrder(ml), ei = getLevelOrder(exp);
       if (mi < ei) below++;
       else if (mi > ei) above++;
     }
