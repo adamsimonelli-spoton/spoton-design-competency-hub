@@ -3920,13 +3920,18 @@ function renderReview() {
 }
 
 // ============ ROLE SELECT HTML ============
-function renderRoleSelect(id, selectedRole, includeBlank) {
+function renderRoleSelect(id, selectedRole, includeBlank, icOnly = false) {
   const blank = includeBlank ? `<option value="">— Select a role —</option>` : '';
-  const options = Object.entries(ROLE_TRACKS).map(([track, roles]) => `
-    <optgroup label="${escHtml(track)}">
-      ${roles.map(r => `<option value="${escHtml(r)}" ${selectedRole === r ? 'selected' : ''}>${escHtml(r)}</option>`).join('')}
-    </optgroup>
-  `).join('');
+  // icOnly = true hides leadership roles (VP, Principal, Manager, Director)
+  // so managers can only assign IC-level roles to their reports
+  const isLeadership = r => /Principal|Manager|Director|\bVP\b/i.test(r);
+  const options = Object.entries(ROLE_TRACKS).map(([track, roles]) => {
+    const filtered = icOnly ? roles.filter(r => !isLeadership(r)) : roles;
+    if (!filtered.length) return '';
+    return `<optgroup label="${escHtml(track)}">
+      ${filtered.map(r => `<option value="${escHtml(r)}" ${selectedRole === r ? 'selected' : ''}>${escHtml(r)}</option>`).join('')}
+    </optgroup>`;
+  }).join('');
   return `<select class="modal-input" id="${id}" style="cursor:pointer">${blank}${options}</select>`;
 }
 
@@ -4024,7 +4029,7 @@ function renderTeamModal() {
                 </div>
                 <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">
                   <input class="modal-input" style="margin:0;padding:4px 8px;font-size:13px;font-weight:600" id="name-edit-${p.id}" value="${escHtml(p.name)}" placeholder="Name" />
-                  ${renderRoleSelect('role-select-'+p.id, p.role || '', true)}
+                  ${renderRoleSelect('role-select-'+p.id, p.role || '', true, !isAdmin)}
                   ${isAdmin ? `
                     <div style="display:flex;gap:6px">
                       <select class="modal-input" id="user-role-${p.id}" style="flex:1;margin:0;font-size:12px;padding:4px 8px">
@@ -4057,7 +4062,7 @@ function renderTeamModal() {
             </div>
             <div style="flex:1">
               <label class="modal-label">Role</label>
-              ${renderRoleSelect('new-profile-role', '', true)}
+              ${renderRoleSelect('new-profile-role', '', true, !isAdmin)}
             </div>
             <button class="btn btn-secondary btn-sm" onclick="createProfileFromTeam()" style="white-space:nowrap;flex-shrink:0">+ Add member</button>
           </div>
