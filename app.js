@@ -1449,7 +1449,7 @@ function getProfileStats(profileId) {
       const rd = ROLES_DATA[prof.role];
       if (rd) exp = rd.skills[s.id] || null;
     }
-    if (!ml) { notAssessed++; }
+    if (!ml || ml === 'Unknown') { notAssessed++; }
     else if (exp) {
       const mi = getLevelOrder(ml), ei = getLevelOrder(exp);
       if (mi < ei) below++;
@@ -8899,54 +8899,147 @@ function createLoginAccount() {
 }
 
 // ============ MANAGER DASHBOARD ============
+// ── Team radar: category averages across all team members ────────────────────
+function renderTeamRadarSVG(size, teamProfiles) {
+  const cx = size / 2, cy = size / 2;
+  const maxR = size / 2 - 36;
+  const categories = getCategories();
+  const n = categories.length;
+
+  // Average manager-assessed level per category (exclude Unknown / unassessed)
+  const scores = categories.map(cat => {
+    const catSkills = SKILLS_DATA.skills.filter(s => s.category === cat);
+    let total = 0, count = 0;
+    teamProfiles.forEach(p => {
+      const data = JSON.parse(localStorage.getItem('dch_data_' + p.id) || '{}');
+      const assessments = data.assessments || {};
+      catSkills.forEach(s => {
+        const ml = (assessments[s.id] || {}).managerLevel;
+        if (ml && ml !== 'Unknown') { total += getLevelOrder(ml); count++; }
+      });
+    });
+    return count > 0 ? (total / count) / 4 : 0;
+  });
+
+  function pt(i, r) {
+    const angle = (2 * Math.PI * i / n) - Math.PI / 2;
+    return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+  }
+
+  const gridHTML = [0.25, 0.5, 0.75, 1.0].map(lvl =>
+    `<circle cx="${cx}" cy="${cy}" r="${maxR * lvl}" fill="none" stroke="${lvl === 1 ? '#CBD5E1' : '#E2E8F0'}" stroke-width="${lvl === 1 ? 1.5 : 1}" stroke-dasharray="${lvl < 1 ? '3,3' : ''}"/>`
+  ).join('');
+
+  const axesHTML = categories.map((_, i) => {
+    const p = pt(i, maxR);
+    return `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="#E2E8F0" stroke-width="1"/>`;
+  }).join('');
+
+  const pts = scores.map((s, i) => { const r = maxR * Math.max(s, 0.04); const p = pt(i, r); return `${p.x},${p.y}`; }).join(' ');
+  const polyHTML = `<polygon points="${pts}" fill="#6366F1" fill-opacity="0.13" stroke="#6366F1" stroke-width="2" stroke-linejoin="round"/>`;
+  const dotsHTML = scores.map((s, i) => {
+    const r = maxR * Math.max(s, 0.04); const p = pt(i, r);
+    return `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#6366F1" stroke="white" stroke-width="1.5"/>`;
+  }).join('');
+
+  const catLabels = { 'Project Management': 'Proj Mgmt' };
+  const labelsHTML = categories.map((cat, i) => {
+    const angle = (2 * Math.PI * i / n) - Math.PI / 2;
+    const sinA = Math.sin(angle), cosA = Math.cos(angle);
+    const isTopBottom = Math.abs(sinA) > 0.7;
+    const labelR = isTopBottom ? maxR + 16 : maxR;
+    const lx = cx + labelR * cosA;
+    const ly = cy + labelR * sinA + (isTopBottom ? 0 : 20);
+    const label = catLabels[cat] || cat;
+    const pillW = Math.max(label.length * 5.5 + 14, 28);
+    const pillH = 15;
+    const pillX = (lx - pillW / 2).toFixed(1);
+    const pillY = (ly - pillH / 2).toFixed(1);
+    return `<g style="cursor:pointer" onclick="navigateToSkillCategory('${escHtml(cat)}')">
+      <rect x="${pillX}" y="${pillY}" width="${pillW.toFixed(1)}" height="${pillH}" rx="7" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+      <text x="${lx.toFixed(1)}" y="${(ly + 3.5).toFixed(1)}" text-anchor="middle" fill="#334155" font-size="9" font-weight="600" font-family="-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif">${label}</text>
+    </g>`;
+  }).join('');
+
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="display:block;margin:0 auto">
+    ${gridHTML}${axesHTML}${polyHTML}${dotsHTML}${labelsHTML}
+  </svg>`;
+}
+
 function renderManagerDashboard() {
   const sessionProfile = getSessionProfile();
   if (!sessionProfile) return '';
   const profiles = getProfiles();
   const isTopLevel = !sessionProfile.managerId;
+  const teamLabel = isTopLevel ? 'Design Org' : 'My Team';
+
   const visible = isTopLevel
     ? profiles.filter(p => p.id !== sessionProfile.id)
     : profiles.filter(p => p.managerId === sessionProfile.id);
-  const teamLabel = isTopLevel ? 'Design Org' : 'My Team';
 
-  // Aggregate stats across the team
-  const agg = visible.reduce((a, p) => {
-    const s = getProfileStats(p.id);
+  // Per-member stats
+  const memberStats = visible.map(p => ({ profile: p, stats: getProfileStats(p.id) }));
+  const agg = memberStats.reduce((a, { stats: s }) => {
     a.below       += s.below;
     a.above       += s.above;
     a.notAssessed += s.notAssessed;
     return a;
   }, { below: 0, above: 0, notAssessed: 0 });
 
+  const hasAnyData = agg.below + agg.above > 0;
+
+  // ── Common gaps: skills where the most team members are below target ──────
+  const skillGapCounts = {}, skillStrengthCounts = {};
+  visible.forEach(p => {
+    const data = JSON.parse(localStorage.getItem('dch_data_' + p.id) || '{}');
+    const assessments = data.assessments || {};
+    SKILLS_DATA.skills.forEach(s => {
+      const ml = (assessments[s.id] || {}).managerLevel;
+      if (!ml || ml === 'Unknown') return;
+      let exp = null;
+      try { const c = JSON.parse(localStorage.getItem('dch_expected_' + p.id) || 'null'); if (c?.[s.id]) exp = c[s.id]; } catch(e) {}
+      if (!exp) { const rd = ROLES_DATA[p.role]; if (rd) exp = rd.skills[s.id] || null; }
+      if (!exp) return;
+      if (getLevelOrder(ml) < getLevelOrder(exp)) skillGapCounts[s.id] = (skillGapCounts[s.id] || 0) + 1;
+      else skillStrengthCounts[s.id] = (skillStrengthCounts[s.id] || 0) + 1;
+    });
+  });
+
+  const topGaps = Object.entries(skillGapCounts)
+    .sort((a, b) => b[1] - a[1]).slice(0, 6)
+    .map(([id, cnt]) => ({ skill: getSkillById(id), cnt })).filter(x => x.skill);
+
+  const topStrengths = Object.entries(skillStrengthCounts)
+    .sort((a, b) => b[1] - a[1]).slice(0, 4)
+    .map(([id, cnt]) => ({ skill: getSkillById(id), cnt })).filter(x => x.skill);
+
+  // ── Category averages across team ────────────────────────────────────────
+  const categories = getCategories();
+  const catTeamAvg = categories.map(cat => {
+    const catSkills = SKILLS_DATA.skills.filter(s => s.category === cat);
+    let total = 0, count = 0;
+    visible.forEach(p => {
+      const data = JSON.parse(localStorage.getItem('dch_data_' + p.id) || '{}');
+      const assessments = data.assessments || {};
+      catSkills.forEach(s => {
+        const ml = (assessments[s.id] || {}).managerLevel;
+        if (ml && ml !== 'Unknown') { total += getLevelOrder(ml); count++; }
+      });
+    });
+    return { cat, avg: count > 0 ? total / count : null, count };
+  });
+  const LEVEL_NAMES_SHORT = ['', 'Learner', 'Contributor', 'Independent', 'Expert'];
+
+  const subLabel = t => `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px">${t}</div>`;
+
   return `
     <div>
-      <!-- Header row: team label + Manage Team -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px">
+      <!-- Header row -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
         <div style="font-size:20px;font-weight:700;color:var(--text)">${teamLabel}</div>
         <button class="btn btn-secondary btn-sm" onclick="manageTeam()">Manage Team</button>
       </div>
 
-      <!-- Aggregate stats -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
-          <div style="font-size:28px;font-weight:800;color:var(--text);line-height:1">${visible.length}</div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:5px">${isTopLevel ? 'People' : 'Reports'}</div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
-          <div style="font-size:28px;font-weight:800;color:var(--red);line-height:1">${agg.below}</div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:5px">Below</div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
-          <div style="font-size:28px;font-weight:800;color:var(--green);line-height:1">${agg.above}</div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:5px">On / Above</div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
-          <div style="font-size:28px;font-weight:800;color:#94A3B8;line-height:1">${agg.notAssessed}</div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:5px">Not Assessed</div>
-        </div>
-      </div>
-
-      <!-- People cards -->
       ${visible.length === 0 ? `
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--text-muted)">
           <div style="font-size:32px;margin-bottom:12px">👥</div>
@@ -8955,9 +9048,145 @@ function renderManagerDashboard() {
           <button class="btn btn-primary" onclick="manageTeam()">+ Add team members</button>
         </div>
       ` : `
+
+      <!-- 2-col layout: insights left, snapshot right -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;align-items:start;margin-bottom:24px">
+
+        <!-- LEFT: Team Skill Insights -->
+        <div class="analysis-card">
+          <div class="analysis-card-header">
+            <div class="analysis-card-title">Team Skill Insights</div>
+          </div>
+          ${!hasAnyData ? `
+            <div class="analysis-empty">
+              <div style="font-size:28px;margin-bottom:8px">📊</div>
+              <div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:4px">No assessments yet</div>
+              <div style="font-size:12px;color:var(--text-muted)">Assess your team's skills to see insights here</div>
+            </div>
+          ` : `
+            <div style="display:flex;flex-direction:column;gap:20px">
+
+              ${topGaps.length > 0 ? `
+                <div>
+                  ${subLabel('Most Common Gaps')}
+                  <div class="growth-table">
+                    <div class="growth-table-header">
+                      <span class="growth-col-skill">Skill</span>
+                      <span class="growth-col-level">Category</span>
+                      <span class="growth-col-gap" style="text-align:right"># Below</span>
+                    </div>
+                    ${topGaps.map(({ skill: s, cnt }) => `
+                      <div class="growth-table-row" onclick="navigate('skill','${s.id}')">
+                        <span class="growth-col-skill">${escHtml(s.name)}</span>
+                        <span class="growth-col-level" style="font-size:11px;color:var(--text-muted)">${escHtml(s.category)}</span>
+                        <span class="growth-col-gap" style="text-align:right">
+                          <span style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:700;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA">${cnt} ${cnt === 1 ? 'person' : 'people'}</span>
+                        </span>
+                      </div>`).join('')}
+                  </div>
+                </div>
+              ` : ''}
+
+              ${topStrengths.length > 0 ? `
+                <div${topGaps.length > 0 ? ' style="padding-top:16px;border-top:1px solid var(--border)"' : ''}>
+                  ${subLabel('Team Strengths')}
+                  <div class="growth-table">
+                    <div class="growth-table-header">
+                      <span class="growth-col-skill">Skill</span>
+                      <span class="growth-col-level">Category</span>
+                      <span class="growth-col-gap" style="text-align:right">At / Above</span>
+                    </div>
+                    ${topStrengths.map(({ skill: s, cnt }) => `
+                      <div class="growth-table-row" onclick="navigate('skill','${s.id}')">
+                        <span class="growth-col-skill">${escHtml(s.name)}</span>
+                        <span class="growth-col-level" style="font-size:11px;color:var(--text-muted)">${escHtml(s.category)}</span>
+                        <span class="growth-col-gap" style="text-align:right">
+                          <span style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:700;background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0">${cnt} ${cnt === 1 ? 'person' : 'people'}</span>
+                        </span>
+                      </div>`).join('')}
+                  </div>
+                </div>
+              ` : ''}
+
+            </div>
+          `}
+        </div>
+
+        <!-- RIGHT: Team Snapshot -->
+        <div class="skill-snapshot-card" style="width:100%;box-sizing:border-box">
+          <div class="dash-module-header" style="padding:16px 16px 0;margin-bottom:0">
+            <span class="section-title">Team Snapshot</span>
+          </div>
+
+          <!-- Stat tiles -->
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:14px 16px 0">
+            <div style="background:var(--bg);border-radius:8px;padding:10px 8px;text-align:center">
+              <div style="font-size:22px;font-weight:800;color:var(--text);line-height:1">${visible.length}</div>
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:3px">${isTopLevel ? 'People' : 'Reports'}</div>
+            </div>
+            <div style="background:var(--bg);border-radius:8px;padding:10px 8px;text-align:center">
+              <div style="font-size:22px;font-weight:800;color:var(--red);line-height:1">${agg.below}</div>
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:3px">Below</div>
+            </div>
+            <div style="background:var(--bg);border-radius:8px;padding:10px 8px;text-align:center">
+              <div style="font-size:22px;font-weight:800;color:var(--green);line-height:1">${agg.above}</div>
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:3px">On / Above</div>
+            </div>
+            <div style="background:var(--bg);border-radius:8px;padding:10px 8px;text-align:center">
+              <div style="font-size:22px;font-weight:800;color:#94A3B8;line-height:1">${agg.notAssessed}</div>
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:3px">Not Assessed</div>
+            </div>
+          </div>
+
+          <!-- Team Radar -->
+          <div style="padding:14px 16px 8px">
+            ${hasAnyData ? `
+              <div class="radar-chart-wrap">
+                ${renderTeamRadarSVG(290, visible)}
+              </div>
+              <div style="display:flex;gap:6px;justify-content:center;margin-top:8px;align-items:center">
+                <span style="width:8px;height:8px;border-radius:50%;background:#6366F1;flex-shrink:0"></span>
+                <span style="font-size:11px;color:var(--text-muted);font-weight:500">Team avg (manager-assessed)</span>
+              </div>
+            ` : `
+              <div style="text-align:center;padding:24px 0;color:var(--text-muted);font-size:13px">
+                <div style="font-size:24px;margin-bottom:8px">📡</div>
+                Assess skills to see team shape
+              </div>
+            `}
+          </div>
+
+          <!-- Category breakdown -->
+          ${hasAnyData ? `
+            <div style="padding:0 16px 16px">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px">By Category</div>
+              ${catTeamAvg.map(({ cat, avg }) => {
+                const pct = avg != null ? Math.round((avg / 4) * 100) : 0;
+                const lvlName = avg != null ? (LEVEL_NAMES_SHORT[Math.round(avg)] || '') : '—';
+                return `
+                  <div style="margin-bottom:10px">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                      <span style="font-size:12px;color:var(--text-secondary);font-weight:500">${escHtml(cat)}</span>
+                      <span style="font-size:11px;color:var(--text-muted)">${lvlName}</span>
+                    </div>
+                    <div style="height:5px;background:var(--border);border-radius:99px;overflow:hidden">
+                      <div style="height:100%;width:${pct}%;background:linear-gradient(to right,#A5B4FC,#6366F1);border-radius:99px;transition:width .4s ease"></div>
+                    </div>
+                  </div>`;
+              }).join('')}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+
+      <!-- People cards -->
+      <div style="margin-bottom:8px">
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:16px">Team Members</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
           ${visible.map(p => renderReportCard(p)).join('')}
         </div>
+      </div>
+
       `}
     </div>
   `;
