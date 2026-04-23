@@ -9016,6 +9016,7 @@ function renderManagerDashboard() {
   if (!sessionProfile) return '';
   const profiles = getProfiles();
   const teamLabel = 'My Team';
+  const isTopLevel = !sessionProfile.managerId;
 
   // Full subtree (everyone who rolls up to this manager)
   const subtree = getSubtreeProfiles(sessionProfile.id, profiles);
