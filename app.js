@@ -9357,19 +9357,19 @@ function renderReportCard(p) {
           <div style="font-size:12px;color:var(--text-muted)">${escHtml(shortRole(p.role) || 'No role assigned')}</div>
         </div>
       </div>
-      <div style="display:flex;gap:8px">
-        <div style="flex:1;text-align:center;padding:10px 6px;background:var(--bg);border-radius:8px">
-          <div style="font-size:22px;font-weight:800;color:var(--red);line-height:1">${stats.below}</div>
-          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:3px">Below</div>
+      <div style="background:var(--bg);border-radius:8px;padding:8px 12px;display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:12px;color:var(--text-muted)">Below</span>
+          <span style="font-size:14px;font-weight:700;color:var(--red)">${stats.below}</span>
         </div>
-        <div style="flex:1;text-align:center;padding:10px 6px;background:var(--bg);border-radius:8px">
-          <div style="font-size:22px;font-weight:800;color:var(--green);line-height:1">${stats.above}</div>
-          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:3px">Above</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:12px;color:var(--text-muted)">Above</span>
+          <span style="font-size:14px;font-weight:700;color:var(--green)">${stats.above}</span>
         </div>
         ${stats.reviewScore ? `
-          <div style="flex:1;text-align:center;padding:10px 6px;background:var(--bg);border-radius:8px">
-            <div style="font-size:18px;font-weight:800;color:var(--primary);line-height:1">${stats.reviewScore}</div>
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:3px">Review</div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:12px;color:var(--text-muted)">Review</span>
+            <span style="font-size:14px;font-weight:700;color:var(--primary)">${stats.reviewScore}</span>
           </div>
         ` : ''}
       </div>
