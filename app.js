@@ -1191,6 +1191,7 @@ let state = {
   clearConfirm: null,
   managerMode: false,
   managerProfileId: null,
+  managerTab: 'team',
   loginPinModal: null,
 };
 
@@ -7244,7 +7245,7 @@ function render() {
       })()}
 
       <nav class="sidebar-nav">
-        <button class="nav-item ${state.view === 'home' || state.view === 'manager-home' ? 'active' : ''}" onclick="${getSessionUserRole() === 'manager' && !state.managerMode ? "navigate('manager-home')" : "navigate('home')"}">
+        <button class="nav-item ${state.view === 'home' || state.view === 'manager-home' ? 'active' : ''}" onclick="${getSessionProfile()?.isManager && !state.managerMode ? "navigate('manager-home')" : "navigate('home')"}">
           <span class="nav-icon">${icon('layout-dashboard', 18)}</span>
           <span>Dashboard</span>
         </button>
@@ -8796,8 +8797,7 @@ function completeLogin(profileId) {
   state.managerProfileId = null;
   state.loginPinModal = null;
   state.unlockedProfiles.push(profileId);
-  const role = profile.userRole || 'employee';
-  state.view = role === 'manager' ? 'manager-home' : 'home';
+  state.view = profile.isManager ? 'manager-home' : 'home';
   render();
 }
 function showLoginCreateModal() {
@@ -8868,34 +8868,72 @@ function renderManagerDashboard() {
   const sessionProfile = getSessionProfile();
   if (!sessionProfile) return '';
   const profiles = getProfiles();
-  // Top-level (no manager above them) sees the full org; others see direct reports only
   const isTopLevel = !sessionProfile.managerId;
   const visible = isTopLevel
     ? profiles.filter(p => p.id !== sessionProfile.id)
     : profiles.filter(p => p.managerId === sessionProfile.id);
-  const title    = isTopLevel ? 'Design Org' : 'My Team';
-  const subtitle = isTopLevel
-    ? `${visible.length} people`
-    : `${visible.length} direct report${visible.length !== 1 ? 's' : ''}`;
+  const teamLabel = isTopLevel ? 'Design Org' : 'My Team';
+  const tab = state.managerTab || 'team';
+
+  // Aggregate stats across the team
+  const agg = visible.reduce((a, p) => {
+    const s = getProfileStats(p.id);
+    a.below       += s.below;
+    a.above       += s.above;
+    a.notAssessed += s.notAssessed;
+    return a;
+  }, { below: 0, above: 0, notAssessed: 0 });
+
   return `
     <div>
-      <div class="review-header" style="margin-bottom:8px">
-        <h1>${title}</h1>
-        <button class="btn btn-secondary btn-sm" onclick="manageTeam()">Manage Team</button>
+      <!-- Tab bar + Manage Team -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px">
+        <div style="display:flex;gap:2px;background:var(--border);border-radius:10px;padding:3px">
+          <button onclick="state.managerTab='team';render()" style="padding:7px 20px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;${tab==='team'?'background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1)':'background:transparent;color:var(--text-muted)'}">
+            ${teamLabel}
+          </button>
+          <button onclick="state.managerTab='me';render()" style="padding:7px 20px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;${tab==='me'?'background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1)':'background:transparent;color:var(--text-muted)'}">
+            Me
+          </button>
+        </div>
+        ${tab === 'team' ? `<button class="btn btn-secondary btn-sm" onclick="manageTeam()">Manage Team</button>` : ''}
       </div>
-      <p style="font-size:14px;color:var(--text-muted);margin:0 0 28px">${subtitle}</p>
-      ${visible.length === 0 ? `
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--text-muted)">
-          <div style="font-size:32px;margin-bottom:12px">👥</div>
-          <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px">No direct reports yet</div>
-          <div style="font-size:13px;margin-bottom:20px">Add your team members to get started.</div>
-          <button class="btn btn-primary" onclick="manageTeam()">+ Add team members</button>
+
+      ${tab === 'team' ? `
+        <!-- Aggregate stats -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
+            <div style="font-size:28px;font-weight:800;color:var(--text);line-height:1">${visible.length}</div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:5px">${isTopLevel ? 'People' : 'Reports'}</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
+            <div style="font-size:28px;font-weight:800;color:var(--red);line-height:1">${agg.below}</div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:5px">Below</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
+            <div style="font-size:28px;font-weight:800;color:var(--green);line-height:1">${agg.above}</div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:5px">On / Above</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
+            <div style="font-size:28px;font-weight:800;color:#94A3B8;line-height:1">${agg.notAssessed}</div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:5px">Not Assessed</div>
+          </div>
         </div>
-      ` : `
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
-          ${visible.map(p => renderReportCard(p)).join('')}
-        </div>
-      `}
+
+        <!-- People cards -->
+        ${visible.length === 0 ? `
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--text-muted)">
+            <div style="font-size:32px;margin-bottom:12px">👥</div>
+            <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px">No reports yet</div>
+            <div style="font-size:13px;margin-bottom:20px">Add your team members to get started.</div>
+            <button class="btn btn-primary" onclick="manageTeam()">+ Add team members</button>
+          </div>
+        ` : `
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
+            ${visible.map(p => renderReportCard(p)).join('')}
+          </div>
+        `}
+      ` : renderHome()}
     </div>
   `;
 }
@@ -8979,8 +9017,7 @@ function init() {
 
   // Valid session → set profile and render
   state.profile = sessionProfile.id;
-  const role = sessionProfile.userRole || 'employee';
-  if (role === 'manager') {
+  if (sessionProfile.isManager) {
     state.view = 'manager-home';
   }
   render();
