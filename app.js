@@ -7199,7 +7199,7 @@ function render() {
           const teamActive  = state.managerMode  || tab === 'team';
           return `
             <div class="sidebar-profile">
-              <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.06);border-radius:8px;margin-bottom:10px">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
                 ${avatarHtml(sessionProf, 32, 12)}
                 <div style="flex:1;min-width:0">
                   <div style="font-size:13px;font-weight:600;color:#E2E8F0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(sessionProf.name || '')}</div>
