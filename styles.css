@@ -1022,6 +1022,8 @@ body {
 
 /* Quick wins list */
 .dash-quick-wins-list { display: flex; flex-direction: column; gap: 8px; }
+.team-carousel { display:flex; gap:14px; overflow-x:auto; padding-bottom:12px; scrollbar-width:none; -ms-overflow-style:none; }
+.team-carousel::-webkit-scrollbar { display:none; }
 .dash-qw-item {
   display: flex;
   align-items: center;

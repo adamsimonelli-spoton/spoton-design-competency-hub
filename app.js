@@ -9049,11 +9049,13 @@ function renderManagerDashboard() {
         </div>
       ` : `
 
-      <!-- People cards -->
-      <div style="margin-bottom:24px">
-        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:16px">Team Members</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
-          ${visible.map(p => renderReportCard(p)).join('')}
+      <!-- People carousel (bleeds off right edge) -->
+      <div style="margin:0 -28px 24px;padding:0 28px">
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:14px">Team Members</div>
+        <div class="team-carousel">
+          ${visible.map(p => `<div style="flex-shrink:0;width:230px">${renderReportCard(p)}</div>`).join('')}
+          <!-- trailing spacer so last card doesn't sit flush against edge -->
+          <div style="flex-shrink:0;width:4px"></div>
         </div>
       </div>
 
