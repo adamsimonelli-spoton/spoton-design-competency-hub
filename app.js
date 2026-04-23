@@ -1193,6 +1193,10 @@ let state = {
   managerProfileId: null,
   managerTab: 'team',
   loginPinModal: null,
+  teamDirectOnly: true,
+  teamRoleFilter: '',
+  teamSelectedIds: [],
+  teamOpenDropdown: '',
 };
 
 // ============ STORAGE ============
@@ -8899,6 +8903,47 @@ function createLoginAccount() {
 }
 
 // ============ MANAGER DASHBOARD ============
+// ── Team filter helpers ───────────────────────────────────────────────────────
+function getSubtreeProfiles(rootId, allProfiles) {
+  const result = [];
+  const queue = [rootId];
+  while (queue.length) {
+    const parentId = queue.shift();
+    allProfiles.filter(p => p.managerId === parentId).forEach(p => { result.push(p); queue.push(p.id); });
+  }
+  return result;
+}
+function toggleTeamDropdown(id) {
+  state.teamOpenDropdown = state.teamOpenDropdown === id ? '' : id;
+  render();
+}
+function setTeamDirectOnly(val) {
+  state.teamDirectOnly = val;
+  // Reset people selection when changing scope
+  state.teamSelectedIds = [];
+  state.teamOpenDropdown = '';
+  render();
+}
+function setTeamRoleFilter(role) {
+  state.teamRoleFilter = role;
+  // Clear any name selection that might no longer be in the filtered set
+  state.teamSelectedIds = [];
+  render();
+}
+function toggleTeamMember(id) {
+  const idx = state.teamSelectedIds.indexOf(id);
+  if (idx === -1) state.teamSelectedIds = [...state.teamSelectedIds, id];
+  else state.teamSelectedIds = state.teamSelectedIds.filter(x => x !== id);
+  render();
+}
+function clearTeamFilters() {
+  state.teamDirectOnly = true;
+  state.teamRoleFilter = '';
+  state.teamSelectedIds = [];
+  state.teamOpenDropdown = '';
+  render();
+}
+
 // ── Team radar: category averages across all team members ────────────────────
 function renderTeamRadarSVG(size, teamProfiles) {
   const cx = size / 2, cy = size / 2;
@@ -8970,12 +9015,47 @@ function renderManagerDashboard() {
   const sessionProfile = getSessionProfile();
   if (!sessionProfile) return '';
   const profiles = getProfiles();
-  const isTopLevel = !sessionProfile.managerId;
-  const teamLabel = isTopLevel ? 'Design Org' : 'My Team';
+  const teamLabel = 'My Team';
 
-  const visible = isTopLevel
-    ? profiles.filter(p => p.id !== sessionProfile.id)
-    : profiles.filter(p => p.managerId === sessionProfile.id);
+  // Full subtree (everyone who rolls up to this manager)
+  const subtree = getSubtreeProfiles(sessionProfile.id, profiles);
+  // Direct reports only
+  const directReports = profiles.filter(p => p.managerId === sessionProfile.id);
+  // Whether the toggle adds any value (only show it when there are sub-reports)
+  const hasSubReports = subtree.length > directReports.length;
+
+  // Pool to filter from (based on direct-only toggle)
+  const pool = state.teamDirectOnly ? directReports : subtree;
+
+  // Unique roles in the pool
+  const poolRoles = [...new Set(pool.map(p => p.role).filter(Boolean))].sort();
+
+  // Apply role filter
+  let visible = state.teamRoleFilter
+    ? pool.filter(p => p.role === state.teamRoleFilter)
+    : pool;
+
+  // Apply name selection
+  if (state.teamSelectedIds.length) {
+    visible = visible.filter(p => state.teamSelectedIds.includes(p.id));
+  }
+
+  // Anything active?
+  const anyFilterActive = !state.teamDirectOnly || !!state.teamRoleFilter || state.teamSelectedIds.length > 0;
+
+  // chevron svg
+  const chevron = (open) => `<svg width="10" height="6" viewBox="0 0 10 6" fill="none" style="flex-shrink:0;transition:transform .15s${open ? ';transform:rotate(180deg)' : ''}"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>`;
+  // checkbox row helper
+  const checkRow = (label, checked, onclick, sublabel) => `
+    <button class="review-filter-check-row" onclick="${onclick}">
+      <span style="width:15px;height:15px;border-radius:4px;border:1.5px solid ${checked ? 'var(--primary)' : 'var(--border)'};background:${checked ? 'var(--primary)' : 'transparent'};flex-shrink:0;display:inline-flex;align-items:center;justify-content:center">
+        ${checked ? `<svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>` : ''}
+      </span>
+      <span style="flex:1;min-width:0">
+        <span style="display:block;font-size:13px;font-weight:500;color:var(--text)">${escHtml(label)}</span>
+        ${sublabel ? `<span style="display:block;font-size:11px;color:var(--text-muted);margin-top:1px">${escHtml(sublabel)}</span>` : ''}
+      </span>
+    </button>`;
 
   // Per-member stats
   const memberStats = visible.map(p => ({ profile: p, stats: getProfileStats(p.id) }));
@@ -9040,7 +9120,7 @@ function renderManagerDashboard() {
         <button class="btn btn-secondary btn-sm" onclick="manageTeam()">Manage Team</button>
       </div>
 
-      ${visible.length === 0 ? `
+      ${subtree.length === 0 ? `
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--text-muted)">
           <div style="font-size:32px;margin-bottom:12px">👥</div>
           <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px">No reports yet</div>
@@ -9051,12 +9131,77 @@ function renderManagerDashboard() {
 
       <!-- People carousel (bleeds off right edge) -->
       <div style="margin:0 -28px 24px;padding:0 28px">
-        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:14px">Team Members</div>
-        <div class="team-carousel">
-          ${visible.map(p => `<div style="flex-shrink:0;width:230px">${renderReportCard(p)}</div>`).join('')}
-          <!-- trailing spacer so last card doesn't sit flush against edge -->
-          <div style="flex-shrink:0;width:4px"></div>
+
+        <!-- Header + filter bar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+          <div style="font-size:14px;font-weight:600;color:var(--text)">Team Members</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap" onclick="event.stopPropagation()">
+
+            ${hasSubReports ? `
+              <!-- Direct reports toggle -->
+              <button onclick="setTeamDirectOnly(!state.teamDirectOnly)"
+                style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;font-family:inherit;padding:6px 10px;border-radius:8px;cursor:pointer;transition:all .15s;border:1.5px solid ${state.teamDirectOnly ? 'var(--primary)' : 'var(--border)'};background:${state.teamDirectOnly ? 'var(--primary-light)' : 'var(--surface)'};color:${state.teamDirectOnly ? 'var(--primary)' : 'var(--text-muted)'}">
+                <span style="width:14px;height:14px;border-radius:3px;border:1.5px solid ${state.teamDirectOnly ? 'var(--primary)' : 'var(--border)'};background:${state.teamDirectOnly ? 'var(--primary)' : 'transparent'};flex-shrink:0;display:inline-flex;align-items:center;justify-content:center">
+                  ${state.teamDirectOnly ? `<svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>` : ''}
+                </span>
+                Direct reports only
+              </button>
+            ` : ''}
+
+            <!-- Role filter -->
+            ${poolRoles.length > 1 ? `
+              <div style="position:relative">
+                <button class="review-filter-dropdown-btn ${state.teamRoleFilter ? 'active' : ''} ${state.teamOpenDropdown === 'role' ? 'open' : ''}"
+                  style="font-size:12px;padding:6px 10px"
+                  onclick="toggleTeamDropdown('role')">
+                  ${state.teamRoleFilter ? escHtml(shortRole(state.teamRoleFilter)) : 'Role'} ${chevron(state.teamOpenDropdown === 'role')}
+                </button>
+                ${state.teamOpenDropdown === 'role' ? `
+                  <div class="review-filter-dropdown-panel" onclick="event.stopPropagation()" style="min-width:190px">
+                    ${checkRow('All roles', !state.teamRoleFilter, "setTeamRoleFilter('')")}
+                    <div style="height:1px;background:var(--border);margin:4px 0"></div>
+                    ${poolRoles.map(r => checkRow(shortRole(r) || r, state.teamRoleFilter === r, `setTeamRoleFilter('${escHtml(r)}')`)).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
+
+            <!-- People filter -->
+            ${pool.length > 1 ? `
+              <div style="position:relative">
+                <button class="review-filter-dropdown-btn ${state.teamSelectedIds.length ? 'active' : ''} ${state.teamOpenDropdown === 'people' ? 'open' : ''}"
+                  style="font-size:12px;padding:6px 10px"
+                  onclick="toggleTeamDropdown('people')">
+                  ${state.teamSelectedIds.length ? `${state.teamSelectedIds.length} selected` : 'People'} ${chevron(state.teamOpenDropdown === 'people')}
+                </button>
+                ${state.teamOpenDropdown === 'people' ? `
+                  <div class="review-filter-dropdown-panel" onclick="event.stopPropagation()" style="min-width:200px;max-height:260px;overflow-y:auto">
+                    ${checkRow('All people', state.teamSelectedIds.length === 0, "state.teamSelectedIds=[];render()")}
+                    <div style="height:1px;background:var(--border);margin:4px 0"></div>
+                    ${pool.map(p => {
+                      const sub = shortRole(p.role) || '';
+                      return checkRow(p.name, state.teamSelectedIds.includes(p.id), `toggleTeamMember('${p.id}')`, sub);
+                    }).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
+
+            ${anyFilterActive ? `<button class="review-filter-clear" style="font-size:12px" onclick="clearTeamFilters()">Clear</button>` : ''}
+          </div>
         </div>
+
+        <!-- Carousel -->
+        ${visible.length === 0 ? `
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center;color:var(--text-muted);font-size:13px">
+            No team members match the current filters.
+          </div>
+        ` : `
+          <div class="team-carousel">
+            ${visible.map(p => `<div style="flex-shrink:0;width:230px">${renderReportCard(p)}</div>`).join('')}
+            <div style="flex-shrink:0;width:4px"></div>
+          </div>
+        `}
       </div>
 
       <!-- 2-col layout: insights left, snapshot right -->
@@ -9306,6 +9451,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let changed = false;
       if (state.reviewOpenDropdown) { state.reviewOpenDropdown = ''; changed = true; }
       if (state.resourcesOpenDropdown) { state.resourcesOpenDropdown = ''; changed = true; }
+      if (state.teamOpenDropdown) { state.teamOpenDropdown = ''; changed = true; }
       if (changed) render();
     }
   });
