@@ -7189,7 +7189,8 @@ function render() {
         const sessionRole = getSessionUserRole();
         const sessionProf = getSessionProfile();
         if (sessionRole === 'admin') {
-          // Admin: full profile switcher
+          // Admin: full profile switcher + Me/My Team toggle if also a manager
+          const adminTab = state.managerTab || 'team';
           return `
             <div class="sidebar-profile">
               <div class="profile-label">Current Profile</div>
@@ -7217,6 +7218,12 @@ function render() {
                     `).join('')}
                   </div>
                 ` : ''}
+                ${sessionProf?.isManager ? `
+                  <div style="display:flex;gap:2px;background:rgba(255,255,255,.08);border-radius:8px;padding:2px;margin-top:10px">
+                    <button onclick="state.managerTab='me';state.view='home';render()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${adminTab==='me'?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">Me</button>
+                    <button onclick="state.managerTab='team';state.view='manager-home';render()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${adminTab==='team'?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">My Team</button>
+                  </div>
+                ` : ''}
             </div>`;
         } else if (sessionRole === 'manager' && state.managerMode) {
           // Manager viewing a report: show "viewing" banner
@@ -7236,66 +7243,84 @@ function render() {
             </div>`;
         } else {
           // Manager (own view) or Employee: show logged-in user, no switcher
+          const isManagerOwnView = sessionProf?.isManager && !state.managerMode;
+          const mgTab = state.managerTab || 'team';
+          const dispProf = sessionProf || currentProfile;
           return `
             <div class="sidebar-profile">
-              <div class="profile-label">Signed in as</div>
-              <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.06);border-radius:8px">
-                ${avatarHtml(sessionProf || currentProfile, 32, 12)}
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.06);border-radius:8px${isManagerOwnView ? ';margin-bottom:10px' : ''}">
+                ${avatarHtml(dispProf, 32, 12)}
                 <div style="flex:1;min-width:0">
-                  <div style="font-size:13px;font-weight:600;color:#E2E8F0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml((sessionProf || currentProfile)?.name || '')}</div>
-                  ${(sessionProf || currentProfile)?.role ? `<div style="font-size:10px;color:#93C5FD;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(shortRole((sessionProf || currentProfile).role))}</div>` : ''}
+                  <div style="font-size:13px;font-weight:600;color:#E2E8F0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(dispProf?.name || '')}</div>
+                  ${dispProf?.role ? `<div style="font-size:10px;color:#93C5FD;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(shortRole(dispProf.role))}</div>` : ''}
                 </div>
-                ${userRoleBadge(sessionRole)}
+                ${isManagerOwnView ? '' : userRoleBadge(sessionRole)}
               </div>
+              ${isManagerOwnView ? `
+                <div style="display:flex;gap:2px;background:rgba(255,255,255,.08);border-radius:8px;padding:2px">
+                  <button onclick="state.managerTab='me';state.view='home';render()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${mgTab==='me'?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">Me</button>
+                  <button onclick="state.managerTab='team';state.view='manager-home';render()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${mgTab==='team'?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">My Team</button>
+                </div>
+              ` : ''}
             </div>`;
         }
       })()}
 
-      <nav class="sidebar-nav">
-        <button class="nav-item ${state.view === 'home' || state.view === 'manager-home' ? 'active' : ''}" onclick="${getSessionProfile()?.isManager && !state.managerMode ? "navigate('manager-home')" : "navigate('home')"}">
-          <span class="nav-icon">${icon('layout-dashboard', 18)}</span>
-          <span>Dashboard</span>
-        </button>
+      ${(() => {
+        const sp = getSessionProfile();
+        const showTeamOnlyNav = sp?.isManager && !state.managerMode && (state.managerTab || 'team') === 'team';
+        const dashOnclick = sp?.isManager && !state.managerMode && (state.managerTab || 'team') === 'team'
+          ? "navigate('manager-home')"
+          : "navigate('home')";
+        return `
+        <nav class="sidebar-nav">
+          <button class="nav-item ${state.view === 'home' || state.view === 'manager-home' ? 'active' : ''}" onclick="${dashOnclick}">
+            <span class="nav-icon">${icon('layout-dashboard', 18)}</span>
+            <span>Dashboard</span>
+          </button>
 
-        <div class="nav-section-label">Assessment</div>
+          ${showTeamOnlyNav ? '' : `
+            <div class="nav-section-label">Assessment</div>
 
-        <button class="nav-item ${state.view === 'review' || state.view === 'skill' ? 'active' : ''}" onclick="navigate('review')">
-          <span class="nav-icon">${icon('layers', 18)}</span>
-          <span>Skills</span>
-        </button>
+            <button class="nav-item ${state.view === 'review' || state.view === 'skill' ? 'active' : ''}" onclick="navigate('review')">
+              <span class="nav-icon">${icon('layers', 18)}</span>
+              <span>Skills</span>
+            </button>
 
-        <button class="nav-item ${state.view === 'values' || state.view === 'value' ? 'active' : ''}" onclick="navigate('values')">
-          <span class="nav-icon">${icon('heart', 18)}</span>
-          <span>Core Values</span>
-        </button>
+            <button class="nav-item ${state.view === 'values' || state.view === 'value' ? 'active' : ''}" onclick="navigate('values')">
+              <span class="nav-icon">${icon('heart', 18)}</span>
+              <span>Core Values</span>
+            </button>
 
-        <button class="nav-item ${state.view === 'eoy' || state.view === 'eoy-detail' ? 'active' : ''}" onclick="navigate('eoy')">
-          <span class="nav-icon">${icon('bar-chart-2', 18)}</span>
-          <span>Performance Review</span>
-        </button>
+            <button class="nav-item ${state.view === 'eoy' || state.view === 'eoy-detail' ? 'active' : ''}" onclick="navigate('eoy')">
+              <span class="nav-icon">${icon('bar-chart-2', 18)}</span>
+              <span>Performance Review</span>
+            </button>
 
-        <div class="nav-section-label">Tools</div>
+            <div class="nav-section-label">Tools</div>
 
-        <button class="nav-item ${state.view === 'growth-plan' ? 'active' : ''}" onclick="navigate('growth-plan')">
-          <span class="nav-icon">${icon('trending-up', 18)}</span>
-          <span>One-on-Ones</span>
-        </button>
+            <button class="nav-item ${state.view === 'growth-plan' ? 'active' : ''}" onclick="navigate('growth-plan')">
+              <span class="nav-icon">${icon('trending-up', 18)}</span>
+              <span>One-on-Ones</span>
+            </button>
 
-        <button class="nav-item ${['goals','personal-goal','design-goal','growth-theme'].includes(state.view) ? 'active' : ''}" onclick="navigate('goals')">
-          <span class="nav-icon">${icon('target', 18)}</span>
-          <span>Goals</span>
-        </button>
+            <button class="nav-item ${['goals','personal-goal','design-goal','growth-theme'].includes(state.view) ? 'active' : ''}" onclick="navigate('goals')">
+              <span class="nav-icon">${icon('target', 18)}</span>
+              <span>Goals</span>
+            </button>
 
-        <button class="nav-item ${state.view === 'outreach' ? 'active' : ''}" onclick="navigate('outreach')">
-          <span class="nav-icon">${icon('store', 18)}</span>
-          <span>Merchant Outreach</span>
-        </button>
+            <button class="nav-item ${state.view === 'outreach' ? 'active' : ''}" onclick="navigate('outreach')">
+              <span class="nav-icon">${icon('store', 18)}</span>
+              <span>Merchant Outreach</span>
+            </button>
 
-        <button class="nav-item ${state.view === 'resources' ? 'active' : ''}" onclick="navigate('resources')">
-          <span class="nav-icon">${icon('book-open', 18)}</span>
-          <span>Resources</span>
-        </button>
-      </nav>
+            <button class="nav-item ${state.view === 'resources' ? 'active' : ''}" onclick="navigate('resources')">
+              <span class="nav-icon">${icon('book-open', 18)}</span>
+              <span>Resources</span>
+            </button>
+          `}
+        </nav>`;
+      })()}
 
       <div class="sidebar-footer">
         ${(getSessionUserRole() === 'admin' || getSessionUserRole() === 'manager') ? `
@@ -8880,7 +8905,6 @@ function renderManagerDashboard() {
     ? profiles.filter(p => p.id !== sessionProfile.id)
     : profiles.filter(p => p.managerId === sessionProfile.id);
   const teamLabel = isTopLevel ? 'Design Org' : 'My Team';
-  const tab = state.managerTab || 'team';
 
   // Aggregate stats across the team
   const agg = visible.reduce((a, p) => {
@@ -8893,54 +8917,45 @@ function renderManagerDashboard() {
 
   return `
     <div>
-      <!-- Tab bar + Manage Team -->
+      <!-- Header row: team label + Manage Team -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px">
-        <div style="display:flex;gap:2px;background:var(--border);border-radius:10px;padding:3px">
-          <button onclick="state.managerTab='team';render()" style="padding:7px 20px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;${tab==='team'?'background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1)':'background:transparent;color:var(--text-muted)'}">
-            ${teamLabel}
-          </button>
-          <button onclick="state.managerTab='me';render()" style="padding:7px 20px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;${tab==='me'?'background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1)':'background:transparent;color:var(--text-muted)'}">
-            Me
-          </button>
-        </div>
-        ${tab === 'team' ? `<button class="btn btn-secondary btn-sm" onclick="manageTeam()">Manage Team</button>` : ''}
+        <div style="font-size:20px;font-weight:700;color:var(--text)">${teamLabel}</div>
+        <button class="btn btn-secondary btn-sm" onclick="manageTeam()">Manage Team</button>
       </div>
 
-      ${tab === 'team' ? `
-        <!-- Aggregate stats -->
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
-            <div style="font-size:28px;font-weight:800;color:var(--text);line-height:1">${visible.length}</div>
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:5px">${isTopLevel ? 'People' : 'Reports'}</div>
-          </div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
-            <div style="font-size:28px;font-weight:800;color:var(--red);line-height:1">${agg.below}</div>
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:5px">Below</div>
-          </div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
-            <div style="font-size:28px;font-weight:800;color:var(--green);line-height:1">${agg.above}</div>
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:5px">On / Above</div>
-          </div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
-            <div style="font-size:28px;font-weight:800;color:#94A3B8;line-height:1">${agg.notAssessed}</div>
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:5px">Not Assessed</div>
-          </div>
+      <!-- Aggregate stats -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
+          <div style="font-size:28px;font-weight:800;color:var(--text);line-height:1">${visible.length}</div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:5px">${isTopLevel ? 'People' : 'Reports'}</div>
         </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
+          <div style="font-size:28px;font-weight:800;color:var(--red);line-height:1">${agg.below}</div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:5px">Below</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
+          <div style="font-size:28px;font-weight:800;color:var(--green);line-height:1">${agg.above}</div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:5px">On / Above</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center">
+          <div style="font-size:28px;font-weight:800;color:#94A3B8;line-height:1">${agg.notAssessed}</div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:5px">Not Assessed</div>
+        </div>
+      </div>
 
-        <!-- People cards -->
-        ${visible.length === 0 ? `
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--text-muted)">
-            <div style="font-size:32px;margin-bottom:12px">👥</div>
-            <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px">No reports yet</div>
-            <div style="font-size:13px;margin-bottom:20px">Add your team members to get started.</div>
-            <button class="btn btn-primary" onclick="manageTeam()">+ Add team members</button>
-          </div>
-        ` : `
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
-            ${visible.map(p => renderReportCard(p)).join('')}
-          </div>
-        `}
-      ` : renderHome()}
+      <!-- People cards -->
+      ${visible.length === 0 ? `
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--text-muted)">
+          <div style="font-size:32px;margin-bottom:12px">👥</div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px">No reports yet</div>
+          <div style="font-size:13px;margin-bottom:20px">Add your team members to get started.</div>
+          <button class="btn btn-primary" onclick="manageTeam()">+ Add team members</button>
+        </div>
+      ` : `
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
+          ${visible.map(p => renderReportCard(p)).join('')}
+        </div>
+      `}
     </div>
   `;
 }
@@ -8996,6 +9011,7 @@ function backToTeam() {
   }
   state.managerMode = false;
   state.managerProfileId = null;
+  state.managerTab = 'team';
   state.view = 'manager-home';
   render();
 }
