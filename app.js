@@ -9351,7 +9351,7 @@ function renderReportCard(p) {
   return `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px">
       <div style="display:flex;align-items:center;gap:12px">
-        ${avatarHtml(p, 44, 15)}
+        ${avatarHtml(p, 32, 12)}
         <div style="flex:1;min-width:0">
           <div style="font-size:15px;font-weight:600;color:var(--text)">${escHtml(p.name)}</div>
           <div style="font-size:12px;color:var(--text-muted)">${escHtml(shortRole(p.role) || 'No role assigned')}</div>
