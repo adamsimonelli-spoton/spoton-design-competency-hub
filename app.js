@@ -1538,7 +1538,12 @@ function getAntiPatternForLevel(skill, level) {
 
 function shortRole(role) {
   if (!role) return '';
-  return role.replace(/\bSenior\b/g, 'Sr.').replace(/\bManager\b/g, 'Mgr');
+  return role
+    .replace(/\bSenior\b/g, 'Sr.')
+    .replace(/\bManager\b/g, 'Mgr')
+    .replace(/\bDirector\b/g, 'Dir')
+    .replace(/\bPrincipal\b/g, 'Prin')
+    .replace(/\bProduct Design\b/g, 'Prod Design');
 }
 function getAssessedCount() {
   const d = getData();
@@ -9360,10 +9365,6 @@ function renderReportCard(p) {
         <div style="flex:1;text-align:center;padding:10px 6px;background:var(--bg);border-radius:8px">
           <div style="font-size:22px;font-weight:800;color:var(--green);line-height:1">${stats.above}</div>
           <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:3px">Above</div>
-        </div>
-        <div style="flex:1;text-align:center;padding:10px 6px;background:var(--bg);border-radius:8px">
-          <div style="font-size:22px;font-weight:800;color:#94A3B8;line-height:1">${stats.notAssessed}</div>
-          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-top:3px">N/A</div>
         </div>
         ${stats.reviewScore ? `
           <div style="flex:1;text-align:center;padding:10px 6px;background:var(--bg);border-radius:8px">
