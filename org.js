@@ -6,7 +6,7 @@
 //  Bump ORG_VERSION to force-refresh names/roles/reporting on all browsers.
 // ============================================================
 (function () {
-  var ORG_VERSION = 3;
+  var ORG_VERSION = 4;
 
   // ── Real org members ─────────────────────────────────────────────────────────
   // Reporting structure follows the design org chart (April 2026).
@@ -79,6 +79,26 @@
   // ── Step 2: Add / refresh org profiles ───────────────────────────────────────
   var storedOrgVersion = parseInt(localStorage.getItem('dch_org_version') || '0', 10);
   var existingIds = existing.map(function (p) { return p.id; });
+
+  // ── Step 2a: Remove duplicate name shadows ────────────────────────────────────
+  // If a profile exists with the same name as an org member but a DIFFERENT id,
+  // it's a manually-created duplicate — remove it to avoid confusion.
+  var orgIds = orgProfiles.map(function (p) { return p.id; });
+  var orgNames = orgProfiles.map(function (p) { return p.name.toLowerCase(); });
+  existing = existing.filter(function (p) {
+    if (orgIds.indexOf(p.id) !== -1) return true; // is an org profile, keep
+    var lc = p.name ? p.name.toLowerCase() : '';
+    if (orgNames.indexOf(lc) !== -1) {
+      // Shadow duplicate — delete its data keys too
+      Object.keys(localStorage)
+        .filter(function (k) { return k.indexOf(p.id) !== -1; })
+        .forEach(function (k) { localStorage.removeItem(k); });
+      profilesChanged = true;
+      return false;
+    }
+    return true;
+  });
+  existingIds = existing.map(function (p) { return p.id; });
 
   orgProfiles.forEach(function (p) {
     var idx = existingIds.indexOf(p.id);

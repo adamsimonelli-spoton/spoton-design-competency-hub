@@ -21,18 +21,17 @@
     </div>
   </div>
 
-  <!-- SheetJS for Excel/CSV parsing -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <!-- PDF.js for performance review parsing -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script>if (window.pdfjsLib) { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; }</script>
-  <!-- Tesseract.js for image OCR (performance review PNG/JPG) -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- SheetJS for Excel/CSV parsing — async so it doesn't block app load -->
+  <script async src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- PDF.js for performance review parsing — async so it doesn't block app load -->
+  <script async src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" onload="pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'"></script>
+  <!-- Tesseract.js for image OCR (performance review PNG/JPG) — async so it doesn't block app load -->
+  <script async src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <!-- Skill data must load before app.js -->
   <script src="data/skills.js"></script>
   <script src="seed.js"></script>
   <!-- Real design org — runs after seed.js, removes demo profiles, adds actual team -->
-  <script src="org.js?v=1"></script>
-  <script src="app.js?v=180"></script>
+  <script src="org.js?v=2"></script>
+  <script src="app.js?v=181"></script>
 </body>
 </html>
