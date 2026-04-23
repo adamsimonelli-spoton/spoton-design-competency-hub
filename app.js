@@ -9062,7 +9062,13 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  init();
+  try {
+    init();
+  } catch (e) {
+    console.error('[DCH] init() crashed:', e);
+    const app = document.getElementById('app');
+    if (app) app.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:-apple-system,sans-serif"><div style="text-align:center;max-width:400px;padding:24px"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="font-size:16px;font-weight:600;color:#0F172A;margin-bottom:8px">App failed to start</div><div style="font-size:13px;color:#64748B;margin-bottom:6px;font-family:monospace;background:#F1F5F9;padding:10px;border-radius:6px;text-align:left;overflow:auto;max-height:120px">${escHtml(String(e))}</div><button onclick="location.reload()" style="margin-top:16px;background:#6366F1;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer">Try again</button></div></div>`;
+  }
   document.addEventListener('click', (e) => {
     const inDropdown = e.target.closest('.review-filter-dropdown-btn') || e.target.closest('.review-filter-dropdown-panel');
     if (!inDropdown) {
