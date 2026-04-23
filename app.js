@@ -9357,21 +9357,11 @@ function renderReportCard(p) {
           <div style="font-size:12px;color:var(--text-muted)">${escHtml(shortRole(p.role) || 'No role assigned')}</div>
         </div>
       </div>
-      <div style="background:var(--bg);border-radius:8px;padding:8px 12px;display:flex;flex-direction:column;gap:6px">
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="font-size:12px;color:var(--text-muted)">Below</span>
-          <span style="font-size:14px;font-weight:700;color:var(--red)">${stats.below}</span>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="font-size:12px;color:var(--text-muted)">Above</span>
-          <span style="font-size:14px;font-weight:700;color:var(--green)">${stats.above}</span>
-        </div>
-        ${stats.reviewScore ? `
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:12px;color:var(--text-muted)">Review</span>
-            <span style="font-size:14px;font-weight:700;color:var(--primary)">${stats.reviewScore}</span>
-          </div>
-        ` : ''}
+      <div style="background:var(--bg);border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:12px;font-size:13px">
+        <span style="color:var(--text-muted)">Below: <strong style="color:var(--red)">${stats.below}</strong></span>
+        <span style="color:var(--border)">|</span>
+        <span style="color:var(--text-muted)">Above: <strong style="color:var(--green)">${stats.above}</strong></span>
+        ${stats.reviewScore ? `<span style="color:var(--border)">|</span><span style="color:var(--text-muted)">Review: <strong style="color:var(--primary)">${stats.reviewScore}</strong></span>` : ''}
       </div>
       <button class="btn btn-primary" style="width:100%;margin-top:auto" onclick="viewReport('${p.id}')">View Profile →</button>
     </div>
