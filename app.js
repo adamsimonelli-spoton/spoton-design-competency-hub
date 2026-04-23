@@ -9138,6 +9138,8 @@ function renderManagerDashboard() {
           <div style="font-size:14px;font-weight:600;color:var(--text)">Team Members</div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap" onclick="event.stopPropagation()">
 
+            ${anyFilterActive ? `<button class="review-filter-clear" style="font-size:12px" onclick="clearTeamFilters()">Clear</button>` : ''}
+
             ${hasSubReports ? `
               <!-- Direct reports toggle -->
               <button onclick="setTeamDirectOnly(!state.teamDirectOnly)"
@@ -9188,7 +9190,6 @@ function renderManagerDashboard() {
               </div>
             ` : ''}
 
-            ${anyFilterActive ? `<button class="review-filter-clear" style="font-size:12px" onclick="clearTeamFilters()">Clear</button>` : ''}
           </div>
         </div>
 
