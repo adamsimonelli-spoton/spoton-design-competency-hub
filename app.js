@@ -1198,6 +1198,8 @@ let state = {
   teamRoleFilter: '',
   teamSelectedIds: [],
   teamOpenDropdown: '',
+  teamSkillsRoleFilter: '',
+  teamSkillsCatFilter: '',
 };
 
 // ============ STORAGE ============
@@ -3800,8 +3802,152 @@ function renderQuickWinCard(w, idx) {
   `;
 }
 
+// ============ TEAM SKILLS VIEW ============
+function renderTeamLevelCell(level, expLevel) {
+  if (!level || level === 'Unknown') {
+    return '<td style="text-align:center;padding:5px 4px"><span style="color:#CBD5E1;font-size:13px;font-weight:400">—</span></td>';
+  }
+  const lc = LEVEL_CONFIG[level] || {};
+  const abbr = { Learner: 'L', Contributor: 'C', Independent: 'I', Expert: 'E' }[level] || '?';
+  let border = '1.5px solid transparent';
+  let title = level;
+  if (expLevel && expLevel !== 'Unknown') {
+    const gap = getLevelOrder(level) - getLevelOrder(expLevel);
+    if (gap < 0) { border = '1.5px solid #EF4444'; title += ' · below target'; }
+    else if (gap > 0) { border = '1.5px solid #10B981'; title += ' · above target'; }
+    else { title += ' · on target'; }
+  }
+  return `<td style="text-align:center;padding:5px 4px"><span title="${escHtml(title)}" style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:22px;border-radius:5px;font-size:11px;font-weight:700;background:${lc.bg};color:${lc.color};border:${border}">${abbr}</span></td>`;
+}
+
+function renderTeamSkillsView(members) {
+  const categories = getCategories();
+
+  // Group members by role
+  const roleGroups = {};
+  members.forEach(m => {
+    const r = m.role || 'No Role';
+    if (!roleGroups[r]) roleGroups[r] = [];
+    roleGroups[r].push(m);
+  });
+  const allRoles = Object.keys(roleGroups).sort();
+
+  const filteredRole = state.teamSkillsRoleFilter || '';
+  const filteredCat  = state.teamSkillsCatFilter  || '';
+  const visibleRoles = filteredRole ? allRoles.filter(r => r === filteredRole) : allRoles;
+  const visibleCats  = filteredCat  ? categories.filter(c => c === filteredCat) : categories;
+
+  // Pill helper
+  const pill = (label, active, onclick) =>
+    `<button onclick="${onclick}" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${active ? 'var(--primary)' : 'var(--border)'};background:${active ? 'var(--primary-light)' : 'var(--surface)'};color:${active ? 'var(--primary)' : 'var(--text-muted)'};">${escHtml(label)}</button>`;
+
+  const catPills = [
+    pill('All categories', !filteredCat, "setTeamSkillsCat('')"),
+    ...categories.map(cat => { const cc = CATEGORY_CONFIG[cat] || {}; return pill((cc.icon ? cc.icon + ' ' : '') + cat, filteredCat === cat, `setTeamSkillsCat('${escHtml(cat)}')`); })
+  ].join('');
+
+  const rolePills = [
+    pill('All roles', !filteredRole, "setTeamSkillsRole('')"),
+    ...allRoles.map(r => pill(shortRole(r) || r, filteredRole === r, `setTeamSkillsRole('${escHtml(r)}')`))
+  ].join('');
+
+  // Level badge helper (for Expected column)
+  const expBadge = level => {
+    if (!level) return '<span style="color:#CBD5E1;font-size:13px">—</span>';
+    const lc = LEVEL_CONFIG[level] || {};
+    const abbr = { Learner: 'L', Contributor: 'C', Independent: 'I', Expert: 'E' }[level] || '?';
+    return `<span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:22px;border-radius:5px;font-size:11px;font-weight:700;background:${lc.bg};color:${lc.color}">${abbr}</span>`;
+  };
+
+  const roleHTML = visibleRoles.map(role => {
+    const roleMembers = roleGroups[role];
+    if (!roleMembers?.length) return '';
+    const roleData = ROLES_DATA[role];
+
+    // Pre-load each member's assessments once
+    const memberData = roleMembers.map(m => ({
+      m,
+      assessments: (JSON.parse(localStorage.getItem('dch_data_' + m.id) || '{}')).assessments || {}
+    }));
+
+    const colSpan = 2 + roleMembers.length + 1;
+
+    const tableRows = visibleCats.map(cat => {
+      const catSkills = SKILLS_DATA.skills.filter(s => s.category === cat);
+      const cc = CATEGORY_CONFIG[cat] || {};
+
+      const catRow = `<tr><td colspan="${colSpan}" style="padding:10px 12px 4px;background:${cc.bg};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${cc.color}">${cc.icon ? cc.icon + ' ' : ''}${escHtml(cat)}</td></tr>`;
+
+      const skillRows = catSkills.map(skill => {
+        const expLevel = roleData?.skills?.[skill.id] || null;
+
+        const belowCount = memberData.filter(({ assessments }) => {
+          const lvl = (assessments[skill.id] || {}).managerLevel || '';
+          return lvl && lvl !== 'Unknown' && expLevel && getLevelOrder(lvl) < getLevelOrder(expLevel);
+        }).length;
+
+        const gapCell = belowCount > 0
+          ? `<td style="text-align:center;padding:5px 6px;width:32px"><span style="font-size:11px;font-weight:700;color:#EF4444">${belowCount}↓</span></td>`
+          : `<td style="width:32px"></td>`;
+
+        return `<tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:6px 12px;max-width:220px">
+            <button onclick="navigate('skill','${skill.id}')" style="background:none;border:none;text-align:left;cursor:pointer;font-size:13px;color:var(--text);padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block" title="${escHtml(skill.name)}">${escHtml(skill.name)}</button>
+          </td>
+          <td style="text-align:center;padding:5px 6px;width:80px">${expBadge(expLevel)}</td>
+          ${memberData.map(({ assessments }) => renderTeamLevelCell((assessments[skill.id] || {}).managerLevel || '', expLevel)).join('')}
+          ${gapCell}
+        </tr>`;
+      }).join('');
+
+      return catRow + skillRows;
+    }).join('');
+
+    return `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg)">
+          <div style="font-size:14px;font-weight:700;color:var(--text)">${escHtml(role)}</div>
+          <div style="font-size:12px;color:var(--text-muted)">${roleMembers.length} ${roleMembers.length === 1 ? 'person' : 'people'}</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;min-width:${280 + roleMembers.length * 64}px">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border)">
+                <th style="text-align:left;padding:8px 12px;font-size:12px;font-weight:600;color:var(--text-muted)">Skill</th>
+                <th style="text-align:center;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);width:80px">Expected</th>
+                ${roleMembers.map(m => `<th style="text-align:center;padding:8px 4px;font-size:12px;font-weight:600;color:var(--text-muted);width:64px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:64px" title="${escHtml(m.name)}">${escHtml(m.name.split(' ')[0])}</th>`).join('')}
+                <th style="width:32px"></th>
+              </tr>
+            </thead>
+            <tbody>${tableRows}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div>
+      <div style="margin-bottom:20px">
+        <h1 style="font-size:22px;font-weight:700;color:var(--text);margin:0 0 16px">Skills</h1>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">${catPills}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${rolePills}</div>
+      </div>
+      ${!roleHTML.trim() ? `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--text-muted);font-size:13px">No team members to show.</div>` : roleHTML}
+    </div>`;
+}
+
 // ============ REVIEW VIEW ============
 function renderReview() {
+  // Team skills matrix when in Directs or Dept view
+  const _sp = getSessionProfile();
+  if (_sp?.isManager && !state.managerMode && (state.managerTab || 'team') !== 'me') {
+    const _allProfiles = getProfiles();
+    const _members = (state.managerTab || 'team') === 'dept'
+      ? getSubtreeProfiles(_sp.id, _allProfiles)
+      : _allProfiles.filter(p => p.managerId === _sp.id);
+    return renderTeamSkillsView(_members);
+  }
+
   const d = getData();
   const profiles = getProfiles();
   const currentProfile = profiles.find(p => p.id === state.profile);
@@ -9057,6 +9203,8 @@ function clearTeamFilters() {
   state.teamOpenDropdown = '';
   render();
 }
+function setTeamSkillsRole(role) { state.teamSkillsRoleFilter = role; render(); }
+function setTeamSkillsCat(cat)  { state.teamSkillsCatFilter  = cat;  render(); }
 
 // ── Team radar: category averages across all team members ────────────────────
 function renderTeamRadarSVG(size, teamProfiles) {
