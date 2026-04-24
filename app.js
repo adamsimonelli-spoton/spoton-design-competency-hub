@@ -9506,8 +9506,8 @@ function renderReportCard(p) {
       <div style="display:flex;align-items:center;gap:12px">
         ${avatarHtml(p, 32, 12)}
         <div style="flex:1;min-width:0">
-          <div style="font-size:15px;font-weight:600;color:var(--text)">${escHtml(p.name)}</div>
-          <div style="font-size:12px;color:var(--text-muted)">${escHtml(shortRole(p.role) || 'No role assigned')}</div>
+          <div style="font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(p.name)}</div>
+          <div style="font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(shortRole(p.role) || 'No role assigned')}</div>
         </div>
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted);flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
