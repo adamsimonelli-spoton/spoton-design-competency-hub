@@ -3023,8 +3023,8 @@ function renderSkillDetail() {
     <div class="breadcrumb">
       ${(() => {
         const prev = state.prevView;
-        const dest = prev === 'resources' ? 'resources' : 'review';
-        const destLabel = prev === 'resources' ? 'Resources' : 'Skills';
+        const dest = prev === 'resources' ? 'resources' : prev === 'manager-home' ? 'manager-home' : 'review';
+        const destLabel = prev === 'resources' ? 'Resources' : prev === 'manager-home' ? 'Team' : 'Skills';
         return `<button class="back-arrow-btn" onclick="navigate('${dest}')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           ${destLabel}
@@ -3045,21 +3045,67 @@ function renderSkillDetail() {
       <!-- MAIN CONTENT -->
       <div class="skill-detail-main">
 
-        <!-- ASSESSMENT DROPDOWN -->
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-          <span style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Assessment</span>
-          ${renderAssessDropdown(skill.id, 'Manager', assessment.managerLevel, getExpectedLevelForSkill(skill.id))}
-          ${(() => {
-            const exp = getExpectedLevelForSkill(skill.id);
-            const cur = assessment.managerLevel;
-            if (!exp || !cur) return '';
-            const expIdx = LEVELS.indexOf(exp);
-            const curIdx = LEVELS.indexOf(cur);
-            if (curIdx < expIdx) return `<div class="skill-gap-callout gap"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg> Below expected level</div>`;
-            if (curIdx > expIdx) return `<div class="skill-gap-callout over"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg> Above expected level</div>`;
-            return `<div class="skill-gap-callout met"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Meeting expectations</div>`;
-          })()}
-        </div>
+        <!-- ASSESSMENT: team overview OR individual dropdown -->
+        ${(() => {
+          const sessionProf = getSessionProfile();
+          const isTeamOverview = sessionProf?.isManager && !state.managerMode && (state.managerTab || 'team') === 'team';
+          if (isTeamOverview) {
+            // Team view: show each member's assessment with an editable dropdown
+            const profiles = getProfiles();
+            const teamMembers = getSubtreeProfiles(sessionProf.id, profiles);
+            return `
+              <div style="margin-bottom:16px">
+                <span style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);display:block;margin-bottom:10px">Team Assessments</span>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  ${teamMembers.map(m => {
+                    const mData = JSON.parse(localStorage.getItem('dch_data_' + m.id) || '{}');
+                    const mLevel = (mData.assessments || {})[skill.id]?.managerLevel || '';
+                    const lc2 = mLevel ? LEVEL_CONFIG[mLevel] : null;
+                    let mExp = null;
+                    try { const c = JSON.parse(localStorage.getItem('dch_expected_' + m.id) || 'null'); if (c?.[skill.id]) mExp = c[skill.id]; } catch(e) {}
+                    if (!mExp) { const rd = ROLES_DATA[m.role]; if (rd) mExp = rd.skills[skill.id] || null; }
+                    const gap = (mLevel && mExp && mLevel !== 'Unknown')
+                      ? getLevelOrder(mLevel) - getLevelOrder(mExp) : null;
+                    const gapHtml = gap === null ? '' : gap === 0
+                      ? `<span style="font-size:11px;color:#6B7280;background:#F3F4F6;border:1px solid #E5E7EB;padding:1px 6px;border-radius:99px">On target</span>`
+                      : gap < 0
+                      ? `<span style="font-size:11px;color:#DC2626;background:#FEF2F2;border:1px solid #FECACA;padding:1px 6px;border-radius:99px">${gap}</span>`
+                      : `<span style="font-size:11px;color:#16A34A;background:#F0FDF4;border:1px solid #BBF7D0;padding:1px 6px;border-radius:99px">+${gap}</span>`;
+                    const options = [
+                      `<option value="">— Not assessed —</option>`,
+                      ...LEVELS.map(l => {
+                        const llc = LEVEL_CONFIG[l];
+                        return `<option value="${l}" ${mLevel === l ? 'selected' : ''}>${llc.emoji} ${l}${mExp === l ? ' (expected)' : ''}</option>`;
+                      })
+                    ].join('');
+                    return `
+                      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg);border-radius:8px">
+                        ${avatarHtml(m, 26, 10)}
+                        <span style="font-size:13px;font-weight:500;color:var(--text);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(m.name)}</span>
+                        <select class="assess-dropdown" style="flex-shrink:0" onchange="setTeamMemberSkillLevel('${m.id}','${skill.id}',this.value)">${options}</select>
+                        ${gapHtml}
+                      </div>`;
+                  }).join('')}
+                </div>
+              </div>`;
+          }
+          // Individual view: standard assessment dropdown
+          return `
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+              <span style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Assessment</span>
+              ${renderAssessDropdown(skill.id, 'Manager', assessment.managerLevel, getExpectedLevelForSkill(skill.id))}
+              ${(() => {
+                const exp = getExpectedLevelForSkill(skill.id);
+                const cur = assessment.managerLevel;
+                if (!exp || !cur) return '';
+                const expIdx = LEVELS.indexOf(exp);
+                const curIdx = LEVELS.indexOf(cur);
+                if (curIdx < expIdx) return `<div class="skill-gap-callout gap"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg> Below expected level</div>`;
+                if (curIdx > expIdx) return `<div class="skill-gap-callout over"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg> Above expected level</div>`;
+                return `<div class="skill-gap-callout met"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Meeting expectations</div>`;
+              })()}
+            </div>`;
+        })()}
         <!-- LEVEL TABS -->
         <div class="level-tabs">
           <div class="tabs-header">
@@ -6648,6 +6694,18 @@ function clearExpectedLevel(skillId) {
   a.expectedLevel = null;
   saveAssessment(skillId, a);
   renderLevelRadios(skillId, 'expected', a);
+}
+
+function setTeamMemberSkillLevel(profileId, skillId, level) {
+  const key = 'dch_data_' + profileId;
+  let data;
+  try { data = JSON.parse(localStorage.getItem(key) || '{}'); } catch(e) { data = {}; }
+  if (!data.assessments) data.assessments = {};
+  if (!data.assessments[skillId]) data.assessments[skillId] = {};
+  data.assessments[skillId].managerLevel = level || null;
+  localStorage.setItem(key, JSON.stringify(data));
+  const content = document.getElementById('content');
+  if (content) content.innerHTML = renderSkillDetail();
 }
 
 function renderLevelRadios(skillId, which, assessment) {
