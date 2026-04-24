@@ -9410,7 +9410,7 @@ function renderReportCard(p) {
         <span style="color:var(--text-muted)">Above: <strong style="color:var(--green)">${stats.above}</strong></span>
         ${stats.reviewScore ? `<span style="color:var(--border)">|</span><span style="color:var(--text-muted)">Review: <strong style="color:var(--primary)">${stats.reviewScore}</strong></span>` : ''}
       </div>
-      <button class="btn btn-primary" style="width:100%;margin-top:auto" onclick="viewReport('${p.id}')">View Profile →</button>
+      <button class="btn btn-secondary" style="width:100%;margin-top:auto" onclick="viewReport('${p.id}')">View Profile →</button>
     </div>
   `;
 }
