@@ -3827,21 +3827,30 @@ function renderTeamSkillsView(members) {
 
   const colSpan = 1 + memberData.length;
 
-  // Gap-only cell
+  // Heat map cell
+  const HEAT = {
+    '-3': { bg: '#991B1B', text: '#fff' },
+    '-2': { bg: '#DC2626', text: '#fff' },
+    '-1': { bg: '#FCA5A5', text: '#7F1D1D' },
+     '0': { bg: '#D1FAE5', text: '#065F46' },
+     '1': { bg: '#6EE7B7', text: '#065F46' },
+     '2': { bg: '#10B981', text: '#fff' },
+     '3': { bg: '#059669', text: '#fff' },
+  };
   const levelGapCell = (level, expLevel) => {
     if (!level || level === 'Unknown') {
-      return `<td style="text-align:center;padding:5px 4px"><span style="color:#CBD5E1;font-size:12px">—</span></td>`;
+      return `<td style="padding:2px 2px"><div style="width:52px;height:28px;background:#F1F5F9;border-radius:4px;display:flex;align-items:center;justify-content:center"><span style="color:#CBD5E1;font-size:11px">—</span></div></td>`;
     }
     if (!expLevel || expLevel === 'Unknown') {
-      // Assessed but no expectation — show level abbr in neutral style
       const lc = LEVEL_CONFIG[level] || {};
       const abbr = { Learner: 'L', Contributor: 'C', Independent: 'I', Expert: 'E' }[level] || '?';
-      return `<td style="text-align:center;padding:5px 4px"><span title="${escHtml(level)}" style="font-size:12px;font-weight:600;color:${lc.color}">${abbr}</span></td>`;
+      return `<td style="padding:2px 2px" title="${escHtml(level)}"><div style="width:52px;height:28px;background:#F1F5F9;border-radius:4px;display:flex;align-items:center;justify-content:center"><span style="font-size:11px;font-weight:600;color:${lc.color}">${abbr}</span></div></td>`;
     }
     const gap = getLevelOrder(level) - getLevelOrder(expLevel);
-    const gapColor = gap < 0 ? '#EF4444' : gap > 0 ? '#10B981' : '#94A3B8';
-    const gapText  = gap > 0 ? '+' + gap : gap === 0 ? '0' : String(gap);
-    return `<td style="text-align:center;padding:5px 4px"><span title="${escHtml(level + ' (expected: ' + expLevel + ')')}" style="font-size:13px;font-weight:700;color:${gapColor}">${gapText}</span></td>`;
+    const key = String(Math.max(-3, Math.min(3, gap)));
+    const { bg, text } = HEAT[key] || HEAT['0'];
+    const gapText = gap > 0 ? '+' + gap : String(gap);
+    return `<td style="padding:2px 2px" title="${escHtml(level + ' · expected ' + expLevel)}"><div style="width:52px;height:28px;background:${bg};border-radius:4px;display:flex;align-items:center;justify-content:center"><span style="font-size:11px;font-weight:700;color:${text}">${gapText}</span></div></td>`;
   };
 
   const tableRows = visibleCats.map(cat => {
