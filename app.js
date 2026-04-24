@@ -7274,7 +7274,7 @@ function render() {
           const teamActive   = myTeamActive || deptActive;
           // Viewing dropdown lists direct reports for My Team, full subtree for Dept
           const dropMembers = (tab === 'dept' && !state.managerMode) ? sSubtree : sDirectReports;
-          const dropAllLabel = (tab === 'dept' && !state.managerMode) ? 'All dept' : 'All team';
+          const dropAllLabel = (tab === 'dept' && !state.managerMode) ? 'All dept' : 'All directs';
           return `
             <div class="sidebar-profile">
               <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
