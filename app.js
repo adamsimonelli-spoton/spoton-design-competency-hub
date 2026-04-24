@@ -3025,7 +3025,7 @@ function renderSkillDetail() {
     <div class="breadcrumb">
       ${(() => {
         const prev = state.prevView;
-        const dest = prev === 'resources' ? 'resources' : prev === 'manager-home' ? 'manager-home' : 'review';
+        const dest = prev === 'resources' ? 'resources' : prev === 'manager-home' ? 'manager-home' : prev === 'team-review' ? 'team-review' : 'review';
         const destLabel = prev === 'resources' ? 'Resources' : prev === 'manager-home' ? 'Team' : 'Skills';
         return `<button class="back-arrow-btn" onclick="navigate('${dest}')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -3837,20 +3837,21 @@ function renderTeamSkillsView(members) {
      '2': { bg: '#10B981', text: '#fff' },
      '3': { bg: '#059669', text: '#fff' },
   };
-  const levelGapCell = (level, expLevel) => {
+  const levelGapCell = (level, expLevel, memberId, skillId) => {
+    const click = memberId && skillId ? `onclick="viewReportSkill('${memberId}','${skillId}')" style="padding:2px 2px;cursor:pointer"` : `style="padding:2px 2px"`;
     if (!level || level === 'Unknown') {
-      return `<td style="padding:2px 2px"><div style="width:52px;height:28px;background:#F1F5F9;border-radius:4px;display:flex;align-items:center;justify-content:center"><span style="color:#CBD5E1;font-size:11px">—</span></div></td>`;
+      return `<td ${click}><div style="width:52px;height:28px;background:#F1F5F9;border-radius:4px;display:flex;align-items:center;justify-content:center"><span style="color:#CBD5E1;font-size:11px">—</span></div></td>`;
     }
     if (!expLevel || expLevel === 'Unknown') {
       const lc = LEVEL_CONFIG[level] || {};
       const abbr = { Learner: 'L', Contributor: 'C', Independent: 'I', Expert: 'E' }[level] || '?';
-      return `<td style="padding:2px 2px" title="${escHtml(level)}"><div style="width:52px;height:28px;background:#F1F5F9;border-radius:4px;display:flex;align-items:center;justify-content:center"><span style="font-size:11px;font-weight:600;color:${lc.color}">${abbr}</span></div></td>`;
+      return `<td ${click} title="${escHtml(level)}"><div style="width:52px;height:28px;background:#F1F5F9;border-radius:4px;display:flex;align-items:center;justify-content:center"><span style="font-size:11px;font-weight:600;color:${lc.color}">${abbr}</span></div></td>`;
     }
     const gap = getLevelOrder(level) - getLevelOrder(expLevel);
     const key = String(Math.max(-3, Math.min(3, gap)));
     const { bg, text } = HEAT[key] || HEAT['0'];
     const gapText = gap > 0 ? '+' + gap : String(gap);
-    return `<td style="padding:2px 2px" title="${escHtml(level + ' · expected ' + expLevel)}"><div style="width:52px;height:28px;background:${bg};border-radius:4px;display:flex;align-items:center;justify-content:center"><span style="font-size:11px;font-weight:700;color:${text}">${gapText}</span></div></td>`;
+    return `<td ${click} title="${escHtml(level + ' · expected ' + expLevel)}"><div style="width:52px;height:28px;background:${bg};border-radius:4px;display:flex;align-items:center;justify-content:center"><span style="font-size:11px;font-weight:700;color:${text}">${gapText}</span></div></td>`;
   };
 
   const tableRows = visibleCats.map(cat => {
@@ -3860,10 +3861,10 @@ function renderTeamSkillsView(members) {
     const catRow = `<tr><td colspan="${colSpan}" style="padding:10px 12px 5px;background:${cc.bg};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${cc.color};position:sticky;left:0">${cc.icon ? cc.icon + ' ' : ''}${escHtml(cat)}</td></tr>`;
 
     const skillRows = catSkills.map(skill => {
-      const cells = memberData.map(({ assessments, roleData }) => {
+      const cells = memberData.map(({ m, assessments, roleData }) => {
         const level = (assessments[skill.id] || {}).managerLevel || '';
         const expLevel = roleData?.skills?.[skill.id] || null;
-        return levelGapCell(level, expLevel);
+        return levelGapCell(level, expLevel, m.id, skill.id);
       }).join('');
 
       return `<tr style="border-bottom:1px solid var(--border)">
@@ -6623,6 +6624,14 @@ function navigate(view, param) {
     state.view = 'home';
   } else if (view === 'manager-home') {
     state.view = 'manager-home';
+  } else if (view === 'team-review') {
+    if (state.managerProfileId) {
+      state.profile = state.managerProfileId;
+      localStorage.setItem('dch_current_profile', state.managerProfileId);
+    }
+    state.managerMode = false;
+    state.managerProfileId = null;
+    state.view = 'review';
   } else if (view === 'my-dashboard') {
     state.view = 'my-dashboard';
   } else if (view === 'review') {
@@ -9515,6 +9524,21 @@ function viewReport(profileId) {
   state.profile = profileId;
   localStorage.setItem('dch_current_profile', profileId);
   state.view = 'home';
+  render();
+}
+function viewReportSkill(profileId, skillId) {
+  const sessionProfile = getSessionProfile();
+  state.managerMode = true;
+  state.managerProfileId = sessionProfile.id;
+  state.profile = profileId;
+  localStorage.setItem('dch_current_profile', profileId);
+  state.prevView = 'team-review';
+  state.skillId = skillId;
+  state.view = 'skill';
+  state.addResourceOpen = false;
+  const a = getAssessment(skillId);
+  const expLevel = getExpectedLevelForSkill(skillId);
+  state.levelTab = expLevel || a.selfLevel || 'Learner';
   render();
 }
 function backToTeam() { backToTeamView(); }
