@@ -3048,11 +3048,13 @@ function renderSkillDetail() {
         <!-- ASSESSMENT: team overview OR individual dropdown -->
         ${(() => {
           const sessionProf = getSessionProfile();
-          const isTeamOverview = sessionProf?.isManager && !state.managerMode && (state.managerTab || 'team') === 'team';
+          const isTeamOverview = sessionProf?.isManager && !state.managerMode && (state.managerTab || 'team') !== 'me';
           if (isTeamOverview) {
             // Team view: show each member's assessment with an editable dropdown
             const profiles = getProfiles();
-            const teamMembers = getSubtreeProfiles(sessionProf.id, profiles);
+            const teamMembers = (state.managerTab || 'team') === 'dept'
+              ? getSubtreeProfiles(sessionProf.id, profiles)
+              : profiles.filter(p => p.managerId === sessionProf.id);
             return `
               <div style="margin-bottom:16px">
                 <span style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);display:block;margin-bottom:10px">Team Assessments</span>
@@ -7261,12 +7263,18 @@ function render() {
         const tab = state.managerTab || 'team';
 
         if (sessionProf?.isManager) {
-          // ── All people-managers (admin or manager role) ──────────────────────────
-          // Always show the LOGGED-IN user as the identity.
-          // If viewing a report, show a context chip — never swap the profile card.
+          // ── All people-managers ──────────────────────────────────────────────────
+          const sDirectReports = profiles.filter(p => p.managerId === sessionProf.id);
+          const sSubtree = getSubtreeProfiles(sessionProf.id, profiles);
+          const sHasSubReports = sSubtree.length > sDirectReports.length;
           const viewingProf = state.managerMode ? profiles.find(p => p.id === state.profile) : null;
-          const meActive    = !state.managerMode && tab === 'me';
-          const teamActive  = state.managerMode  || tab === 'team';
+          const meActive     = !state.managerMode && tab === 'me';
+          const myTeamActive = state.managerMode  || tab === 'team';
+          const deptActive   = !state.managerMode && tab === 'dept';
+          const teamActive   = myTeamActive || deptActive;
+          // Viewing dropdown lists direct reports for My Team, full subtree for Dept
+          const dropMembers = (tab === 'dept' && !state.managerMode) ? sSubtree : sDirectReports;
+          const dropAllLabel = (tab === 'dept' && !state.managerMode) ? 'All dept' : 'All team';
           return `
             <div class="sidebar-profile">
               <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
@@ -7278,11 +7286,11 @@ function render() {
               </div>
               <div style="display:flex;gap:2px;background:rgba(255,255,255,.08);border-radius:8px;padding:2px;margin-bottom:${teamActive ? '8px' : '0'}">
                 <button onclick="switchToMeTab()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${meActive?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">Me</button>
-                <button onclick="backToTeamView()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${teamActive?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">My Team</button>
+                <button onclick="backToTeamView()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${myTeamActive?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">My Team</button>
+                ${sHasSubReports ? `<button onclick="switchToDeptView()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${deptActive?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">Dept</button>` : ''}
               </div>
               ${teamActive ? (() => {
-                const teamMembers = profiles.filter(p => p.managerId === sessionProf.id);
-                const dropLabel = viewingProf ? viewingProf.name : 'All team';
+                const dropLabel = viewingProf ? viewingProf.name : dropAllLabel;
                 const dropOpen = state.viewingDropOpen;
                 return `
                   <div style="position:relative" onclick="event.stopPropagation()">
@@ -7293,17 +7301,16 @@ function render() {
                       <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style="flex-shrink:0;transition:transform .15s${dropOpen?';transform:rotate(180deg)':''}"><path d="M1 1l4 4 4-4" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
                     </button>
                     ${dropOpen ? `
-                      <div style="position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:300;background:#1E293B;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.4)">
-                        <!-- All team -->
-                        <button onclick="backToTeamView();state.viewingDropOpen=false;render()"
+                      <div style="position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:300;background:#1E293B;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.4);max-height:260px;overflow-y:auto">
+                        <button onclick="${tab === 'dept' && !state.managerMode ? 'switchToDeptView()' : 'backToTeamView()'};state.viewingDropOpen=false;render()"
                           style="width:100%;display:flex;align-items:center;gap:8px;padding:7px 8px;border:none;border-radius:6px;background:${!viewingProf ? 'rgba(99,102,241,.18)' : 'transparent'};cursor:pointer;transition:background .12s"
                           onmouseover="this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.background='${!viewingProf ? 'rgba(99,102,241,.18)' : 'transparent'}'">
                           <span style="width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.1);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="12" height="12" viewBox="0 0 256 256" fill="#94A3B8"><path d="M244.8,150.4a8,8,0,0,1-11.2-1.6A51.6,51.6,0,0,0,192,128a8,8,0,0,1,0-16,24,24,0,1,0-23.8-26.7,8,8,0,1,1-15.9-1.6A40,40,0,1,1,219,117.1a67.6,67.6,0,0,1,27.4,21.7A8,8,0,0,1,244.8,150.4ZM190.9,212.7a8,8,0,1,1-13.8,8A57.1,57.1,0,0,0,128,192a57.1,57.1,0,0,0-49.1,28.7,8,8,0,1,1-13.8-8A72.9,72.9,0,0,1,96,179.5a48,48,0,1,1,64,0A72.9,72.9,0,0,1,190.9,212.7Z"/></svg></span>
-                          <span style="font-size:12px;font-weight:600;color:#E2E8F0;flex:1;text-align:left">All team</span>
+                          <span style="font-size:12px;font-weight:600;color:#E2E8F0;flex:1;text-align:left">${escHtml(dropAllLabel)}</span>
                           ${!viewingProf ? `<svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7l4 4 6-6" stroke="#6366F1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>` : ''}
                         </button>
-                        ${teamMembers.length ? `<div style="height:1px;background:rgba(255,255,255,.08);margin:4px 0"></div>` : ''}
-                        ${teamMembers.map(m => `
+                        ${dropMembers.length ? `<div style="height:1px;background:rgba(255,255,255,.08);margin:4px 0"></div>` : ''}
+                        ${dropMembers.map(m => `
                           <button onclick="viewReport('${m.id}');state.viewingDropOpen=false"
                             style="width:100%;display:flex;align-items:center;gap:8px;padding:7px 8px;border:none;border-radius:6px;background:${viewingProf?.id === m.id ? 'rgba(99,102,241,.18)' : 'transparent'};cursor:pointer;transition:background .12s"
                             onmouseover="this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.background='${viewingProf?.id === m.id ? 'rgba(99,102,241,.18)' : 'transparent'}'">
@@ -7369,8 +7376,8 @@ function render() {
 
       ${(() => {
         const sp = getSessionProfile();
-        const showTeamOnlyNav = sp?.isManager && !state.managerMode && (state.managerTab || 'team') === 'team';
-        const dashOnclick = sp?.isManager && !state.managerMode && (state.managerTab || 'team') === 'team'
+        const showTeamOnlyNav = sp?.isManager && !state.managerMode && (state.managerTab || 'team') !== 'me';
+        const dashOnclick = showTeamOnlyNav
           ? "navigate('manager-home')"
           : "navigate('home')";
         return `
@@ -9125,45 +9132,13 @@ function renderManagerDashboard() {
   const teamLabel = 'My Team';
   const isTopLevel = !sessionProfile.managerId;
 
-  // Full subtree (everyone who rolls up to this manager)
-  const subtree = getSubtreeProfiles(sessionProfile.id, profiles);
-  // Direct reports only
+  // Direct reports and full subtree
   const directReports = profiles.filter(p => p.managerId === sessionProfile.id);
-  // Whether the toggle adds any value (only show it when there are sub-reports)
-  const hasSubReports = subtree.length > directReports.length;
+  const subtree = getSubtreeProfiles(sessionProfile.id, profiles);
 
-  // Pool to filter from (based on direct-only toggle)
-  const pool = state.teamDirectOnly ? directReports : subtree;
-
-  // Unique roles in the pool
-  const poolRoles = [...new Set(pool.map(p => p.role).filter(Boolean))].sort();
-
-  // Apply role filter
-  let visible = state.teamRoleFilter
-    ? pool.filter(p => p.role === state.teamRoleFilter)
-    : pool;
-
-  // Apply name selection
-  if (state.teamSelectedIds.length) {
-    visible = visible.filter(p => state.teamSelectedIds.includes(p.id));
-  }
-
-  // Anything active?
-  const anyFilterActive = !state.teamDirectOnly || !!state.teamRoleFilter || state.teamSelectedIds.length > 0;
-
-  // chevron svg
-  const chevron = (open) => `<svg width="10" height="6" viewBox="0 0 10 6" fill="none" style="flex-shrink:0;transition:transform .15s${open ? ';transform:rotate(180deg)' : ''}"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>`;
-  // checkbox row helper
-  const checkRow = (label, checked, onclick, sublabel) => `
-    <button class="review-filter-check-row" onclick="${onclick}">
-      <span style="width:15px;height:15px;border-radius:4px;border:1.5px solid ${checked ? 'var(--primary)' : 'var(--border)'};background:${checked ? 'var(--primary)' : 'transparent'};flex-shrink:0;display:inline-flex;align-items:center;justify-content:center">
-        ${checked ? `<svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>` : ''}
-      </span>
-      <span style="flex:1;min-width:0">
-        <span style="display:block;font-size:13px;font-weight:500;color:var(--text)">${escHtml(label)}</span>
-        ${sublabel ? `<span style="display:block;font-size:11px;color:var(--text-muted);margin-top:1px">${escHtml(sublabel)}</span>` : ''}
-      </span>
-    </button>`;
+  // Visible members based on active tab
+  const isDeptView = (state.managerTab || 'team') === 'dept';
+  const visible = isDeptView ? subtree : directReports;
 
   // Per-member stats
   const memberStats = visible.map(p => ({ profile: p, stats: getProfileStats(p.id) }));
@@ -9240,70 +9215,15 @@ function renderManagerDashboard() {
       <!-- People carousel (bleeds off right edge) -->
       <div style="margin:0 -28px 24px;padding-left:28px">
 
-        <!-- Header + filter bar -->
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap;padding-right:28px">
-          <div style="font-size:14px;font-weight:600;color:var(--text)">Team Members</div>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap" onclick="event.stopPropagation()">
-
-            ${anyFilterActive ? `<button class="review-filter-clear" style="font-size:12px" onclick="clearTeamFilters()">Clear</button>` : ''}
-
-            ${hasSubReports ? `
-              <!-- Direct reports toggle -->
-              <button onclick="setTeamDirectOnly(!state.teamDirectOnly)"
-                style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;font-family:inherit;padding:6px 10px;border-radius:8px;cursor:pointer;transition:all .15s;border:1.5px solid ${state.teamDirectOnly ? 'var(--primary)' : 'var(--border)'};background:${state.teamDirectOnly ? 'var(--primary-light)' : 'var(--surface)'};color:${state.teamDirectOnly ? 'var(--primary)' : 'var(--text-muted)'}">
-                <span style="width:14px;height:14px;border-radius:3px;border:1.5px solid ${state.teamDirectOnly ? 'var(--primary)' : 'var(--border)'};background:${state.teamDirectOnly ? 'var(--primary)' : 'transparent'};flex-shrink:0;display:inline-flex;align-items:center;justify-content:center">
-                  ${state.teamDirectOnly ? `<svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>` : ''}
-                </span>
-                Direct reports only
-              </button>
-            ` : ''}
-
-            <!-- Role filter -->
-            ${poolRoles.length > 1 ? `
-              <div style="position:relative">
-                <button class="review-filter-dropdown-btn ${state.teamRoleFilter ? 'active' : ''} ${state.teamOpenDropdown === 'role' ? 'open' : ''}"
-                  style="font-size:12px;padding:6px 10px"
-                  onclick="toggleTeamDropdown('role')">
-                  ${state.teamRoleFilter ? escHtml(shortRole(state.teamRoleFilter)) : 'Role'} ${chevron(state.teamOpenDropdown === 'role')}
-                </button>
-                ${state.teamOpenDropdown === 'role' ? `
-                  <div class="review-filter-dropdown-panel" onclick="event.stopPropagation()" style="min-width:190px">
-                    ${checkRow('All roles', !state.teamRoleFilter, "setTeamRoleFilter('')")}
-                    <div style="height:1px;background:var(--border);margin:4px 0"></div>
-                    ${poolRoles.map(r => checkRow(shortRole(r) || r, state.teamRoleFilter === r, `setTeamRoleFilter('${escHtml(r)}')`)).join('')}
-                  </div>
-                ` : ''}
-              </div>
-            ` : ''}
-
-            <!-- People filter -->
-            ${pool.length > 1 ? `
-              <div style="position:relative">
-                <button class="review-filter-dropdown-btn ${state.teamSelectedIds.length ? 'active' : ''} ${state.teamOpenDropdown === 'people' ? 'open' : ''}"
-                  style="font-size:12px;padding:6px 10px"
-                  onclick="toggleTeamDropdown('people')">
-                  ${state.teamSelectedIds.length ? `${state.teamSelectedIds.length} selected` : 'People'} ${chevron(state.teamOpenDropdown === 'people')}
-                </button>
-                ${state.teamOpenDropdown === 'people' ? `
-                  <div class="review-filter-dropdown-panel" onclick="event.stopPropagation()" style="min-width:200px;max-height:260px;overflow-y:auto">
-                    ${checkRow('All people', state.teamSelectedIds.length === 0, "state.teamSelectedIds=[];render()")}
-                    <div style="height:1px;background:var(--border);margin:4px 0"></div>
-                    ${pool.map(p => {
-                      const sub = shortRole(p.role) || '';
-                      return checkRow(p.name, state.teamSelectedIds.includes(p.id), `toggleTeamMember('${p.id}')`, sub);
-                    }).join('')}
-                  </div>
-                ` : ''}
-              </div>
-            ` : ''}
-
-          </div>
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-right:28px">
+          <div style="font-size:14px;font-weight:600;color:var(--text)">${isDeptView ? 'Dept Members' : 'Team Members'}</div>
         </div>
 
         <!-- Carousel -->
         ${visible.length === 0 ? `
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center;color:var(--text-muted);font-size:13px">
-            No team members match the current filters.
+            No team members found.
           </div>
         ` : `
           <div class="team-carousel" id="team-carousel" onscroll="updateTeamScrollbar()">
@@ -9502,6 +9422,17 @@ function switchToMeTab() {
   state.managerProfileId = null;
   state.managerTab = 'me';
   state.view = 'home';
+  render();
+}
+function switchToDeptView() {
+  if (state.managerProfileId) {
+    state.profile = state.managerProfileId;
+    localStorage.setItem('dch_current_profile', state.managerProfileId);
+  }
+  state.managerMode = false;
+  state.managerProfileId = null;
+  state.managerTab = 'dept';
+  state.view = 'manager-home';
   render();
 }
 
