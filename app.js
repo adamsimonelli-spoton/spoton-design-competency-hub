@@ -9502,13 +9502,14 @@ function renderReportCard(p) {
   const stats = getProfileStats(p.id);
   const hasData = stats.below + stats.above > 0;
   return `
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px">
+    <div onclick="viewReport('${p.id}')" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px;cursor:pointer;transition:box-shadow .15s,border-color .15s" onmouseenter="this.style.boxShadow='0 4px 16px rgba(0,0,0,.10)';this.style.borderColor='var(--primary)'" onmouseleave="this.style.boxShadow='';this.style.borderColor='var(--border)'">
       <div style="display:flex;align-items:center;gap:12px">
         ${avatarHtml(p, 32, 12)}
         <div style="flex:1;min-width:0">
           <div style="font-size:15px;font-weight:600;color:var(--text)">${escHtml(p.name)}</div>
           <div style="font-size:12px;color:var(--text-muted)">${escHtml(shortRole(p.role) || 'No role assigned')}</div>
         </div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted);flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
       <div style="background:var(--bg);border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:12px;font-size:13px">
         <span style="color:var(--text-muted)">Below: <strong style="color:var(--red)">${stats.below}</strong></span>
@@ -9516,7 +9517,6 @@ function renderReportCard(p) {
         <span style="color:var(--text-muted)">Above: <strong style="color:var(--green)">${stats.above}</strong></span>
         ${stats.reviewScore ? `<span style="color:var(--border)">|</span><span style="color:var(--text-muted)">Review: <strong style="color:var(--primary)">${stats.reviewScore}</strong></span>` : ''}
       </div>
-      <button class="btn btn-secondary" style="width:100%;margin-top:auto" onclick="viewReport('${p.id}')">View Profile →</button>
     </div>
   `;
 }
