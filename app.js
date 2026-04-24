@@ -7286,7 +7286,7 @@ function render() {
               </div>
               <div style="display:flex;gap:2px;background:rgba(255,255,255,.08);border-radius:8px;padding:2px;margin-bottom:${teamActive ? '8px' : '0'}">
                 <button onclick="switchToMeTab()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${meActive?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">Me</button>
-                <button onclick="backToTeamView()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${myTeamActive?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">My Team</button>
+                <button onclick="backToTeamView()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${myTeamActive?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">Directs</button>
                 ${sHasSubReports ? `<button onclick="switchToDeptView()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${deptActive?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">Dept</button>` : ''}
               </div>
               ${teamActive ? (() => {
@@ -9129,7 +9129,7 @@ function renderManagerDashboard() {
   const sessionProfile = getSessionProfile();
   if (!sessionProfile) return '';
   const profiles = getProfiles();
-  const teamLabel = 'My Team';
+  const teamLabel = 'Directs';
   const isTopLevel = !sessionProfile.managerId;
 
   // Direct reports and full subtree
