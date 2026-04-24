@@ -1023,9 +1023,9 @@ body {
 
 /* Quick wins list */
 .dash-quick-wins-list { display: flex; flex-direction: column; gap: 8px; }
-.team-carousel { display:flex; gap:14px; overflow-x:auto; padding-bottom:8px; scrollbar-width:thin; scrollbar-color:#CBD5E1 transparent; }
+.team-carousel { display:flex; gap:14px; overflow-x:scroll; padding-bottom:20px; scrollbar-width:thin; scrollbar-color:#CBD5E1 #F1F5F9; }
 .team-carousel::-webkit-scrollbar { height:4px; }
-.team-carousel::-webkit-scrollbar-track { background:transparent; }
+.team-carousel::-webkit-scrollbar-track { background:#F1F5F9; border-radius:99px; }
 .team-carousel::-webkit-scrollbar-thumb { background:#CBD5E1; border-radius:99px; }
 .dash-qw-item {
   display: flex;
