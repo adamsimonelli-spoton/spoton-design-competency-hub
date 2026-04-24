@@ -7179,6 +7179,8 @@ function getViewTitle() {
 function render() {
   const app = document.getElementById('app');
   if (!app) return;
+  // After DOM update, init the custom scrollbar thumb size
+  requestAnimationFrame(updateTeamScrollbar);
 
   const profiles = getProfiles();
   const currentProfile = profiles.find(p => p.id === state.profile);
@@ -8947,6 +8949,18 @@ function getSubtreeProfiles(rootId, allProfiles) {
   }
   return result;
 }
+function updateTeamScrollbar() {
+  const el = document.getElementById('team-carousel');
+  const track = document.getElementById('team-scroll-track');
+  const thumb = document.getElementById('team-scroll-thumb');
+  if (!el || !track || !thumb) return;
+  const ratio = el.clientWidth / el.scrollWidth;
+  const thumbW = Math.max(ratio * 100, 8);
+  const scrollRatio = el.scrollWidth > el.clientWidth ? el.scrollLeft / (el.scrollWidth - el.clientWidth) : 0;
+  const maxLeft = 100 - thumbW;
+  thumb.style.width = thumbW + '%';
+  thumb.style.marginLeft = (scrollRatio * maxLeft) + '%';
+}
 function toggleViewingDrop() { state.viewingDropOpen = !state.viewingDropOpen; render(); }
 function toggleTeamDropdown(id) {
   state.teamOpenDropdown = state.teamOpenDropdown === id ? '' : id;
@@ -9234,9 +9248,12 @@ function renderManagerDashboard() {
             No team members match the current filters.
           </div>
         ` : `
-          <div class="team-carousel">
+          <div class="team-carousel" id="team-carousel" onscroll="updateTeamScrollbar()">
             ${visible.map(p => `<div style="flex-shrink:0;width:230px">${renderReportCard(p)}</div>`).join('')}
             <div style="flex-shrink:0;width:28px"></div>
+          </div>
+          <div class="team-scroll-track" id="team-scroll-track">
+            <div class="team-scroll-thumb" id="team-scroll-thumb"></div>
           </div>
         `}
       </div>

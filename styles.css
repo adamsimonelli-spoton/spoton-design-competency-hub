@@ -1023,10 +1023,10 @@ body {
 
 /* Quick wins list */
 .dash-quick-wins-list { display: flex; flex-direction: column; gap: 8px; }
-.team-carousel { display:flex; gap:14px; overflow-x:scroll; padding-bottom:20px; scrollbar-width:thin; scrollbar-color:#CBD5E1 #F1F5F9; }
-.team-carousel::-webkit-scrollbar { height:4px; }
-.team-carousel::-webkit-scrollbar-track { background:#F1F5F9; border-radius:99px; }
-.team-carousel::-webkit-scrollbar-thumb { background:#CBD5E1; border-radius:99px; }
+.team-carousel { display:flex; gap:14px; overflow-x:auto; padding-bottom:12px; scrollbar-width:none; -ms-overflow-style:none; }
+.team-carousel::-webkit-scrollbar { display:none; }
+.team-scroll-track { height:4px; background:#E2E8F0; border-radius:99px; margin-top:8px; }
+.team-scroll-thumb { height:4px; background:#94A3B8; border-radius:99px; transition:width .1s,margin-left .1s; }
 .dash-qw-item {
   display: flex;
   align-items: center;
