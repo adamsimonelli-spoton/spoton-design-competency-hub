@@ -3859,7 +3859,7 @@ function renderTeamSkillsView(members) {
     const cc = CATEGORY_CONFIG[cat] || {};
 
     const catRow = `<tr>
-      <td style="padding:10px 12px 5px;background:${cc.bg};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${cc.color};position:sticky;left:0;z-index:2;min-width:196px">${cc.icon ? cc.icon + ' ' : ''}${escHtml(cat)}</td>
+      <td style="padding:10px 12px 5px;background:${cc.bg};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${cc.color};position:sticky;left:0;z-index:2;min-width:240px">${cc.icon ? cc.icon + ' ' : ''}${escHtml(cat)}</td>
       <td colspan="${colSpan - 1}" style="background:${cc.bg}"></td>
     </tr>`;
 
@@ -3871,8 +3871,8 @@ function renderTeamSkillsView(members) {
       }).join('');
 
       return `<tr style="border-bottom:1px solid var(--border)">
-        <td style="padding:6px 12px;position:sticky;left:0;background:var(--surface)">
-          <button onclick="navigate('skill','${skill.id}')" style="background:none;border:none;text-align:left;cursor:pointer;font-size:13px;color:var(--text);padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:180px;display:block" title="${escHtml(skill.name)}">${escHtml(skill.name)}</button>
+        <td style="padding:6px 12px;position:sticky;left:0;background:var(--surface);min-width:240px">
+          <button onclick="navigate('skill','${skill.id}')" style="background:none;border:none;text-align:left;cursor:pointer;font-size:13px;color:var(--text);padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;display:block" title="${escHtml(skill.name)}">${escHtml(skill.name)}</button>
         </td>
         ${cells}
       </tr>`;
@@ -3882,8 +3882,8 @@ function renderTeamSkillsView(members) {
   }).join('');
 
   const headerCols = memberData.map(({ m }) => `
-    <th style="text-align:center;padding:6px 4px;font-size:11px;font-weight:600;color:var(--text-muted);width:56px;min-width:56px">
-      <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:56px" title="${escHtml(m.name)}">${escHtml(m.name.split(' ')[0])}</div>
+    <th style="text-align:center;padding:6px 8px;font-size:11px;font-weight:600;color:var(--text-muted);min-width:72px">
+      <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${escHtml(m.name)}">${escHtml(m.name.split(' ')[0])}</div>
     </th>`).join('');
 
   return `
@@ -3892,12 +3892,12 @@ function renderTeamSkillsView(members) {
         <h1 style="font-size:22px;font-weight:700;color:var(--text);margin:0;margin-right:8px">Skills</h1>
         ${catPills}
       </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+      <div style="background:var(--surface);border:1px solid var(--border);border-right:none;border-radius:12px 0 0 12px;overflow:hidden;margin-right:-28px">
         <div style="overflow-x:auto">
-          <table style="border-collapse:collapse;min-width:${200 + members.length * 56}px">
+          <table style="border-collapse:collapse;width:100%;table-layout:auto;min-width:${240 + members.length * 72}px">
             <thead>
               <tr style="border-bottom:2px solid var(--border)">
-                <th style="text-align:left;padding:8px 12px;font-size:12px;font-weight:600;color:var(--text-muted);min-width:196px;position:sticky;left:0;background:var(--surface)">Skill</th>
+                <th style="text-align:left;padding:8px 12px;font-size:12px;font-weight:600;color:var(--text-muted);min-width:240px;position:sticky;left:0;background:var(--surface)">Skill</th>
                 ${headerCols}
               </tr>
             </thead>
