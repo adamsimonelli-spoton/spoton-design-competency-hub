@@ -7533,14 +7533,14 @@ function render() {
             <span>Dashboard</span>
           </button>
 
+          <div class="nav-section-label">Assessment</div>
+
+          <button class="nav-item ${state.view === 'review' || state.view === 'skill' ? 'active' : ''}" onclick="navigate('review')">
+            <span class="nav-icon">${icon('layers', 18)}</span>
+            <span>Skills</span>
+          </button>
+
           ${showTeamOnlyNav ? '' : `
-            <div class="nav-section-label">Assessment</div>
-
-            <button class="nav-item ${state.view === 'review' || state.view === 'skill' ? 'active' : ''}" onclick="navigate('review')">
-              <span class="nav-icon">${icon('layers', 18)}</span>
-              <span>Skills</span>
-            </button>
-
             <button class="nav-item ${state.view === 'values' || state.view === 'value' ? 'active' : ''}" onclick="navigate('values')">
               <span class="nav-icon">${icon('heart', 18)}</span>
               <span>Core Values</span>
