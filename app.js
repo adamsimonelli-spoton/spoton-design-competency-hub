@@ -1193,6 +1193,7 @@ let state = {
   managerProfileId: null,
   managerTab: 'team',
   loginPinModal: null,
+  viewingDropOpen: false,
   teamDirectOnly: true,
   teamRoleFilter: '',
   teamSelectedIds: [],
@@ -7215,20 +7216,48 @@ function render() {
                   ${sessionProf.role ? `<div style="font-size:10px;color:#93C5FD;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(shortRole(sessionProf.role))}</div>` : ''}
                 </div>
               </div>
-              <div style="display:flex;gap:2px;background:rgba(255,255,255,.08);border-radius:8px;padding:2px${viewingProf ? ';margin-bottom:8px' : ''}">
+              <div style="display:flex;gap:2px;background:rgba(255,255,255,.08);border-radius:8px;padding:2px;margin-bottom:${teamActive ? '8px' : '0'}">
                 <button onclick="switchToMeTab()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${meActive?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">Me</button>
                 <button onclick="backToTeamView()" style="flex:1;padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;${teamActive?'background:rgba(255,255,255,.18);color:#E2E8F0':'background:transparent;color:#94A3B8'}">My Team</button>
               </div>
-              ${viewingProf ? `
-                <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.22);border-radius:8px">
-                  ${avatarHtml(viewingProf, 24, 9)}
-                  <div style="flex:1;min-width:0">
-                    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#93C5FD;margin-bottom:1px">Viewing</div>
-                    <div style="font-size:12px;font-weight:600;color:#E2E8F0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(viewingProf.name)}</div>
-                  </div>
-                  <button onclick="backToTeamView()" title="Back to team" style="background:none;border:none;cursor:pointer;color:#64748B;font-size:18px;line-height:1;padding:0 2px;transition:color .12s" onmouseover="this.style.color='#93C5FD'" onmouseout="this.style.color='#64748B'">×</button>
-                </div>
-              ` : ''}
+              ${teamActive ? (() => {
+                const teamMembers = profiles.filter(p => p.managerId === sessionProf.id);
+                const dropLabel = viewingProf ? viewingProf.name : 'All team';
+                const dropOpen = state.viewingDropOpen;
+                return `
+                  <div style="position:relative" onclick="event.stopPropagation()">
+                    <button onclick="toggleViewingDrop()"
+                      style="width:100%;display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;cursor:pointer;transition:all .15s;${dropOpen ? 'border-color:rgba(99,102,241,.5);background:rgba(99,102,241,.12)' : ''}">
+                      ${viewingProf ? avatarHtml(viewingProf, 22, 8) : `<span style="width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.12);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="12" height="12" viewBox="0 0 256 256" fill="#94A3B8"><path d="M244.8,150.4a8,8,0,0,1-11.2-1.6A51.6,51.6,0,0,0,192,128a8,8,0,0,1,0-16,24,24,0,1,0-23.8-26.7,8,8,0,1,1-15.9-1.6A40,40,0,1,1,219,117.1a67.6,67.6,0,0,1,27.4,21.7A8,8,0,0,1,244.8,150.4ZM190.9,212.7a8,8,0,1,1-13.8,8A57.1,57.1,0,0,0,128,192a57.1,57.1,0,0,0-49.1,28.7,8,8,0,1,1-13.8-8A72.9,72.9,0,0,1,96,179.5a48,48,0,1,1,64,0A72.9,72.9,0,0,1,190.9,212.7Z"/></svg></span>`}
+                      <span style="flex:1;min-width:0;text-align:left;font-size:12px;font-weight:600;color:#E2E8F0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(dropLabel)}</span>
+                      <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style="flex-shrink:0;transition:transform .15s${dropOpen?';transform:rotate(180deg)':''}"><path d="M1 1l4 4 4-4" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+                    </button>
+                    ${dropOpen ? `
+                      <div style="position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:300;background:#1E293B;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.4)">
+                        <!-- All team -->
+                        <button onclick="backToTeamView();state.viewingDropOpen=false;render()"
+                          style="width:100%;display:flex;align-items:center;gap:8px;padding:7px 8px;border:none;border-radius:6px;background:${!viewingProf ? 'rgba(99,102,241,.18)' : 'transparent'};cursor:pointer;transition:background .12s"
+                          onmouseover="this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.background='${!viewingProf ? 'rgba(99,102,241,.18)' : 'transparent'}'">
+                          <span style="width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.1);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="12" height="12" viewBox="0 0 256 256" fill="#94A3B8"><path d="M244.8,150.4a8,8,0,0,1-11.2-1.6A51.6,51.6,0,0,0,192,128a8,8,0,0,1,0-16,24,24,0,1,0-23.8-26.7,8,8,0,1,1-15.9-1.6A40,40,0,1,1,219,117.1a67.6,67.6,0,0,1,27.4,21.7A8,8,0,0,1,244.8,150.4ZM190.9,212.7a8,8,0,1,1-13.8,8A57.1,57.1,0,0,0,128,192a57.1,57.1,0,0,0-49.1,28.7,8,8,0,1,1-13.8-8A72.9,72.9,0,0,1,96,179.5a48,48,0,1,1,64,0A72.9,72.9,0,0,1,190.9,212.7Z"/></svg></span>
+                          <span style="font-size:12px;font-weight:600;color:#E2E8F0;flex:1;text-align:left">All team</span>
+                          ${!viewingProf ? `<svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7l4 4 6-6" stroke="#6366F1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>` : ''}
+                        </button>
+                        ${teamMembers.length ? `<div style="height:1px;background:rgba(255,255,255,.08);margin:4px 0"></div>` : ''}
+                        ${teamMembers.map(m => `
+                          <button onclick="viewReport('${m.id}');state.viewingDropOpen=false"
+                            style="width:100%;display:flex;align-items:center;gap:8px;padding:7px 8px;border:none;border-radius:6px;background:${viewingProf?.id === m.id ? 'rgba(99,102,241,.18)' : 'transparent'};cursor:pointer;transition:background .12s"
+                            onmouseover="this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.background='${viewingProf?.id === m.id ? 'rgba(99,102,241,.18)' : 'transparent'}'">
+                            ${avatarHtml(m, 22, 8)}
+                            <div style="flex:1;min-width:0;text-align:left">
+                              <div style="font-size:12px;font-weight:600;color:#E2E8F0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(m.name)}</div>
+                              <div style="font-size:10px;color:#64748B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(shortRole(m.role) || '')}</div>
+                            </div>
+                            ${viewingProf?.id === m.id ? `<svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7l4 4 6-6" stroke="#6366F1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>` : ''}
+                          </button>`).join('')}
+                      </div>
+                    ` : ''}
+                  </div>`;
+              })() : ''}
             </div>`;
 
         } else if (sessionRole === 'admin') {
@@ -8918,6 +8947,7 @@ function getSubtreeProfiles(rootId, allProfiles) {
   }
   return result;
 }
+function toggleViewingDrop() { state.viewingDropOpen = !state.viewingDropOpen; render(); }
 function toggleTeamDropdown(id) {
   state.teamOpenDropdown = state.teamOpenDropdown === id ? '' : id;
   render();
@@ -9445,6 +9475,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.reviewOpenDropdown) { state.reviewOpenDropdown = ''; changed = true; }
       if (state.resourcesOpenDropdown) { state.resourcesOpenDropdown = ''; changed = true; }
       if (state.teamOpenDropdown) { state.teamOpenDropdown = ''; changed = true; }
+      if (state.viewingDropOpen) { state.viewingDropOpen = false; changed = true; }
       if (changed) render();
     }
   });
