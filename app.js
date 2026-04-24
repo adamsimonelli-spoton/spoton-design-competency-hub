@@ -3827,26 +3827,21 @@ function renderTeamSkillsView(members) {
 
   const colSpan = 1 + memberData.length;
 
-  // Level+gap cell
+  // Gap-only cell
   const levelGapCell = (level, expLevel) => {
     if (!level || level === 'Unknown') {
       return `<td style="text-align:center;padding:5px 4px"><span style="color:#CBD5E1;font-size:12px">—</span></td>`;
     }
-    const lc = LEVEL_CONFIG[level] || {};
-    const abbr = { Learner: 'L', Contributor: 'C', Independent: 'I', Expert: 'E' }[level] || '?';
-    let gapHtml = '';
-    if (expLevel && expLevel !== 'Unknown') {
-      const gap = getLevelOrder(level) - getLevelOrder(expLevel);
-      const gapColor = gap < 0 ? '#EF4444' : gap > 0 ? '#10B981' : '#94A3B8';
-      const gapText  = gap > 0 ? '+' + gap : gap === 0 ? '0' : String(gap);
-      gapHtml = `<span style="font-size:10px;font-weight:700;color:${gapColor};line-height:1;margin-top:2px;display:block">${gapText}</span>`;
+    if (!expLevel || expLevel === 'Unknown') {
+      // Assessed but no expectation — show level abbr in neutral style
+      const lc = LEVEL_CONFIG[level] || {};
+      const abbr = { Learner: 'L', Contributor: 'C', Independent: 'I', Expert: 'E' }[level] || '?';
+      return `<td style="text-align:center;padding:5px 4px"><span title="${escHtml(level)}" style="font-size:12px;font-weight:600;color:${lc.color}">${abbr}</span></td>`;
     }
-    return `<td style="text-align:center;padding:5px 4px">
-      <div style="display:inline-flex;flex-direction:column;align-items:center">
-        <span title="${escHtml(level)}" style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:20px;border-radius:4px;font-size:11px;font-weight:700;background:${lc.bg};color:${lc.color}">${abbr}</span>
-        ${gapHtml}
-      </div>
-    </td>`;
+    const gap = getLevelOrder(level) - getLevelOrder(expLevel);
+    const gapColor = gap < 0 ? '#EF4444' : gap > 0 ? '#10B981' : '#94A3B8';
+    const gapText  = gap > 0 ? '+' + gap : gap === 0 ? '0' : String(gap);
+    return `<td style="text-align:center;padding:5px 4px"><span title="${escHtml(level + ' (expected: ' + expLevel + ')')}" style="font-size:13px;font-weight:700;color:${gapColor}">${gapText}</span></td>`;
   };
 
   const tableRows = visibleCats.map(cat => {
