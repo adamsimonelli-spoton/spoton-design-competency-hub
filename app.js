@@ -3858,7 +3858,10 @@ function renderTeamSkillsView(members) {
     const catSkills = SKILLS_DATA.skills.filter(s => s.category === cat);
     const cc = CATEGORY_CONFIG[cat] || {};
 
-    const catRow = `<tr><td colspan="${colSpan}" style="padding:10px 12px 5px;background:${cc.bg};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${cc.color};position:sticky;left:0">${cc.icon ? cc.icon + ' ' : ''}${escHtml(cat)}</td></tr>`;
+    const catRow = `<tr>
+      <td style="padding:10px 12px 5px;background:${cc.bg};font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${cc.color};position:sticky;left:0;z-index:2;min-width:196px">${cc.icon ? cc.icon + ' ' : ''}${escHtml(cat)}</td>
+      <td colspan="${colSpan - 1}" style="background:${cc.bg}"></td>
+    </tr>`;
 
     const skillRows = catSkills.map(skill => {
       const cells = memberData.map(({ m, assessments, roleData }) => {
