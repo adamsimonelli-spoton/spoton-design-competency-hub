@@ -3871,7 +3871,6 @@ function renderTeamSkillsView(members) {
   const headerCols = memberData.map(({ m }) => `
     <th style="text-align:center;padding:6px 4px;font-size:11px;font-weight:600;color:var(--text-muted);width:56px;min-width:56px">
       <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:56px" title="${escHtml(m.name)}">${escHtml(m.name.split(' ')[0])}</div>
-      <div style="font-size:9px;color:#94A3B8;font-weight:500;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:56px">${escHtml(shortRole(m.role) || '')}</div>
     </th>`).join('');
 
   return `
