@@ -3838,20 +3838,20 @@ function renderTeamSkillsView(members) {
      '3': { bg: '#059669', text: '#fff' },
   };
   const levelGapCell = (level, expLevel, memberId, skillId) => {
-    const click = memberId && skillId ? `onclick="viewReportSkill('${memberId}','${skillId}')" style="padding:2px 2px;cursor:pointer"` : `style="padding:2px 2px"`;
+    const click = memberId && skillId ? `onclick="viewReportSkill('${memberId}','${skillId}')" style="padding:4px 8px;cursor:pointer;text-align:center"` : `style="padding:4px 8px;text-align:center"`;
     if (!level || level === 'Unknown') {
-      return `<td ${click}><div style="width:52px;height:28px;background:#F1F5F9;border-radius:4px;display:flex;align-items:center;justify-content:center"><span style="color:#CBD5E1;font-size:11px">—</span></div></td>`;
+      return `<td ${click}><div style="width:52px;height:28px;background:#F1F5F9;border-radius:4px;display:flex;align-items:center;justify-content:center;margin:0 auto"><span style="color:#CBD5E1;font-size:11px">—</span></div></td>`;
     }
     if (!expLevel || expLevel === 'Unknown') {
       const lc = LEVEL_CONFIG[level] || {};
       const abbr = { Learner: 'L', Contributor: 'C', Independent: 'I', Expert: 'E' }[level] || '?';
-      return `<td ${click} title="${escHtml(level)}"><div style="width:52px;height:28px;background:#F1F5F9;border-radius:4px;display:flex;align-items:center;justify-content:center"><span style="font-size:11px;font-weight:600;color:${lc.color}">${abbr}</span></div></td>`;
+      return `<td ${click} title="${escHtml(level)}"><div style="width:52px;height:28px;background:#F1F5F9;border-radius:4px;display:flex;align-items:center;justify-content:center;margin:0 auto"><span style="font-size:11px;font-weight:600;color:${lc.color}">${abbr}</span></div></td>`;
     }
     const gap = getLevelOrder(level) - getLevelOrder(expLevel);
     const key = String(Math.max(-3, Math.min(3, gap)));
     const { bg, text } = HEAT[key] || HEAT['0'];
     const gapText = gap > 0 ? '+' + gap : String(gap);
-    return `<td ${click} title="${escHtml(level + ' · expected ' + expLevel)}"><div style="width:52px;height:28px;background:${bg};border-radius:4px;display:flex;align-items:center;justify-content:center"><span style="font-size:11px;font-weight:700;color:${text}">${gapText}</span></div></td>`;
+    return `<td ${click} title="${escHtml(level + ' · expected ' + expLevel)}"><div style="width:52px;height:28px;background:${bg};border-radius:4px;display:flex;align-items:center;justify-content:center;margin:0 auto"><span style="font-size:11px;font-weight:700;color:${text}">${gapText}</span></div></td>`;
   };
 
   const tableRows = visibleCats.map(cat => {
