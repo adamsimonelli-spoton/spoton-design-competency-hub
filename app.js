@@ -3863,7 +3863,8 @@ function renderTeamSkillsView(members) {
 
     const skillRows = catSkills.map(skill => {
       const cells = memberData.map(({ m, assessments, roleData }) => {
-        const level = (assessments[skill.id] || {}).managerLevel || '';
+        const asmnt = assessments[skill.id] || {};
+        const level = asmnt.managerLevel || asmnt.selfLevel || '';
         const expLevel = roleData?.skills?.[skill.id] || null;
         return levelGapCell(level, expLevel, m.id, skill.id);
       }).join('');
