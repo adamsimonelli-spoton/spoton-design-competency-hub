@@ -3843,9 +3843,7 @@ function renderTeamSkillsView(members) {
       return `<td ${click}><div style="width:52px;height:28px;background:#F1F5F9;border-radius:4px;display:flex;align-items:center;justify-content:center;margin:0 auto"><span style="color:#CBD5E1;font-size:11px">—</span></div></td>`;
     }
     if (!expLevel || expLevel === 'Unknown') {
-      const lc = LEVEL_CONFIG[level] || {};
-      const abbr = { Learner: 'L', Contributor: 'C', Independent: 'I', Expert: 'E' }[level] || '?';
-      return `<td ${click} title="${escHtml(level)}"><div style="width:52px;height:28px;background:#F1F5F9;border-radius:4px;display:flex;align-items:center;justify-content:center;margin:0 auto"><span style="font-size:11px;font-weight:600;color:${lc.color}">${abbr}</span></div></td>`;
+      return `<td ${click}><div style="width:52px;height:28px;background:#F1F5F9;border-radius:4px;display:flex;align-items:center;justify-content:center;margin:0 auto"><span style="color:#CBD5E1;font-size:11px">—</span></div></td>`;
     }
     const gap = getLevelOrder(level) - getLevelOrder(expLevel);
     const key = String(Math.max(-3, Math.min(3, gap)));
