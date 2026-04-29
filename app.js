@@ -3822,7 +3822,8 @@ function renderTeamSkillsView(members) {
   const memberData = members.map(m => ({
     m,
     assessments: (JSON.parse(localStorage.getItem('dch_data_' + m.id) || '{}')).assessments || {},
-    roleData: ROLES_DATA[m.role] || null
+    roleData: ROLES_DATA[m.role] || null,
+    customExpected: JSON.parse(localStorage.getItem('dch_expected_' + m.id) || 'null') || {}
   }));
 
   const colSpan = 1 + memberData.length;
@@ -3862,10 +3863,10 @@ function renderTeamSkillsView(members) {
     </tr>`;
 
     const skillRows = catSkills.map(skill => {
-      const cells = memberData.map(({ m, assessments, roleData }) => {
+      const cells = memberData.map(({ m, assessments, roleData, customExpected }) => {
         const asmnt = assessments[skill.id] || {};
         const level = asmnt.managerLevel || asmnt.selfLevel || '';
-        const expLevel = roleData?.skills?.[skill.id] || null;
+        const expLevel = customExpected[skill.id] || roleData?.skills?.[skill.id] || null;
         return levelGapCell(level, expLevel, m.id, skill.id);
       }).join('');
 
