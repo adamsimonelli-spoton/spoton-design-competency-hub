@@ -1203,6 +1203,12 @@ let state = {
   teamSkillsRoleFilters: [],
   teamSkillsPeopleFilters: [],
   teamSkillsFilterOpen: false,
+  teamGoalsRoleFilters: [],
+  teamGoalsPeopleFilters: [],
+  teamGoalsFilterOpen: false,
+  teamOutreachRoleFilters: [],
+  teamOutreachPeopleFilters: [],
+  teamOutreachFilterOpen: false,
 };
 
 // ============ STORAGE ============
@@ -3826,14 +3832,11 @@ function renderTeamSkillsView(members) {
   // Unique roles across all (unfiltered) members for the role picker
   const uniqueRoles = [...new Set(members.map(m => m.role))].sort();
 
-  // Pill helper
-  const pill = (label, active, onclick) =>
-    `<button onclick="${onclick}" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${active ? 'var(--primary)' : 'var(--border)'};background:${active ? 'var(--primary-light)' : 'var(--surface)'};color:${active ? 'var(--primary)' : 'var(--text-muted)'};">${escHtml(label)}</button>`;
-
-  const catPills = [
-    pill('All', !filteredCat, "setTeamSkillsCat('')"),
-    ...categories.map(cat => { const cc = CATEGORY_CONFIG[cat] || {}; return pill((cc.icon ? cc.icon + ' ' : '') + cat, filteredCat === cat, `setTeamSkillsCat('${escHtml(cat)}')`); })
-  ].join('');
+  // Category dropdown
+  const catDropdown = `<select onchange="setTeamSkillsCat(this.value)" style="padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${filteredCat ? 'var(--primary)' : 'var(--border)'};background:${filteredCat ? 'var(--primary-light)' : 'var(--surface)'};color:${filteredCat ? 'var(--primary)' : 'var(--text)'};outline:none;font-family:inherit">
+    <option value="">All Categories</option>
+    ${categories.map(cat => { const cc = CATEGORY_CONFIG[cat] || {}; return `<option value="${escHtml(cat)}"${filteredCat === cat ? ' selected' : ''}>${cc.icon ? cc.icon + ' ' : ''}${escHtml(cat)}</option>`; }).join('')}
+  </select>`;
 
   // Filter drawer (fixed overlay)
   const filterPanel = filterOpen ? `
@@ -3961,7 +3964,7 @@ function renderTeamSkillsView(members) {
     <div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px">
         <h1 style="font-size:22px;font-weight:700;color:var(--text);margin:0;margin-right:8px">Skills</h1>
-        ${catPills}
+        ${catDropdown}
         <button onclick="toggleTeamSkillsFilterPanel()" style="${filterBtnStyle}">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
           Filter${activeFilterCount > 0 ? ` <span style="background:var(--primary);color:#fff;border-radius:10px;padding:0 5px;font-size:10px">${activeFilterCount}</span>` : ''}
@@ -6327,12 +6330,88 @@ function saveGrowthTheme(id) {
 }
 
 // ── Team Goals view ──────────────────────────────────────────────────────────
+// ── Shared filter drawer for Goals / Outreach team views ─────────────────────
+// pageKey = 'teamGoals' | 'teamOutreach'
+// Returns { filterBtnHtml, drawerHtml, roleFilters, peopleFilters }
+function renderTeamFilterDrawer(members, pageKey) {
+  const capKey        = pageKey.charAt(0).toUpperCase() + pageKey.slice(1); // e.g. 'TeamGoals'
+  const roleFilters   = state[pageKey + 'RoleFilters']   || [];
+  const peopleFilters = state[pageKey + 'PeopleFilters'] || [];
+  const filterOpen    = !!state[pageKey + 'FilterOpen'];
+  const activeCount   = roleFilters.length + peopleFilters.length;
+  const uniqueRoles   = [...new Set(members.map(m => m.role))].sort();
+
+  const btnStyle = activeCount > 0
+    ? 'display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--primary);background:var(--primary-light);color:var(--primary)'
+    : 'display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text-muted)';
+
+  const filterBtnHtml = `<button onclick="toggle${capKey}FilterPanel()" style="${btnStyle}">
+    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+    Filter${activeCount > 0 ? ` <span style="background:var(--primary);color:#fff;border-radius:10px;padding:0 5px;font-size:10px">${activeCount}</span>` : ''}
+  </button>`;
+
+  const drawerHtml = filterOpen ? `
+    <div onclick="toggle${capKey}FilterPanel()" style="position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:900"></div>
+    <div style="position:fixed;top:0;right:0;height:100vh;width:300px;background:var(--surface);border-left:1px solid var(--border);box-shadow:-4px 0 24px rgba(0,0,0,.12);z-index:901;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid var(--border);flex-shrink:0">
+        <div style="font-size:15px;font-weight:700;color:var(--text)">Filter</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          ${activeCount > 0 ? `<button onclick="clear${capKey}Filters()" style="font-size:12px;font-weight:600;color:var(--primary);background:none;border:none;cursor:pointer;padding:0">Clear all</button>` : ''}
+          <button onclick="toggle${capKey}FilterPanel()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;padding:0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:20px">
+        <div style="margin-bottom:24px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px">Role</div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            ${uniqueRoles.map(role => {
+              const active = roleFilters.includes(role);
+              const count  = members.filter(m => m.role === role).length;
+              return `<button onclick="toggle${capKey}RoleFilter('${escHtml(role)}')" style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:${active ? 'var(--primary-light)' : 'transparent'};color:${active ? 'var(--primary)' : 'var(--text)'};text-align:left;width:100%">
+                <span style="display:flex;align-items:center;gap:8px">
+                  ${active ? `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>` : `<span style="width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border);display:inline-block"></span>`}
+                  ${escHtml(role)}
+                </span>
+                <span style="font-size:11px;font-weight:600;color:var(--text-muted);background:var(--bg);border-radius:10px;padding:1px 7px">${count}</span>
+              </button>`;
+            }).join('')}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px">People</div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            ${members.map(m => {
+              const active = peopleFilters.includes(m.id);
+              return `<button onclick="toggle${capKey}PersonFilter('${m.id}')" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:${active ? 'var(--primary-light)' : 'transparent'};color:${active ? 'var(--primary)' : 'var(--text)'};text-align:left;width:100%">
+                ${active ? `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>` : `<span style="width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border);display:inline-block;flex-shrink:0"></span>`}
+                ${avatarHtml(m, 24, 9)}
+                <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(m.name)}</span>
+              </button>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+    </div>` : '';
+
+  return { filterBtnHtml, drawerHtml, roleFilters, peopleFilters, activeCount };
+}
+
 function renderTeamGoals(members) {
   const { year, q } = getCurrentQuarter();
   const subLabel = t => `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px">${t}</div>`;
 
+  // Filter drawer
+  const { filterBtnHtml, drawerHtml, roleFilters, peopleFilters } = renderTeamFilterDrawer(members, 'teamGoals');
+  const filteredMembers = members.filter(m => {
+    const roleOk   = roleFilters.length   === 0 || roleFilters.includes(m.role);
+    const personOk = peopleFilters.length === 0 || peopleFilters.includes(m.id);
+    return roleOk && personOk;
+  });
+
   // Per-member goal contribution data
-  const memberRows = members.map(m => {
+  const memberRows = filteredMembers.map(m => {
     const d = JSON.parse(localStorage.getItem('dch_data_' + m.id) || '{}');
     const contributions = d.goalContributions || {};
     return { m, contributions };
@@ -6362,19 +6441,31 @@ function renderTeamGoals(members) {
       <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:14px">${escHtml(g.kpi)}</div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
         <div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden">
-          <div style="height:100%;width:${members.length ? Math.round(onTrack/members.length*100) : 0}%;background:var(--green);border-radius:3px"></div>
+          <div style="height:100%;width:${filteredMembers.length ? Math.round(onTrack/filteredMembers.length*100) : 0}%;background:var(--green);border-radius:3px"></div>
         </div>
-        <span style="font-size:11px;font-weight:600;color:var(--text-muted);white-space:nowrap">${onTrack} / ${members.length} on track</span>
+        <span style="font-size:11px;font-weight:600;color:var(--text-muted);white-space:nowrap">${onTrack} / ${filteredMembers.length} on track</span>
       </div>
-      <div>${rows}</div>
+      ${memberRows.length === 0 ? '' : `<div>${rows}</div>`}
     </div>`;
   }).join('');
 
   return `
     <div>
-      <div class="review-header" style="margin-bottom:24px"><h1>Goals</h1></div>
-      ${subLabel('Team Goals')}
-      ${goalCards}
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px">
+        <h1 style="font-size:22px;font-weight:700;color:var(--text);margin:0">Goals</h1>
+        ${filterBtnHtml}
+      </div>
+      ${filteredMembers.length === 0 ? `
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--text-muted)">
+          <div style="font-size:28px;margin-bottom:10px">🔍</div>
+          <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">No people match these filters</div>
+          <button onclick="clearTeamGoalsFilters()" style="margin-top:8px;font-size:13px;font-weight:600;color:var(--primary);background:none;border:none;cursor:pointer">Clear filters</button>
+        </div>
+      ` : `
+        ${subLabel('Team Goals')}
+        ${goalCards}
+      `}
+      ${drawerHtml}
     </div>`;
 }
 
@@ -6385,7 +6476,15 @@ function renderTeamOutreach(members) {
   const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const GOAL = 4;
 
-  const memberStats = members.map(m => {
+  // Filter drawer
+  const { filterBtnHtml, drawerHtml, roleFilters, peopleFilters } = renderTeamFilterDrawer(members, 'teamOutreach');
+  const filteredMembers = members.filter(m => {
+    const roleOk   = roleFilters.length   === 0 || roleFilters.includes(m.role);
+    const personOk = peopleFilters.length === 0 || peopleFilters.includes(m.id);
+    return roleOk && personOk;
+  });
+
+  const memberStats = filteredMembers.map(m => {
     const od = JSON.parse(localStorage.getItem('dch_outreach_' + m.id) || '{"entries":[]}');
     const entries = od.entries || [];
     const qEntries = getEntriesForQuarter(entries, year, q);
@@ -6433,41 +6532,51 @@ function renderTeamOutreach(members) {
 
   return `
     <div>
-      <div class="review-header" style="margin-bottom:24px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:24px">
         <div>
-          <h1>Merchant Outreach</h1>
-          <p style="color:var(--text-muted);font-size:13px;margin-top:4px">Q${q} ${year} · Goal: ${GOAL} touchpoints/quarter · Monthly HVE check-in</p>
+          <h1 style="font-size:22px;font-weight:700;color:var(--text);margin:0 0 4px">Merchant Outreach</h1>
+          <p style="color:var(--text-muted);font-size:13px;margin:0">Q${q} ${year} · Goal: ${GOAL} touchpoints/quarter · Monthly HVE check-in</p>
         </div>
+        ${filterBtnHtml}
       </div>
 
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
-        <div style="${tileStyle(onTrackCount === members.length)}">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">On Track (Q${q})</div>
-          <div style="font-size:28px;font-weight:800;color:${onTrackCount === members.length ? 'var(--green)' : 'var(--text)'}">${onTrackCount}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / ${members.length}</span></div>
+      ${filteredMembers.length === 0 ? `
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--text-muted)">
+          <div style="font-size:28px;margin-bottom:10px">🔍</div>
+          <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">No people match these filters</div>
+          <button onclick="clearTeamOutreachFilters()" style="margin-top:8px;font-size:13px;font-weight:600;color:var(--primary);background:none;border:none;cursor:pointer">Clear filters</button>
         </div>
-        <div style="${tileStyle(hveCount === members.length)}">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">HVE This Month</div>
-          <div style="font-size:28px;font-weight:800;color:${hveCount === members.length ? 'var(--green)' : 'var(--text)'}">${hveCount}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / ${members.length}</span></div>
+      ` : `
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
+          <div style="${tileStyle(onTrackCount === filteredMembers.length)}">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">On Track (Q${q})</div>
+            <div style="font-size:28px;font-weight:800;color:${onTrackCount === filteredMembers.length ? 'var(--green)' : 'var(--text)'}">${onTrackCount}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / ${filteredMembers.length}</span></div>
+          </div>
+          <div style="${tileStyle(hveCount === filteredMembers.length)}">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">HVE This Month</div>
+            <div style="font-size:28px;font-weight:800;color:${hveCount === filteredMembers.length ? 'var(--green)' : 'var(--text)'}">${hveCount}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / ${filteredMembers.length}</span></div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">Total Touchpoints Q${q}</div>
+            <div style="font-size:28px;font-weight:800;color:var(--text)">${totalThisQ}</div>
+          </div>
         </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">Total Touchpoints Q${q}</div>
-          <div style="font-size:28px;font-weight:800;color:var(--text)">${totalThisQ}</div>
-        </div>
-      </div>
 
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
-        <table style="width:100%;border-collapse:collapse">
-          <thead>
-            <tr style="border-bottom:2px solid var(--border)">
-              <th style="text-align:left;padding:10px 16px;font-size:12px;font-weight:600;color:var(--text-muted)">Person</th>
-              <th style="text-align:left;padding:10px 16px;font-size:12px;font-weight:600;color:var(--text-muted)">Q${q} Touchpoints</th>
-              <th style="text-align:center;padding:10px 16px;font-size:12px;font-weight:600;color:var(--text-muted)">HVE This Month</th>
-              <th style="text-align:right;padding:10px 16px;font-size:12px;font-weight:600;color:var(--text-muted)">Last Entry</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+          <table style="width:100%;border-collapse:collapse">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border)">
+                <th style="text-align:left;padding:10px 16px;font-size:12px;font-weight:600;color:var(--text-muted)">Person</th>
+                <th style="text-align:left;padding:10px 16px;font-size:12px;font-weight:600;color:var(--text-muted)">Q${q} Touchpoints</th>
+                <th style="text-align:center;padding:10px 16px;font-size:12px;font-weight:600;color:var(--text-muted)">HVE This Month</th>
+                <th style="text-align:right;padding:10px 16px;font-size:12px;font-weight:600;color:var(--text-muted)">Last Entry</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `}
+      ${drawerHtml}
     </div>`;
 }
 
@@ -9457,6 +9566,42 @@ function toggleTeamSkillsPersonFilter(id) {
 function clearTeamSkillsFilters() {
   state.teamSkillsRoleFilters = [];
   state.teamSkillsPeopleFilters = [];
+  render();
+}
+
+// ── Goals filter functions ────────────────────────────────────────────────────
+function toggleTeamGoalsFilterPanel() { state.teamGoalsFilterOpen = !state.teamGoalsFilterOpen; render(); }
+function toggleTeamGoalsRoleFilter(role) {
+  var arr = state.teamGoalsRoleFilters || [];
+  state.teamGoalsRoleFilters = arr.includes(role) ? arr.filter(r => r !== role) : [...arr, role];
+  render();
+}
+function toggleTeamGoalsPersonFilter(id) {
+  var arr = state.teamGoalsPeopleFilters || [];
+  state.teamGoalsPeopleFilters = arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id];
+  render();
+}
+function clearTeamGoalsFilters() {
+  state.teamGoalsRoleFilters = [];
+  state.teamGoalsPeopleFilters = [];
+  render();
+}
+
+// ── Outreach filter functions ─────────────────────────────────────────────────
+function toggleTeamOutreachFilterPanel() { state.teamOutreachFilterOpen = !state.teamOutreachFilterOpen; render(); }
+function toggleTeamOutreachRoleFilter(role) {
+  var arr = state.teamOutreachRoleFilters || [];
+  state.teamOutreachRoleFilters = arr.includes(role) ? arr.filter(r => r !== role) : [...arr, role];
+  render();
+}
+function toggleTeamOutreachPersonFilter(id) {
+  var arr = state.teamOutreachPeopleFilters || [];
+  state.teamOutreachPeopleFilters = arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id];
+  render();
+}
+function clearTeamOutreachFilters() {
+  state.teamOutreachRoleFilters = [];
+  state.teamOutreachPeopleFilters = [];
   render();
 }
 
