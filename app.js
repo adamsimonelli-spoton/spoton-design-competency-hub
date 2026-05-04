@@ -1209,6 +1209,9 @@ let state = {
   teamOutreachRoleFilters: [],
   teamOutreachPeopleFilters: [],
   teamOutreachFilterOpen: false,
+  teamValuesRoleFilters: [],
+  teamValuesPeopleFilters: [],
+  teamValuesFilterOpen: false,
 };
 
 // ============ STORAGE ============
@@ -4721,12 +4724,181 @@ function renderOutreachModal() {
 
 
 // ============ CORE VALUES PAGE ============
+// ── Team Core Values overview ─────────────────────────────────────────────────
+function renderTeamCoreValues(members) {
+  const { filterBtnHtml, drawerHtml, roleFilters, peopleFilters } = renderTeamFilterDrawer(members, 'teamValues');
+  const filteredMembers = members.filter(m =>
+    (roleFilters.length   === 0 || roleFilters.includes(m.role)) &&
+    (peopleFilters.length === 0 || peopleFilters.includes(m.id))
+  );
+
+  // Load each member's CV ratings
+  const memberData = filteredMembers.map(m => {
+    const cvRaw = JSON.parse(localStorage.getItem('dch_data_' + m.id) || '{}').coreValues || {};
+    const ratings = {};
+    CORE_VALUES_DATA.forEach(cv => { ratings[cv.id] = cvRaw[cv.id]?.managerRating || null; });
+    return { m, ratings };
+  });
+
+  // ── Summary stats ────────────────────────────────────────────────────────────
+  const fullyRatedCount = memberData.filter(({ ratings }) =>
+    CORE_VALUES_DATA.every(cv => ratings[cv.id])
+  ).length;
+
+  const meetsOrAboveCount = memberData.filter(({ ratings }) => {
+    const ratedVals = CORE_VALUES_DATA.filter(cv => ratings[cv.id]);
+    return ratedVals.length > 0 && ratedVals.every(cv => ratings[cv.id] >= 3);
+  }).length;
+
+  const needsAttentionCount = memberData.filter(({ ratings }) =>
+    CORE_VALUES_DATA.some(cv => ratings[cv.id] && ratings[cv.id] <= 2)
+  ).length;
+
+  const allEnteredRatings = memberData.flatMap(({ ratings }) =>
+    CORE_VALUES_DATA.map(cv => ratings[cv.id]).filter(Boolean)
+  );
+  const overallAvg = allEnteredRatings.length
+    ? allEnteredRatings.reduce((s, v) => s + v, 0) / allEnteredRatings.length
+    : null;
+  const totalEntered  = allEnteredRatings.length;
+  const totalPossible = filteredMembers.length * CORE_VALUES_DATA.length;
+
+  // Per-value team averages (for footer row)
+  const valueAvgs = CORE_VALUES_DATA.map(cv => {
+    const vals = memberData.map(({ ratings }) => ratings[cv.id]).filter(Boolean);
+    return vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : null;
+  });
+
+  // ── Summary tiles ─────────────────────────────────────────────────────────────
+  const tile = (label, value, sub, ok) => `
+    <div style="background:var(--surface);border:1px solid ${ok ? '#BBF7D0' : 'var(--border)'};border-radius:12px;padding:16px 20px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">${label}</div>
+      <div style="font-size:28px;font-weight:800;color:${ok ? 'var(--green)' : 'var(--text)'}">
+        ${value}<span style="font-size:15px;font-weight:500;color:var(--text-muted)">${sub}</span>
+      </div>
+    </div>`;
+
+  const avgRc = overallAvg ? CV_RATING_CONFIG[Math.round(overallAvg)] : null;
+  const avgTile = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">Avg Rating</div>
+      ${overallAvg
+        ? `<div style="font-size:28px;font-weight:800;color:${avgRc?.color || 'var(--text)'}">${overallAvg.toFixed(1)}<span style="font-size:14px;font-weight:500;color:var(--text-muted)"> / 5 · ${avgRc?.short || ''}</span></div>`
+        : `<div style="font-size:24px;font-weight:800;color:var(--text-muted)">—</div>`}
+    </div>`;
+
+  const summaryHtml = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">
+      ${tile('Fully Assessed',  fullyRatedCount,       ` / ${filteredMembers.length}`, fullyRatedCount === filteredMembers.length && filteredMembers.length > 0)}
+      ${tile('Meets or Above',  meetsOrAboveCount,     ` / ${filteredMembers.length}`, meetsOrAboveCount === filteredMembers.length && filteredMembers.length > 0)}
+      ${tile('Needs Attention', needsAttentionCount,   needsAttentionCount > 0 ? ` member${needsAttentionCount !== 1 ? 's' : ''}` : '', needsAttentionCount === 0 && totalEntered > 0)}
+      ${avgTile}
+    </div>`;
+
+  // ── Table header ──────────────────────────────────────────────────────────────
+  const valueHeaders = CORE_VALUES_DATA.map(cv =>
+    `<th style="text-align:center;padding:8px 14px;font-size:12px;font-weight:600;color:var(--text-muted);min-width:148px;white-space:nowrap">${cv.emoji} ${cv.label.split('.')[0].trim()}</th>`
+  ).join('');
+
+  // ── Member rows ───────────────────────────────────────────────────────────────
+  const memberRows = memberData.map(({ m, ratings }) => {
+    const cells = CORE_VALUES_DATA.map(cv => {
+      const r = ratings[cv.id];
+      if (!r) return `<td style="padding:8px 14px;text-align:center"><span style="color:#CBD5E1;font-size:13px">—</span></td>`;
+      const rc = CV_RATING_CONFIG[r];
+      return `<td style="padding:8px 14px;text-align:center">
+        <span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:${rc.bg};color:${rc.color};border:1px solid ${rc.border};white-space:nowrap">${rc.short}</span>
+      </td>`;
+    }).join('');
+
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:10px 14px">
+        <button onclick="viewReportValues('${m.id}')" style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:8px;transition:background .15s;width:100%;text-align:left" onmouseenter="this.style.background='var(--primary-light)'" onmouseleave="this.style.background='transparent'">
+          ${avatarHtml(m, 28, 10)}
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(m.name)}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${escHtml(shortRole(m.role) || m.role)}</div>
+          </div>
+          <svg style="margin-left:auto;flex-shrink:0;color:var(--text-muted);opacity:.5" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </td>
+      ${cells}
+    </tr>`;
+  }).join('');
+
+  // ── Team avg footer row ───────────────────────────────────────────────────────
+  const avgCells = valueAvgs.map(avg => {
+    if (avg === null) return `<td style="padding:8px 14px;text-align:center"><span style="color:#CBD5E1;font-size:11px">—</span></td>`;
+    const rc = CV_RATING_CONFIG[Math.round(avg)];
+    return `<td style="padding:8px 14px;text-align:center">
+      <span style="font-size:12px;font-weight:700;color:${rc?.color || 'var(--text-muted)'}">${avg.toFixed(1)}</span>
+    </td>`;
+  }).join('');
+
+  return `
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px">
+        <h1 style="font-size:22px;font-weight:700;color:var(--text);margin:0">Core Values</h1>
+        ${filterBtnHtml}
+      </div>
+
+      ${filteredMembers.length === 0 ? `
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--text-muted)">
+          <div style="font-size:28px;margin-bottom:10px">🔍</div>
+          <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">No people match these filters</div>
+          <button onclick="clearTeamValuesFilters()" style="margin-top:8px;font-size:13px;font-weight:600;color:var(--primary);background:none;border:none;cursor:pointer">Clear filters</button>
+        </div>
+      ` : `
+        ${summaryHtml}
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+          <table style="width:100%;border-collapse:collapse">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border)">
+                <th style="text-align:left;padding:8px 14px;font-size:12px;font-weight:600;color:var(--text-muted);min-width:190px">Person</th>
+                ${valueHeaders}
+              </tr>
+            </thead>
+            <tbody>
+              ${memberRows}
+              <tr style="background:var(--bg);border-top:2px solid var(--border)">
+                <td style="padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Team avg</td>
+                ${avgCells}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `}
+      ${drawerHtml}
+    </div>`;
+}
+
 function renderCoreValues() {
+  // ── Team CV overview when in Directs / Dept view ────────────────────────────
+  const _sp = getSessionProfile();
+  if (_sp?.isManager && !state.managerMode && (state.managerTab || 'team') !== 'me') {
+    const _allProfiles = getProfiles();
+    const _members = (state.managerTab || 'team') === 'dept'
+      ? getSubtreeProfiles(_sp.id, _allProfiles)
+      : _allProfiles.filter(p => p.managerId === _sp.id);
+    return renderTeamCoreValues(_members);
+  }
+
   const profiles = getProfiles();
   const currentProfile = profiles.find(p => p.id === state.profile);
   const allRated = CORE_VALUES_DATA.filter(cv => getValueRating(cv.id).managerRating);
 
+  // Back button when arriving from team CV overview
+  const backBtn = (state.managerMode && state.prevView === 'team-values') ? `
+    <div class="breadcrumb" style="margin-bottom:4px">
+      <button class="back-arrow-btn" onclick="backToTeamValues()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Core Values
+      </button>
+    </div>
+  ` : '';
+
   return `
+    ${backBtn}
     <div class="review-header">
       <div>
         <h1>Core Values</h1>
@@ -7883,6 +8055,10 @@ function render() {
           </button>
 
           ${showTeamOnlyNav ? `
+            <button class="nav-item ${state.view === 'values' || state.view === 'value' ? 'active' : ''}" onclick="navigate('values')">
+              <span class="nav-icon">${icon('heart', 18)}</span>
+              <span>Core Values</span>
+            </button>
             <div class="nav-section-label">Tools</div>
             <button class="nav-item ${['goals','personal-goal','design-goal','growth-theme'].includes(state.view) ? 'active' : ''}" onclick="navigate('goals')">
               <span class="nav-icon">${icon('target', 18)}</span>
@@ -9607,6 +9783,50 @@ function toggleTeamOutreachPersonFilter(id) {
 function clearTeamOutreachFilters() {
   state.teamOutreachRoleFilters = [];
   state.teamOutreachPeopleFilters = [];
+  render();
+}
+
+// ── Values filter functions ───────────────────────────────────────────────────
+function toggleTeamValuesFilterPanel() { state.teamValuesFilterOpen = !state.teamValuesFilterOpen; render(); }
+function toggleTeamValuesRoleFilter(role) {
+  var arr = state.teamValuesRoleFilters || [];
+  state.teamValuesRoleFilters = arr.includes(role) ? arr.filter(r => r !== role) : [...arr, role];
+  render();
+}
+function toggleTeamValuesPersonFilter(id) {
+  var arr = state.teamValuesPeopleFilters || [];
+  state.teamValuesPeopleFilters = arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id];
+  render();
+}
+function clearTeamValuesFilters() {
+  state.teamValuesRoleFilters = [];
+  state.teamValuesPeopleFilters = [];
+  render();
+}
+
+// ── Navigate to a team member's personal CV page from team CV overview ────────
+function viewReportValues(profileId) {
+  const sessionProfile = getSessionProfile();
+  state.managerMode      = true;
+  state.managerProfileId = sessionProfile.id;
+  state.profile          = profileId;
+  localStorage.setItem('dch_current_profile', profileId);
+  state.prevView = 'team-values';
+  state.view     = 'values';
+  render();
+}
+
+// ── Return from member's CV page back to team CV overview ─────────────────────
+function backToTeamValues() {
+  if (state.managerProfileId) {
+    state.profile = state.managerProfileId;
+    localStorage.setItem('dch_current_profile', state.managerProfileId);
+  }
+  state.managerMode      = false;
+  state.managerProfileId = null;
+  state.prevView         = null;
+  // managerTab stays as 'team' or 'dept' — whichever was active
+  state.view = 'values';
   render();
 }
 
