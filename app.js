@@ -1200,6 +1200,9 @@ let state = {
   teamOpenDropdown: '',
   teamSkillsRoleFilter: '',
   teamSkillsCatFilter: '',
+  teamSkillsRoleFilters: [],
+  teamSkillsPeopleFilters: [],
+  teamSkillsFilterOpen: false,
 };
 
 // ============ STORAGE ============
@@ -3809,6 +3812,20 @@ function renderTeamSkillsView(members) {
   const filteredCat = state.teamSkillsCatFilter || '';
   const visibleCats = filteredCat ? categories.filter(c => c === filteredCat) : categories;
 
+  // ── Member filters ──────────────────────────────────────────────────────────
+  const roleFilters   = state.teamSkillsRoleFilters   || [];
+  const peopleFilters = state.teamSkillsPeopleFilters || [];
+  const filteredMembers = members.filter(m => {
+    const roleOk   = roleFilters.length   === 0 || roleFilters.includes(m.role);
+    const personOk = peopleFilters.length === 0 || peopleFilters.includes(m.id);
+    return roleOk && personOk;
+  });
+  const activeFilterCount = roleFilters.length + peopleFilters.length;
+  const filterOpen = !!state.teamSkillsFilterOpen;
+
+  // Unique roles across all (unfiltered) members for the role picker
+  const uniqueRoles = [...new Set(members.map(m => m.role))].sort();
+
   // Pill helper
   const pill = (label, active, onclick) =>
     `<button onclick="${onclick}" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${active ? 'var(--primary)' : 'var(--border)'};background:${active ? 'var(--primary-light)' : 'var(--surface)'};color:${active ? 'var(--primary)' : 'var(--text-muted)'};">${escHtml(label)}</button>`;
@@ -3818,8 +3835,34 @@ function renderTeamSkillsView(members) {
     ...categories.map(cat => { const cc = CATEGORY_CONFIG[cat] || {}; return pill((cc.icon ? cc.icon + ' ' : '') + cat, filteredCat === cat, `setTeamSkillsCat('${escHtml(cat)}')`); })
   ].join('');
 
+  // Filter panel HTML
+  const filterPanel = filterOpen ? `
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
+        <div style="min-width:0">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:7px">Role</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${uniqueRoles.map(role => {
+              const active = roleFilters.includes(role);
+              return `<button onclick="toggleTeamSkillsRoleFilter('${escHtml(role)}')" style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${active ? 'var(--primary)' : 'var(--border)'};background:${active ? 'var(--primary-light)' : 'var(--surface)'};color:${active ? 'var(--primary)' : 'var(--text-muted)'}">${escHtml(role)}</button>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:7px">People</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${members.map(m => {
+            const active = peopleFilters.includes(m.id);
+            return `<button onclick="toggleTeamSkillsPersonFilter('${m.id}')" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${active ? 'var(--primary)' : 'var(--border)'};background:${active ? 'var(--primary-light)' : 'var(--surface)'};color:${active ? 'var(--primary)' : 'var(--text-muted)'}">${avatarHtml(m, 18, 7)}${escHtml(m.name.split(' ')[0])}</button>`;
+          }).join('')}
+        </div>
+      </div>
+      ${activeFilterCount > 0 ? `<div><button onclick="clearTeamSkillsFilters()" style="font-size:12px;font-weight:600;color:var(--primary);background:none;border:none;cursor:pointer;padding:0">✕ Clear filters</button></div>` : ''}
+    </div>` : '';
+
   // Pre-load each member's assessments and expected levels once
-  const memberData = members.map(m => ({
+  const memberData = filteredMembers.map(m => ({
     m,
     assessments: (JSON.parse(localStorage.getItem('dch_data_' + m.id) || '{}')).assessments || {},
     roleData: ROLES_DATA[m.role] || null,
@@ -3886,15 +3929,31 @@ function renderTeamSkillsView(members) {
       <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${escHtml(m.name)}">${escHtml(m.name.split(' ')[0])}</div>
     </th>`).join('');
 
+  const filterBtnStyle = activeFilterCount > 0
+    ? 'display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--primary);background:var(--primary-light);color:var(--primary)'
+    : 'display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text-muted)';
+
   return `
     <div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px">
         <h1 style="font-size:22px;font-weight:700;color:var(--text);margin:0;margin-right:8px">Skills</h1>
         ${catPills}
+        <button onclick="toggleTeamSkillsFilterPanel()" style="${filterBtnStyle}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+          Filter${activeFilterCount > 0 ? ` <span style="background:var(--primary);color:#fff;border-radius:10px;padding:0 5px;font-size:10px">${activeFilterCount}</span>` : ''}
+        </button>
       </div>
+      ${filterPanel}
+      ${memberData.length === 0 ? `
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--text-muted)">
+          <div style="font-size:28px;margin-bottom:10px">🔍</div>
+          <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">No people match these filters</div>
+          <button onclick="clearTeamSkillsFilters()" style="margin-top:8px;font-size:13px;font-weight:600;color:var(--primary);background:none;border:none;cursor:pointer">Clear filters</button>
+        </div>
+      ` : `
       <div style="background:var(--surface);border:1px solid var(--border);border-right:none;border-radius:12px 0 0 12px;overflow:hidden;margin-right:-28px">
         <div style="overflow-x:auto">
-          <table style="border-collapse:collapse;width:100%;table-layout:auto;min-width:${240 + members.length * 72}px">
+          <table style="border-collapse:collapse;width:100%;table-layout:auto;min-width:${240 + filteredMembers.length * 72}px">
             <thead>
               <tr style="border-bottom:2px solid var(--border)">
                 <th style="text-align:left;padding:8px 12px;font-size:12px;font-weight:600;color:var(--text-muted);min-width:240px;position:sticky;left:0;background:var(--surface)">Skill</th>
@@ -3905,6 +3964,7 @@ function renderTeamSkillsView(members) {
           </table>
         </div>
       </div>
+      `}
     </div>`;
 }
 
@@ -9185,6 +9245,22 @@ function clearTeamFilters() {
 }
 function setTeamSkillsRole(role) { state.teamSkillsRoleFilter = role; render(); }
 function setTeamSkillsCat(cat)  { state.teamSkillsCatFilter  = cat;  render(); }
+function toggleTeamSkillsFilterPanel() { state.teamSkillsFilterOpen = !state.teamSkillsFilterOpen; render(); }
+function toggleTeamSkillsRoleFilter(role) {
+  var arr = state.teamSkillsRoleFilters || [];
+  state.teamSkillsRoleFilters = arr.includes(role) ? arr.filter(r => r !== role) : [...arr, role];
+  render();
+}
+function toggleTeamSkillsPersonFilter(id) {
+  var arr = state.teamSkillsPeopleFilters || [];
+  state.teamSkillsPeopleFilters = arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id];
+  render();
+}
+function clearTeamSkillsFilters() {
+  state.teamSkillsRoleFilters = [];
+  state.teamSkillsPeopleFilters = [];
+  render();
+}
 
 // ── Team radar: category averages across all team members ────────────────────
 function renderTeamRadarSVG(size, teamProfiles) {
