@@ -3835,30 +3835,54 @@ function renderTeamSkillsView(members) {
     ...categories.map(cat => { const cc = CATEGORY_CONFIG[cat] || {}; return pill((cc.icon ? cc.icon + ' ' : '') + cat, filteredCat === cat, `setTeamSkillsCat('${escHtml(cat)}')`); })
   ].join('');
 
-  // Filter panel HTML
+  // Filter drawer (fixed overlay)
   const filterPanel = filterOpen ? `
-    <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;flex-direction:column;gap:12px">
-      <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
-        <div style="min-width:0">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:7px">Role</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <div onclick="toggleTeamSkillsFilterPanel()" style="position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:900"></div>
+    <div style="position:fixed;top:0;right:0;height:100vh;width:300px;background:var(--surface);border-left:1px solid var(--border);box-shadow:-4px 0 24px rgba(0,0,0,.12);z-index:901;display:flex;flex-direction:column">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid var(--border);flex-shrink:0">
+        <div style="font-size:15px;font-weight:700;color:var(--text)">Filter</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          ${activeFilterCount > 0 ? `<button onclick="clearTeamSkillsFilters()" style="font-size:12px;font-weight:600;color:var(--primary);background:none;border:none;cursor:pointer;padding:0">Clear all</button>` : ''}
+          <button onclick="toggleTeamSkillsFilterPanel()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;padding:0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+      <!-- Scrollable body -->
+      <div style="flex:1;overflow-y:auto;padding:20px">
+        <!-- Role section -->
+        <div style="margin-bottom:24px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px">Role</div>
+          <div style="display:flex;flex-direction:column;gap:2px">
             ${uniqueRoles.map(role => {
               const active = roleFilters.includes(role);
-              return `<button onclick="toggleTeamSkillsRoleFilter('${escHtml(role)}')" style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${active ? 'var(--primary)' : 'var(--border)'};background:${active ? 'var(--primary-light)' : 'var(--surface)'};color:${active ? 'var(--primary)' : 'var(--text-muted)'}">${escHtml(role)}</button>`;
+              const count = members.filter(m => m.role === role).length;
+              return `<button onclick="toggleTeamSkillsRoleFilter('${escHtml(role)}')" style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:${active ? 'var(--primary-light)' : 'transparent'};color:${active ? 'var(--primary)' : 'var(--text)'};text-align:left;width:100%">
+                <span style="display:flex;align-items:center;gap:8px">
+                  ${active ? `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>` : `<span style="width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border);display:inline-block"></span>`}
+                  ${escHtml(role)}
+                </span>
+                <span style="font-size:11px;font-weight:600;color:var(--text-muted);background:var(--bg);border-radius:10px;padding:1px 7px">${count}</span>
+              </button>`;
+            }).join('')}
+          </div>
+        </div>
+        <!-- People section -->
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px">People</div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            ${members.map(m => {
+              const active = peopleFilters.includes(m.id);
+              return `<button onclick="toggleTeamSkillsPersonFilter('${m.id}')" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:${active ? 'var(--primary-light)' : 'transparent'};color:${active ? 'var(--primary)' : 'var(--text)'};text-align:left;width:100%">
+                ${active ? `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>` : `<span style="width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border);display:inline-block;flex-shrink:0"></span>`}
+                ${avatarHtml(m, 24, 9)}
+                <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(m.name)}</span>
+              </button>`;
             }).join('')}
           </div>
         </div>
       </div>
-      <div>
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:7px">People</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          ${members.map(m => {
-            const active = peopleFilters.includes(m.id);
-            return `<button onclick="toggleTeamSkillsPersonFilter('${m.id}')" style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${active ? 'var(--primary)' : 'var(--border)'};background:${active ? 'var(--primary-light)' : 'var(--surface)'};color:${active ? 'var(--primary)' : 'var(--text-muted)'}">${avatarHtml(m, 18, 7)}${escHtml(m.name.split(' ')[0])}</button>`;
-          }).join('')}
-        </div>
-      </div>
-      ${activeFilterCount > 0 ? `<div><button onclick="clearTeamSkillsFilters()" style="font-size:12px;font-weight:600;color:var(--primary);background:none;border:none;cursor:pointer;padding:0">✕ Clear filters</button></div>` : ''}
     </div>` : '';
 
   // Pre-load each member's assessments and expected levels once
@@ -3935,7 +3959,7 @@ function renderTeamSkillsView(members) {
 
   return `
     <div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px">
         <h1 style="font-size:22px;font-weight:700;color:var(--text);margin:0;margin-right:8px">Skills</h1>
         ${catPills}
         <button onclick="toggleTeamSkillsFilterPanel()" style="${filterBtnStyle}">
@@ -3943,7 +3967,6 @@ function renderTeamSkillsView(members) {
           Filter${activeFilterCount > 0 ? ` <span style="background:var(--primary);color:#fff;border-radius:10px;padding:0 5px;font-size:10px">${activeFilterCount}</span>` : ''}
         </button>
       </div>
-      ${filterPanel}
       ${memberData.length === 0 ? `
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;text-align:center;color:var(--text-muted)">
           <div style="font-size:28px;margin-bottom:10px">🔍</div>
@@ -3965,6 +3988,7 @@ function renderTeamSkillsView(members) {
         </div>
       </div>
       `}
+      ${filterPanel}
     </div>`;
 }
 
