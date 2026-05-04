@@ -4892,10 +4892,9 @@ function renderTeamCoreValues(members) {
   // ── People-as-columns, values-as-rows ────────────────────────────────────────
   const thBase = 'position:sticky;top:0;z-index:2;background:var(--surface);box-shadow:0 2px 0 var(--border)';
   const personHeaders = memberData.map(({ m }) =>
-    `<th style="text-align:center;padding:8px 10px;min-width:110px;${thBase}">
-      <button onclick="viewReportValues('${m.id}')" style="background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:8px;display:flex;flex-direction:column;align-items:center;gap:4px;width:100%" onmouseenter="this.style.background='var(--primary-light)'" onmouseleave="this.style.background='transparent'">
-        ${avatarHtml(m, 28, 10)}
-        <span style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;display:block">${escHtml(m.name.split(' ')[0])}</span>
+    `<th style="text-align:center;padding:8px 10px;min-width:100px;${thBase}">
+      <button onclick="viewReportValues('${m.id}')" style="background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;width:100%" onmouseenter="this.style.background='var(--primary-light)'" onmouseleave="this.style.background='transparent'">
+        <span style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:88px;display:block">${escHtml(m.name.split(' ')[0])}</span>
       </button>
     </th>`
   ).join('');
@@ -4919,8 +4918,8 @@ function renderTeamCoreValues(members) {
       <td style="padding:10px 14px;position:sticky;left:0;z-index:1;background:var(--surface);min-width:160px;white-space:nowrap">
         <span style="font-size:14px;margin-right:6px">${cv.emoji}</span><span style="font-size:13px;font-weight:600;color:var(--text)">${cv.label.split('.')[0].trim()}</span>
       </td>
-      ${cells}
       ${avgCell}
+      ${cells}
     </tr>`;
   }).join('');
 
@@ -4944,8 +4943,8 @@ function renderTeamCoreValues(members) {
             <thead>
               <tr>
                 <th style="text-align:left;padding:8px 14px;font-size:12px;font-weight:600;color:var(--text-muted);min-width:160px;position:sticky;top:0;left:0;z-index:3;background:var(--surface);box-shadow:0 2px 0 var(--border)">Value</th>
-                ${personHeaders}
                 <th style="text-align:center;padding:8px 12px;font-size:12px;font-weight:600;color:var(--text-muted);min-width:80px;background:var(--bg);${thBase}">Team avg</th>
+                ${personHeaders}
               </tr>
             </thead>
             <tbody>
