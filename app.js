@@ -3969,14 +3969,9 @@ function renderTeamSkillsView(members) {
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:24px">
         ${_catAvgList.map(function({cat,cc,avg}){
           var gapStr = avg===null?'—':((avg>0?'+':'')+avg.toFixed(1));
-          var _bw = avg !== null ? Math.min(50, Math.round(Math.abs(avg) / 1.5 * 50)) : 0;
-          var _bl = (avg !== null && avg < 0) ? (50 - _bw) : 50;
           return `<div style="background:var(--surface);border:1px solid ${_cgBorder(avg)};border-radius:10px;padding:12px 14px">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${cc.color||'var(--text-muted)'};margin-bottom:4px">${cc.icon?cc.icon+' ':''}${escHtml(cat)}</div>
-            <div style="font-size:22px;font-weight:800;color:${_cgColor(avg)};margin-bottom:8px">${gapStr}<span style="font-size:11px;font-weight:500;color:var(--text-muted)"> avg gap</span></div>
-            <div style="position:relative;height:4px;background:var(--bg);border-radius:2px;overflow:hidden">
-              ${avg!==null&&avg!==0?`<div style="position:absolute;top:0;height:100%;left:${_bl}%;width:${_bw}%;background:${_cgColor(avg)};border-radius:2px"></div>`:''}
-            </div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${cc.color||'var(--text-muted)'};margin-bottom:6px">${cc.icon?cc.icon+' ':''}${escHtml(cat)}</div>
+            <div style="font-size:22px;font-weight:800;color:${_cgColor(avg)}">${gapStr}<span style="font-size:11px;font-weight:500;color:var(--text-muted)"> avg gap</span></div>
           </div>`;
         }).join('')}
       </div>` : '';
