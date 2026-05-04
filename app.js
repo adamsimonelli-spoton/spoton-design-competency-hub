@@ -4062,14 +4062,28 @@ function renderTeamSkillsView(members) {
       ` : `
       ${summaryHtml}
       <div style="background:var(--surface);border:1px solid var(--border);border-right:none;border-radius:12px 0 0 12px;overflow:clip;margin-right:-28px">
-        <div style="overflow:auto;max-height:calc(100vh - 320px)">
-          <table style="border-collapse:collapse;width:100%;table-layout:auto;min-width:${240 + filteredMembers.length * 72}px">
+        <!-- Sticky header: sticks to #content top; scroll-left synced to body via JS -->
+        <div id="skills-sticky-head" style="position:sticky;top:0;z-index:4;overflow:hidden;background:var(--surface);box-shadow:0 2px 0 var(--border)">
+          <table style="border-collapse:collapse;table-layout:fixed;width:${240 + filteredMembers.length * 72}px">
+            <colgroup>
+              <col style="width:240px">
+              ${filteredMembers.map(() => '<col style="width:72px">').join('')}
+            </colgroup>
             <thead>
               <tr>
-                <th style="text-align:left;padding:8px 12px;font-size:12px;font-weight:600;color:var(--text-muted);min-width:240px;position:sticky;top:0;left:0;z-index:3;background:var(--surface);box-shadow:0 2px 0 var(--border)">Skill</th>
-                ${headerCols}
+                <th style="text-align:left;padding:8px 12px;font-size:12px;font-weight:600;color:var(--text-muted);position:sticky;left:0;z-index:2;background:var(--surface)">Skill</th>
+                ${memberData.map(({ m }) => `<th style="text-align:center;padding:6px 8px;font-size:11px;font-weight:600;color:var(--text-muted)"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${escHtml(m.name)}">${escHtml(m.name.split(' ')[0])}</div></th>`).join('')}
               </tr>
             </thead>
+          </table>
+        </div>
+        <!-- Body: scrolls horizontally; scroll-left mirrored to header via JS -->
+        <div id="skills-body-scroll" style="overflow-x:auto">
+          <table style="border-collapse:collapse;table-layout:fixed;width:${240 + filteredMembers.length * 72}px">
+            <colgroup>
+              <col style="width:240px">
+              ${filteredMembers.map(() => '<col style="width:72px">').join('')}
+            </colgroup>
             <tbody>${tableRows}</tbody>
           </table>
         </div>
@@ -8099,11 +8113,21 @@ function getViewTitle() {
   }
 }
 
+function initStickySkillsHeader() {
+  const head = document.getElementById('skills-sticky-head');
+  const body = document.getElementById('skills-body-scroll');
+  if (!head || !body) return;
+  body.addEventListener('scroll', function () {
+    head.scrollLeft = this.scrollLeft;
+  }, { passive: true });
+}
+
 function render() {
   const app = document.getElementById('app');
   if (!app) return;
-  // After DOM update, init the custom scrollbar thumb size
+  // After DOM update, init the custom scrollbar thumb size and sticky header
   requestAnimationFrame(updateTeamScrollbar);
+  requestAnimationFrame(initStickySkillsHeader);
 
   const profiles = getProfiles();
   const currentProfile = profiles.find(p => p.id === state.profile);
