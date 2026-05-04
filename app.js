@@ -4061,8 +4061,8 @@ function renderTeamSkillsView(members) {
         </div>
       ` : `
       ${summaryHtml}
-      <div style="background:var(--surface);border:1px solid var(--border);border-right:none;border-radius:12px 0 0 12px;overflow:hidden;margin-right:-28px">
-        <div style="overflow-x:auto">
+      <div style="background:var(--surface);border:1px solid var(--border);border-right:none;border-radius:12px 0 0 12px;overflow:clip;margin-right:-28px">
+        <div style="overflow:auto;max-height:calc(100vh - 320px)">
           <table style="border-collapse:collapse;width:100%;table-layout:auto;min-width:${240 + filteredMembers.length * 72}px">
             <thead>
               <tr>
@@ -4956,7 +4956,7 @@ function renderTeamCoreValues(members) {
       : `<td style="padding:10px;text-align:center;background:var(--bg)"><span style="color:#CBD5E1;font-size:11px">—</span></td>`;
     return `<tr style="border-bottom:1px solid var(--border)">
       <td style="padding:10px 14px;position:sticky;left:0;z-index:1;background:var(--surface);min-width:160px;white-space:nowrap">
-        <span style="font-size:14px;margin-right:6px">${cv.emoji}</span><span style="font-size:13px;font-weight:600;color:var(--text)">${cv.label.split('.')[0].trim()}</span>
+        <span style="font-size:13px;font-weight:600;color:var(--text)">${cv.label.split('.')[0].trim()}</span>
       </td>
       ${avgCell}
       ${cells}
