@@ -4120,6 +4120,44 @@ function renderReview() {
 
   const totalAssessed = allSkills.filter(s => d.assessments[s.id]?.managerLevel).length;
 
+  // Summary tiles (computed from full set, not filtered view)
+  const _meTiles = (() => {
+    const all = SKILLS_DATA.skills;
+    let assessed = 0, below = 0, comparable = 0;
+    all.forEach(s => {
+      const a = d.assessments[s.id] || {};
+      if (!a.managerLevel || a.managerLevel === 'Unknown') return;
+      assessed++;
+      const exp = getExpectedLevelForSkill(s.id);
+      if (!exp || exp === 'Unknown') return;
+      comparable++;
+      if (getLevelOrder(a.managerLevel) < getLevelOrder(exp)) below++;
+    });
+    const total = all.length;
+    const asPct = total > 0 ? Math.min(100, Math.round(assessed / total * 100)) : 0;
+    const asOk  = assessed === total && total > 0;
+    const asBar = asOk ? '#059669' : asPct >= 80 ? '#10B981' : asPct >= 50 ? '#F59E0B' : '#EF4444';
+    const blOk  = below === 0 && comparable > 0;
+    return `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px">
+      <div style="background:var(--surface);border:1px solid ${asOk?'#BBF7D0':'var(--border)'};border-radius:12px;padding:14px 18px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:6px">Skills Assessed</div>
+        <div style="font-size:26px;font-weight:800;color:${asOk?'#059669':'var(--text)'};margin-bottom:8px">${assessed}<span style="font-size:14px;font-weight:500;color:var(--text-muted)"> / ${total}</span></div>
+        <div style="height:5px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:${asPct}%;background:${asBar};border-radius:3px"></div></div>
+      </div>
+      <div style="background:var(--surface);border:1px solid ${blOk?'#BBF7D0':below>0?'#FECACA':'var(--border)'};border-radius:12px;padding:14px 18px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:6px">Below Expectations</div>
+        ${blOk
+          ? `<div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+               <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:#F0FDF4;border-radius:50%;border:2px solid #BBF7D0;flex-shrink:0"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+               <span style="font-size:14px;font-weight:600;color:#059669">All clear</span>
+             </div>`
+          : `<div style="font-size:26px;font-weight:800;color:${below>0?'#DC2626':'var(--text-muted)'}">
+               ${below}<span style="font-size:14px;font-weight:500;color:var(--text-muted)"> skill${below!==1?'s':''}</span>
+             </div>`}
+      </div>
+    </div>`;
+  })();
+
   return `
     <div class="review-header">
       <h1>Skills</h1>
@@ -4130,6 +4168,8 @@ function renderReview() {
         ${renderNoteInputCard()}
       </div>
     </div>
+
+    ${_meTiles}
 
     ${renderQuickWinsSection()}
 
@@ -4971,6 +5011,15 @@ function renderCoreValues() {
   const profiles = getProfiles();
   const currentProfile = profiles.find(p => p.id === state.profile);
   const allRated = CORE_VALUES_DATA.filter(cv => getValueRating(cv.id).managerRating);
+  const _cvRatings = CORE_VALUES_DATA.map(cv => getValueRating(cv.id).managerRating).filter(Boolean);
+  const _cvAvg = _cvRatings.length ? _cvRatings.reduce((s, v) => s + v, 0) / _cvRatings.length : null;
+  const _cvAvgRc = _cvAvg ? CV_RATING_CONFIG[Math.round(_cvAvg)] : null;
+  const _cvDots = _cvAvg ? Array.from({length: 5}, (_, i) =>
+    `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${i < Math.round(_cvAvg) ? (_cvAvgRc?.color || '#6B7280') : 'var(--bg)'};border:1.5px solid ${i < Math.round(_cvAvg) ? (_cvAvgRc?.color || '#6B7280') : 'var(--border)'}"></span>`
+  ).join('<span style="display:inline-block;width:3px"></span>') : '';
+  const _cvRatedOk = allRated.length === CORE_VALUES_DATA.length;
+  const _cvRatedPct = CORE_VALUES_DATA.length > 0 ? Math.round(allRated.length / CORE_VALUES_DATA.length * 100) : 0;
+  const _cvRatedBar = _cvRatedOk ? '#059669' : _cvRatedPct >= 50 ? '#F59E0B' : '#EF4444';
 
   // Back button when arriving from team CV overview
   const backBtn = (state.managerMode && state.prevView === 'team-values') ? `
@@ -4985,9 +5034,21 @@ function renderCoreValues() {
   return `
     ${backBtn}
     <div class="review-header">
-      <div>
-        <h1>Core Values</h1>
-        <p>${allRated.length} of ${CORE_VALUES_DATA.length} values rated</p>
+      <h1>Core Values</h1>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px">
+      <div style="background:var(--surface);border:1px solid ${_cvRatedOk?'#BBF7D0':'var(--border)'};border-radius:12px;padding:16px 20px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">Rated</div>
+        <div style="font-size:28px;font-weight:800;color:${_cvRatedOk?'#059669':'var(--text)'};margin-bottom:10px">${allRated.length}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / ${CORE_VALUES_DATA.length}</span></div>
+        <div style="height:5px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:${_cvRatedPct}%;background:${_cvRatedBar};border-radius:3px"></div></div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">Avg Rating</div>
+        ${_cvAvg
+          ? `<div style="font-size:28px;font-weight:800;color:${_cvAvgRc?.color||'var(--text)'};margin-bottom:10px">${_cvAvg.toFixed(1)}<span style="font-size:14px;font-weight:500;color:var(--text-muted)"> · ${_cvAvgRc?.short||''}</span></div>
+             <div style="display:flex;align-items:center;gap:3px">${_cvDots}</div>`
+          : `<div style="font-size:24px;font-weight:800;color:var(--text-muted)">—</div>`}
       </div>
     </div>
 
