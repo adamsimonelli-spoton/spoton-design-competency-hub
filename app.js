@@ -3832,11 +3832,14 @@ function renderTeamSkillsView(members) {
   // Unique roles across all (unfiltered) members for the role picker
   const uniqueRoles = [...new Set(members.map(m => m.role))].sort();
 
-  // Category dropdown
-  const catDropdown = `<select onchange="setTeamSkillsCat(this.value)" style="padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${filteredCat ? 'var(--primary)' : 'var(--border)'};background:${filteredCat ? 'var(--primary-light)' : 'var(--surface)'};color:${filteredCat ? 'var(--primary)' : 'var(--text)'};outline:none;font-family:inherit">
-    <option value="">All Categories</option>
-    ${categories.map(cat => { const cc = CATEGORY_CONFIG[cat] || {}; return `<option value="${escHtml(cat)}"${filteredCat === cat ? ' selected' : ''}>${cc.icon ? cc.icon + ' ' : ''}${escHtml(cat)}</option>`; }).join('')}
-  </select>`;
+  // Category pills
+  const pill = (label, active, onclick) =>
+    `<button onclick="${onclick}" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${active ? 'var(--primary)' : 'var(--border)'};background:${active ? 'var(--primary-light)' : 'var(--surface)'};color:${active ? 'var(--primary)' : 'var(--text-muted)'};">${escHtml(label)}</button>`;
+
+  const catPills = [
+    pill('All', !filteredCat, "setTeamSkillsCat('')"),
+    ...categories.map(cat => { const cc = CATEGORY_CONFIG[cat] || {}; return pill((cc.icon ? cc.icon + ' ' : '') + cat, filteredCat === cat, `setTeamSkillsCat('${escHtml(cat)}')`); })
+  ].join('');
 
   // Filter drawer (fixed overlay)
   const filterPanel = filterOpen ? `
@@ -3962,9 +3965,11 @@ function renderTeamSkillsView(members) {
 
   return `
     <div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px">
-        <h1 style="font-size:22px;font-weight:700;color:var(--text);margin:0;margin-right:8px">Skills</h1>
-        ${catDropdown}
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <h1 style="font-size:22px;font-weight:700;color:var(--text);margin:0;margin-right:4px">Skills</h1>
+          ${catPills}
+        </div>
         <button onclick="toggleTeamSkillsFilterPanel()" style="${filterBtnStyle}">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
           Filter${activeFilterCount > 0 ? ` <span style="background:var(--primary);color:#fff;border-radius:10px;padding:0 5px;font-size:10px">${activeFilterCount}</span>` : ''}
