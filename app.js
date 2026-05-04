@@ -3902,6 +3902,67 @@ function renderTeamSkillsView(members) {
     customExpected: JSON.parse(localStorage.getItem('dch_expected_' + m.id) || 'null') || {}
   }));
 
+  // ── Team summary stats ────────────────────────────────────────────────────────
+  // Always computed across ALL skills (ignores category pill filter) so the overview
+  // reflects the team's full health, not just the currently visible category.
+  {
+    var _allSk = SKILLS_DATA.skills;
+    var _assessed = 0, _comparable = 0, _aboveMeet = 0, _below = 0;
+    var _membersOT = 0, _membersFocus = 0;
+    var _cg = {};
+    categories.forEach(function(cat){ _cg[cat] = {s:0,n:0}; });
+
+    memberData.forEach(function({ assessments, roleData, customExpected }) {
+      var mS=0, mN=0, mLow=false;
+      _allSk.forEach(function(skill){
+        var asmnt = assessments[skill.id] || {};
+        var level = asmnt.managerLevel || asmnt.selfLevel || '';
+        if (!level || level==='Unknown') return;
+        _assessed++;
+        var expLevel = customExpected[skill.id] || (roleData?.skills?.[skill.id]) || null;
+        if (!expLevel || expLevel==='Unknown') return;
+        var gap = getLevelOrder(level) - getLevelOrder(expLevel);
+        _comparable++; mS+=gap; mN++;
+        if (gap>=0) _aboveMeet++; else { _below++; mLow=true; }
+        if (_cg[skill.category]) { _cg[skill.category].s+=gap; _cg[skill.category].n++; }
+      });
+      if (mN>0 && mS/mN>=0) _membersOT++;
+      if (mLow) _membersFocus++;
+    });
+
+    var _totalPoss = memberData.length * _allSk.length;
+    var _catAvgList = categories.map(function(cat){
+      var d=_cg[cat]; return { cat, cc: CATEGORY_CONFIG[cat]||{}, avg: d.n ? d.s/d.n : null };
+    });
+
+    var _cgColor = function(a){ return a===null?'var(--text-muted)':a>=1?'#059669':a>=0?'#10B981':a>=-1?'#EF4444':'#991B1B'; };
+    var _cgBorder= function(a){ return a===null?'var(--border)':a>=0?'#BBF7D0':'#FECACA'; };
+    var _stile = function(label,val,sub,ok){
+      return `<div style="background:var(--surface);border:1px solid ${ok?'#BBF7D0':'var(--border)'};border-radius:12px;padding:14px 18px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:6px">${label}</div>
+        <div style="font-size:26px;font-weight:800;color:${ok?'var(--green)':'var(--text)'}">
+          ${val}<span style="font-size:14px;font-weight:500;color:var(--text-muted)"> ${sub}</span>
+        </div>
+      </div>`;
+    };
+
+    var summaryHtml = memberData.length > 0 ? `
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:10px">
+        ${_stile('Skills Assessed',   _assessed,       '/ '+_totalPoss,    _assessed===_totalPoss&&_totalPoss>0)}
+        ${_stile('Meeting or Exceeding', _membersOT,   '/ '+memberData.length, _membersOT===memberData.length&&memberData.length>0)}
+        ${_stile('Below Expectations',  _membersFocus, _membersFocus>0 ? 'member'+(Math.abs(_membersFocus)!==1?'s':'') : '—', _membersFocus===0&&_comparable>0)}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:24px">
+        ${_catAvgList.map(function({cat,cc,avg}){
+          var gapStr = avg===null?'—':((avg>0?'+':'')+avg.toFixed(1));
+          return `<div style="background:var(--surface);border:1px solid ${_cgBorder(avg)};border-radius:10px;padding:12px 14px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${cc.color||'var(--text-muted)'};margin-bottom:6px">${cc.icon?cc.icon+' ':''}${escHtml(cat)}</div>
+            <div style="font-size:22px;font-weight:800;color:${_cgColor(avg)}">${gapStr}<span style="font-size:11px;font-weight:500;color:var(--text-muted)"> avg gap</span></div>
+          </div>`;
+        }).join('')}
+      </div>` : '';
+  }
+
   const colSpan = 1 + memberData.length;
 
   // Heat map cell
@@ -3985,6 +4046,7 @@ function renderTeamSkillsView(members) {
           <button onclick="clearTeamSkillsFilters()" style="margin-top:8px;font-size:13px;font-weight:600;color:var(--primary);background:none;border:none;cursor:pointer">Clear filters</button>
         </div>
       ` : `
+      ${summaryHtml}
       <div style="background:var(--surface);border:1px solid var(--border);border-right:none;border-radius:12px 0 0 12px;overflow:hidden;margin-right:-28px">
         <div style="overflow-x:auto">
           <table style="border-collapse:collapse;width:100%;table-layout:auto;min-width:${240 + filteredMembers.length * 72}px">

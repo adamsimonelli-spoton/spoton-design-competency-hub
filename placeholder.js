@@ -1,14 +1,15 @@
 // ============================================================
 //  placeholder.js — Realistic seed data for all org members
 //  • Only runs once (versioned via dch_placeholder_v)
-//  • Never overwrites a profile that already has assessment data
+//  • Never overwrites a profile that already has data
 //  • Bump PLACEHOLDER_VERSION to re-seed on next page load
 // ============================================================
 (function () {
-  var PLACEHOLDER_VERSION = 1;
+  var PLACEHOLDER_VERSION = 2;
   if (parseInt(localStorage.getItem('dch_placeholder_v') || '0') >= PLACEHOLDER_VERSION) return;
 
   var L='Learner', C='Contributor', I='Independent', E='Expert';
+  var NS='not_started', IP='in_progress', OT='on_track', AR='at_risk', CP='completed';
 
   // Skill ID arrays (must match app.js _JS / _PM / _CO / _IN order)
   var JS = ['job_skills_1','job_skills_2','job_skills_3','job_skills_4','job_skills_5','job_skills_6','job_skills_7','job_skills_8','job_skills_9','job_skills_10','job_skills_11','job_skills_12','job_skills_13','job_skills_14','job_skills_15','job_skills_16','job_skills_17','job_skills_18','job_skills_19','job_skills_20','job_skills_21','job_skills_22','job_skills_23','job_skills_24'];
@@ -23,9 +24,13 @@
     Expert:      'Clear standout strength — sets the standard for the team.'
   };
 
-  function seed(id, js, pm, co, inf, ratings, accomplishments, improvements) {
-    // Skills — skip if already populated
+  // cv: [empathy, teamwork, agility, humility]  (1–5, matches CV_RATING_CONFIG)
+  // goals: [dtg_1 status, dtg_2 status, dtg_3 status]
+  function seed(id, js, pm, co, inf, ratings, accomplishments, improvements, cv, goals) {
     var existing = JSON.parse(localStorage.getItem('dch_data_' + id) || '{}');
+    var changed = false;
+
+    // Skills — skip if already populated
     if (!existing.assessments || Object.keys(existing.assessments).length === 0) {
       var assessments = {};
       var date = '2026-01-15T00:00:00.000Z';
@@ -33,13 +38,33 @@
       var levels = js.concat(pm, co, inf);
       ids.forEach(function (sid, i) {
         var lv = levels[i];
-        if (lv) {
-          assessments[sid] = { managerLevel: lv, selfLevel: lv, evidence: EVIDENCE[lv] || '', goals: '', lastUpdated: date };
-        }
+        if (lv) assessments[sid] = { managerLevel:lv, selfLevel:lv, evidence:EVIDENCE[lv]||'', goals:'', lastUpdated:date };
       });
       existing.assessments = assessments;
-      localStorage.setItem('dch_data_' + id, JSON.stringify(existing));
+      changed = true;
     }
+
+    // Core values — skip if already populated
+    if (cv && (!existing.coreValues || Object.keys(existing.coreValues).length === 0)) {
+      existing.coreValues = {};
+      ['empathy','teamwork','agility','humility'].forEach(function (cvId, i) {
+        if (cv[i]) existing.coreValues[cvId] = { managerRating:cv[i], notes:'', lastUpdated:'2026-01-15T00:00:00.000Z' };
+      });
+      changed = true;
+    }
+
+    // Goal contributions — skip if already populated
+    if (goals && (!existing.goalContributions || Object.keys(existing.goalContributions).length === 0)) {
+      existing.goalContributions = {
+        dtg_1: { status: goals[0] },
+        dtg_2: { status: goals[1] },
+        dtg_3: { status: goals[2] }
+      };
+      changed = true;
+    }
+
+    if (changed) localStorage.setItem('dch_data_' + id, JSON.stringify(existing));
+
     // Performance review — skip if already populated
     if (!localStorage.getItem('dch_review_' + id) && ratings) {
       var cats = Object.keys(ratings);
@@ -53,6 +78,32 @@
           improvements: improvements || []
         }
       }));
+    }
+  }
+
+  // ── Outreach helpers ─────────────────────────────────────────────────────────
+  var MERCH = [
+    'Main Street Grille','Harbor View Restaurant','Metro Coffee Co',
+    'Coastal Bistro','Downtown Diner','Park Ave Eatery',
+    'Lake Shore Bar & Kitchen','Hillside Tavern','Sunrise Cafe',
+    'The Local Pub','Riverview Steakhouse','Summit Brewing Co',
+    'Bay Area Bistro','Oak Street Kitchen','The Garden Table',
+    'Corner Market Deli','Blue Fin Sushi','Westside Grill'
+  ];
+  // oe(profileShortKey, n, month "04"/"05", day string "08", type "general"/"hve")
+  function oe(pk, n, mo, d, type) {
+    return {
+      id: 'ph_'+pk+'_'+n,
+      date: '2026-'+mo+'-'+d,
+      merchant: MERCH[(n*7 + pk.length) % MERCH.length],
+      type: type || 'general',
+      notes: '',
+      dovetailUrl: ''
+    };
+  }
+  function seedOutreach(id, entries) {
+    if (entries && entries.length > 0 && !localStorage.getItem('dch_outreach_' + id)) {
+      localStorage.setItem('dch_outreach_' + id, JSON.stringify({ entries: entries }));
     }
   }
 
@@ -73,8 +124,12 @@
     ]}],
     [{ headline: 'Develop stronger research fluency', bullets: [
       'Push to lead at least one moderated study independently this half.'
-    ]}]
+    ]}],
+    [3,3,3,4], [IP,IP,NS]
   );
+  seedOutreach('p_gvazquez_001', [
+    oe('gv',1,'04','15','general'), oe('gv',2,'04','29','general')
+  ]);
 
   // Aleksandra Chełkowski — PD, Cam's team. Systems thinker, developing in facilitation.
   seed('p_achelko_001',
@@ -89,8 +144,12 @@
     ]}],
     [{ headline: 'Build facilitation and workshop skills', bullets: [
       'Co-facilitate one design workshop with a senior designer this quarter.'
-    ]}]
+    ]}],
+    [4,3,3,3], [IP,IP,IP]
   );
+  seedOutreach('p_achelko_001', [
+    oe('ac',1,'04','22','general')
+  ]);
 
   // Fernanda Nocedal — PD, Marina's team. Newer to role, broad learning phase.
   seed('p_fnocedal_001',
@@ -105,8 +164,10 @@
     ]}],
     [{ headline: 'Strengthen research and synthesis skills', bullets: [
       'Lead one discovery task end-to-end this half with manager support.'
-    ]}]
+    ]}],
+    [3,3,3,3], [IP,NS,NS]
   );
+  // Fernanda: no outreach entries yet (new to role)
 
   // Mark Banzhoff — PD, Marina's team. Detail-oriented, strong quality focus.
   seed('p_mbanzhoff_001',
@@ -121,8 +182,12 @@
     ]}],
     [{ headline: 'Grow strategic thinking and communication', bullets: [
       'Push beyond delivery into shaping the "why" behind design decisions in reviews.'
-    ]}]
+    ]}],
+    [3,4,3,3], [OT,IP,IP]
   );
+  seedOutreach('p_mbanzhoff_001', [
+    oe('mb',1,'04','12','general'), oe('mb',2,'04','26','general'), oe('mb',3,'05','02','general')
+  ]);
 
   // Jonas Alvarez — PD, Mario's team. Strong prototyper, developing in strategy.
   seed('p_jalvarez_001',
@@ -137,8 +202,12 @@
     ]}],
     [{ headline: 'Develop systems thinking and strategic framing', bullets: [
       'Begin connecting individual features to the larger end-to-end experience.'
-    ]}]
+    ]}],
+    [3,3,4,3], [IP,IP,NS]
   );
+  seedOutreach('p_jalvarez_001', [
+    oe('ja',1,'04','20','general'), oe('ja',2,'05','01','general')
+  ]);
 
   // ══════════════════════════════════════════════════════════════════════════════
   //  SENIOR PRODUCT DESIGNERS
@@ -160,8 +229,13 @@
     ]}],
     [{ headline: 'Expand strategic and leadership contribution', bullets: [
       'Begin shaping design direction upstream and mentoring junior designers on craft.'
-    ]}]
+    ]}],
+    [4,4,4,4], [OT,OT,IP]
   );
+  seedOutreach('p_pfisher_001', [
+    oe('pf',1,'04','08','general'), oe('pf',2,'04','22','general'),
+    oe('pf',3,'05','01','hve'),     oe('pf',4,'05','03','general')
+  ]);
 
   // Kirsten Gale — Senior PD, Cam's team. Strong facilitator, developing in influence.
   seed('p_kgale_001',
@@ -178,8 +252,13 @@
     ]}],
     [{ headline: 'Deepen team care and relationship building', bullets: [
       'Invest in 1:1 peer relationships; currently seen as capable but sometimes distant in team settings.'
-    ]}]
+    ]}],
+    [3,4,4,3], [OT,OT,OT]
   );
+  seedOutreach('p_kgale_001', [
+    oe('kg',1,'04','05','general'), oe('kg',2,'04','19','general'),
+    oe('kg',3,'04','28','general'), oe('kg',4,'05','02','hve')
+  ]);
 
   // Barbara Jura — Senior PD, Marina's team. Detail-oriented, strong delivery.
   seed('p_bjura_001',
@@ -196,8 +275,12 @@
     ]}],
     [{ headline: 'Increase accountability for end-to-end outcomes', bullets: [
       'Push beyond delivery craft into proactively flagging risks and owning outcomes, not just outputs.'
-    ]}]
+    ]}],
+    [4,4,3,4], [AR,IP,NS]
   );
+  seedOutreach('p_bjura_001', [
+    oe('bj',1,'04','18','general')
+  ]);
 
   // Shannon Ling — Senior PD, Marina's team. Well-rounded, exceptional collaborator.
   seed('p_sling_001',
@@ -215,8 +298,13 @@
     ]}],
     [{ headline: 'Push into expert territory', bullets: [
       'Currently meeting expectations broadly — identify one discipline to go deep on and exceed expectations.'
-    ]}]
+    ]}],
+    [5,4,3,4], [OT,OT,OT]
   );
+  seedOutreach('p_sling_001', [
+    oe('sl',1,'04','10','general'), oe('sl',2,'04','24','hve'),
+    oe('sl',3,'05','01','general'), oe('sl',4,'05','04','hve')
+  ]);
 
   // Martin Pech — Senior PD, Mario's team. Expert visual craft, developing in influence.
   seed('p_martinpech_001',
@@ -233,8 +321,12 @@
     ]}],
     [{ headline: 'Build strategic voice and cross-team influence', bullets: [
       'Begin contributing to design direction, not just execution. Push design rationale into reviews more frequently and confidently.'
-    ]}]
+    ]}],
+    [3,3,4,3], [IP,IP,AR]
   );
+  seedOutreach('p_martinpech_001', [
+    oe('mp',1,'04','10','general'), oe('mp',2,'04','24','general')
+  ]);
 
   // Anna Karlińska — Senior PD, Mario's team. Strong systems thinker, approaching principal.
   seed('p_akarlinska_001',
@@ -252,16 +344,19 @@
     ]}],
     [{ headline: 'Stretch into formal mentorship and org-level visibility', bullets: [
       'Begin mentoring a PD on the team. Your strategic thinking is not yet visible outside Mario\'s squad — raise your voice in cross-team forums.'
-    ]}]
+    ]}],
+    [4,4,5,4], [OT,CP,OT]
   );
+  seedOutreach('p_akarlinska_001', [
+    oe('ak',1,'04','03','general'), oe('ak',2,'04','17','general'),
+    oe('ak',3,'05','01','hve'),     oe('ak',4,'05','04','general')
+  ]);
 
   // ══════════════════════════════════════════════════════════════════════════════
   //  UX RESEARCHER
   // ══════════════════════════════════════════════════════════════════════════════
 
   // Brie James — UX Researcher, Adam's team. Expert researcher, developing visual craft.
-  // Note: UX Researcher role has N (no expectation) for several visual/craft skills —
-  // assessments are still set for context but will show — in the team heatmap.
   seed('p_briejames_001',
     [I,I,I,I,I,I,I,I,I,I,I,C,I,L,C,L,C,C,C,L,C,C,L,I], // DS ×24
     [I,C,I,C,C],                                           // PM ×5
@@ -277,8 +372,13 @@
     ]}],
     [{ headline: 'Expand strategic influence and design partnership', bullets: [
       'Push research findings further upstream into product strategy conversations. Partner with design earlier to shape concepts, not just validate them.'
-    ]}]
+    ]}],
+    [4,4,4,3], [IP,OT,OT]
   );
+  seedOutreach('p_briejames_001', [
+    oe('br',1,'04','14','general'), oe('br',2,'04','28','general'),
+    oe('br',3,'05','02','hve'),     oe('br',4,'05','04','general')
+  ]);
 
   // ══════════════════════════════════════════════════════════════════════════════
   //  PRINCIPALS
@@ -300,8 +400,13 @@
     ]}],
     [{ headline: 'Increase organizational visibility', bullets: [
       'Begin presenting strategic recommendations at leadership level — current impact is under-visible outside the design org.'
-    ]}]
+    ]}],
+    [4,4,5,4], [OT,OT,OT]
   );
+  seedOutreach('p_paulina_001', [
+    oe('pa',1,'04','07','general'), oe('pa',2,'04','21','general'),
+    oe('pa',3,'05','01','general'), oe('pa',4,'05','03','hve')
+  ]);
 
   // Julia Church — Principal Design Strategist, Nicole's direct.
   seed('p_julia_001',
@@ -319,8 +424,13 @@
     ]}],
     [{ headline: 'Delivery pace', bullets: [
       'Strategic work is exceptional but at times slow to materialize into artifacts. Set clearer output milestones to maintain exec confidence.'
-    ]}]
+    ]}],
+    [5,5,5,5], [OT,CP,CP]
   );
+  seedOutreach('p_julia_001', [
+    oe('jc',1,'04','09','general'), oe('jc',2,'04','23','general'),
+    oe('jc',3,'04','30','general'), oe('jc',4,'05','02','hve')
+  ]);
 
   // ══════════════════════════════════════════════════════════════════════════════
   //  MANAGERS
@@ -342,8 +452,13 @@
     ]}],
     [{ headline: 'Deepen team performance management', bullets: [
       'Development gaps in mid-tenured reports are going unaddressed. Raise coaching frequency and specificity of feedback.'
-    ]}]
+    ]}],
+    [4,4,3,4], [OT,OT,IP]
   );
+  seedOutreach('p_cam_001', [
+    oe('ca',1,'04','11','general'), oe('ca',2,'04','25','general'),
+    oe('ca',3,'05','01','hve'),     oe('ca',4,'05','04','general')
+  ]);
 
   // Mario Ayerbe — Product Design Manager, Nicole's direct.
   seed('p_mario_001',
@@ -361,8 +476,13 @@
     ]}],
     [{ headline: 'Build strategic influence at the org level', bullets: [
       'Mario is exceptional at execution but not yet shaping design direction org-wide. Contribute to cross-manager initiatives and design org strategy conversations.'
-    ]}]
+    ]}],
+    [4,4,4,4], [OT,OT,OT]
   );
+  seedOutreach('p_mario_001', [
+    oe('ma',1,'04','08','general'), oe('ma',2,'04','22','general'),
+    oe('ma',3,'05','02','general'), oe('ma',4,'05','04','hve')
+  ]);
 
   // Marina Beric — Director of Product Design, Nicole's direct.
   seed('p_marina_001',
@@ -381,8 +501,13 @@
     ]}],
     [{ headline: 'Deepen informal connection with the team', bullets: [
       'Marina leads with exceptional clarity and accountability. Small investments in informal relationship-building would increase trust further.'
-    ]}]
+    ]}],
+    [4,5,4,4], [CP,OT,OT]
   );
+  seedOutreach('p_marina_001', [
+    oe('mr',1,'04','04','general'), oe('mr',2,'04','18','general'),
+    oe('mr',3,'04','30','general'), oe('mr',4,'05','03','hve')
+  ]);
 
   localStorage.setItem('dch_placeholder_v', String(PLACEHOLDER_VERSION));
 })();
