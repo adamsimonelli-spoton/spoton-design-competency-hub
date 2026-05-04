@@ -3937,27 +3937,46 @@ function renderTeamSkillsView(members) {
 
     var _cgColor = function(a){ return a===null?'var(--text-muted)':a>=1?'#059669':a>=0?'#10B981':a>=-1?'#EF4444':'#991B1B'; };
     var _cgBorder= function(a){ return a===null?'var(--border)':a>=0?'#BBF7D0':'#FECACA'; };
-    var _stile = function(label,val,sub,ok){
+    var _stile = function(label, val, total, ok) {
+      var pct = total > 0 ? Math.min(100, Math.round(val / total * 100)) : 0;
+      var barColor = ok ? '#059669' : pct >= 80 ? '#10B981' : pct >= 50 ? '#F59E0B' : '#EF4444';
       return `<div style="background:var(--surface);border:1px solid ${ok?'#BBF7D0':'var(--border)'};border-radius:12px;padding:14px 18px">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:6px">${label}</div>
-        <div style="font-size:26px;font-weight:800;color:${ok?'var(--green)':'var(--text)'}">
-          ${val}<span style="font-size:14px;font-weight:500;color:var(--text-muted)"> ${sub}</span>
-        </div>
+        <div style="font-size:26px;font-weight:800;color:${ok?'#059669':'var(--text)'};margin-bottom:8px">${val}<span style="font-size:14px;font-weight:500;color:var(--text-muted)"> / ${total}</span></div>
+        <div style="height:5px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px"></div></div>
+      </div>`;
+    };
+    var _stileWarn = function(label, val, ok) {
+      return `<div style="background:var(--surface);border:1px solid ${ok?'#BBF7D0':val>0?'#FECACA':'var(--border)'};border-radius:12px;padding:14px 18px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:6px">${label}</div>
+        ${ok
+          ? `<div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+               <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:#F0FDF4;border-radius:50%;border:2px solid #BBF7D0;flex-shrink:0"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+               <span style="font-size:14px;font-weight:600;color:#059669">All clear</span>
+             </div>`
+          : `<div style="font-size:26px;font-weight:800;color:${val>0?'#DC2626':'var(--text-muted)'}">
+               ${val}<span style="font-size:14px;font-weight:500;color:var(--text-muted)"> member${val!==1?'s':''}</span>
+             </div>`}
       </div>`;
     };
 
     var summaryHtml = memberData.length > 0 ? `
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:10px">
-        ${_stile('Skills Assessed',   _assessed,       '/ '+_totalPoss,    _assessed===_totalPoss&&_totalPoss>0)}
-        ${_stile('Meeting or Exceeding', _membersOT,   '/ '+memberData.length, _membersOT===memberData.length&&memberData.length>0)}
-        ${_stile('Below Expectations',  _membersFocus, _membersFocus>0 ? 'member'+(Math.abs(_membersFocus)!==1?'s':'') : '—', _membersFocus===0&&_comparable>0)}
+        ${_stile('Skills Assessed', _assessed, _totalPoss, _assessed===_totalPoss&&_totalPoss>0)}
+        ${_stile('Meeting or Exceeding', _membersOT, memberData.length, _membersOT===memberData.length&&memberData.length>0)}
+        ${_stileWarn('Below Expectations', _membersFocus, _membersFocus===0&&_comparable>0)}
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:24px">
         ${_catAvgList.map(function({cat,cc,avg}){
           var gapStr = avg===null?'—':((avg>0?'+':'')+avg.toFixed(1));
+          var _bw = avg !== null ? Math.min(50, Math.round(Math.abs(avg) / 1.5 * 50)) : 0;
+          var _bl = (avg !== null && avg < 0) ? (50 - _bw) : 50;
           return `<div style="background:var(--surface);border:1px solid ${_cgBorder(avg)};border-radius:10px;padding:12px 14px">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${cc.color||'var(--text-muted)'};margin-bottom:6px">${cc.icon?cc.icon+' ':''}${escHtml(cat)}</div>
-            <div style="font-size:22px;font-weight:800;color:${_cgColor(avg)}">${gapStr}<span style="font-size:11px;font-weight:500;color:var(--text-muted)"> avg gap</span></div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${cc.color||'var(--text-muted)'};margin-bottom:4px">${cc.icon?cc.icon+' ':''}${escHtml(cat)}</div>
+            <div style="font-size:22px;font-weight:800;color:${_cgColor(avg)};margin-bottom:8px">${gapStr}<span style="font-size:11px;font-weight:500;color:var(--text-muted)"> avg gap</span></div>
+            <div style="position:relative;height:4px;background:var(--bg);border-radius:2px;overflow:hidden">
+              ${avg!==null&&avg!==0?`<div style="position:absolute;top:0;height:100%;left:${_bl}%;width:${_bw}%;background:${_cgColor(avg)};border-radius:2px"></div>`:''}
+            </div>
           </div>`;
         }).join('')}
       </div>` : '';
@@ -4832,28 +4851,46 @@ function renderTeamCoreValues(members) {
   });
 
   // ── Summary tiles ─────────────────────────────────────────────────────────────
-  const tile = (label, value, sub, ok) => `
-    <div style="background:var(--surface);border:1px solid ${ok ? '#BBF7D0' : 'var(--border)'};border-radius:12px;padding:16px 20px">
+  const tile = (label, val, total, ok) => {
+    const pct = total > 0 ? Math.min(100, Math.round(val / total * 100)) : 0;
+    const barColor = ok ? '#059669' : pct >= 80 ? '#10B981' : pct >= 50 ? '#F59E0B' : '#EF4444';
+    return `<div style="background:var(--surface);border:1px solid ${ok ? '#BBF7D0' : 'var(--border)'};border-radius:12px;padding:16px 20px">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">${label}</div>
-      <div style="font-size:28px;font-weight:800;color:${ok ? 'var(--green)' : 'var(--text)'}">
-        ${value}<span style="font-size:15px;font-weight:500;color:var(--text-muted)">${sub}</span>
-      </div>
+      <div style="font-size:28px;font-weight:800;color:${ok ? '#059669' : 'var(--text)'};margin-bottom:10px">${val}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / ${total}</span></div>
+      <div style="height:5px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px"></div></div>
+    </div>`;
+  };
+  const tileWarn = (label, val, ok) => `
+    <div style="background:var(--surface);border:1px solid ${ok ? '#BBF7D0' : val > 0 ? '#FECACA' : 'var(--border)'};border-radius:12px;padding:16px 20px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">${label}</div>
+      ${ok
+        ? `<div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+             <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:#F0FDF4;border-radius:50%;border:2px solid #BBF7D0;flex-shrink:0"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+             <span style="font-size:14px;font-weight:600;color:#059669">All clear</span>
+           </div>`
+        : `<div style="font-size:28px;font-weight:800;color:${val > 0 ? '#DC2626' : 'var(--text-muted)'}">
+             ${val}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> member${val !== 1 ? 's' : ''}</span>
+           </div>`}
     </div>`;
 
   const avgRc = overallAvg ? CV_RATING_CONFIG[Math.round(overallAvg)] : null;
+  const avgDots = overallAvg ? Array.from({length: 5}, (_, i) =>
+    `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${i < Math.round(overallAvg) ? (avgRc?.color || '#6B7280') : 'var(--bg)'};border:1.5px solid ${i < Math.round(overallAvg) ? (avgRc?.color || '#6B7280') : 'var(--border)'}"></span>`
+  ).join('<span style="display:inline-block;width:3px"></span>') : '';
   const avgTile = `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">Avg Rating</div>
       ${overallAvg
-        ? `<div style="font-size:28px;font-weight:800;color:${avgRc?.color || 'var(--text)'}">${overallAvg.toFixed(1)}<span style="font-size:14px;font-weight:500;color:var(--text-muted)"> / 5 · ${avgRc?.short || ''}</span></div>`
+        ? `<div style="font-size:28px;font-weight:800;color:${avgRc?.color || 'var(--text)'};margin-bottom:10px">${overallAvg.toFixed(1)}<span style="font-size:14px;font-weight:500;color:var(--text-muted)"> · ${avgRc?.short || ''}</span></div>
+           <div style="display:flex;align-items:center;gap:3px">${avgDots}</div>`
         : `<div style="font-size:24px;font-weight:800;color:var(--text-muted)">—</div>`}
     </div>`;
 
   const summaryHtml = `
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">
-      ${tile('Fully Assessed',  fullyRatedCount,       ` / ${filteredMembers.length}`, fullyRatedCount === filteredMembers.length && filteredMembers.length > 0)}
-      ${tile('Meets or Above',  meetsOrAboveCount,     ` / ${filteredMembers.length}`, meetsOrAboveCount === filteredMembers.length && filteredMembers.length > 0)}
-      ${tile('Needs Attention', needsAttentionCount,   needsAttentionCount > 0 ? ` member${needsAttentionCount !== 1 ? 's' : ''}` : '', needsAttentionCount === 0 && totalEntered > 0)}
+      ${tile('Fully Assessed',  fullyRatedCount,   filteredMembers.length, fullyRatedCount === filteredMembers.length && filteredMembers.length > 0)}
+      ${tile('Meets or Above',  meetsOrAboveCount, filteredMembers.length, meetsOrAboveCount === filteredMembers.length && filteredMembers.length > 0)}
+      ${tileWarn('Needs Attention', needsAttentionCount, needsAttentionCount === 0 && totalEntered > 0)}
       ${avgTile}
     </div>`;
 
@@ -6701,6 +6738,44 @@ function renderTeamGoals(members) {
           <button onclick="clearTeamGoalsFilters()" style="margin-top:8px;font-size:13px;font-weight:600;color:var(--primary);background:none;border:none;cursor:pointer">Clear filters</button>
         </div>
       ` : `
+        ${(function(){
+          const allSt = memberRows.flatMap(({contributions}) =>
+            DESIGN_TEAM_GOALS.map(g => (contributions[g.id] || {}).status || 'not_started')
+          );
+          const totalSl   = allSt.length;
+          const onTrkSl   = allSt.filter(s => s==='on_track'||s==='completed').length;
+          const inProgSl  = allSt.filter(s => s==='in_progress').length;
+          const atRiskSl  = allSt.filter(s => s==='at_risk').length;
+          if (totalSl === 0) return '';
+          const otPct  = Math.min(100, Math.round(onTrkSl / totalSl * 100));
+          const ipPct  = Math.min(100, Math.round(inProgSl / totalSl * 100));
+          const otOk   = onTrkSl === totalSl;
+          const otBar  = otOk ? '#059669' : otPct >= 70 ? '#10B981' : otPct >= 40 ? '#F59E0B' : '#EF4444';
+          const arOk   = atRiskSl === 0;
+          return `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+            <div style="background:var(--surface);border:1px solid ${otOk?'#BBF7D0':'var(--border)'};border-radius:12px;padding:16px 20px">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">On Track / Done</div>
+              <div style="font-size:28px;font-weight:800;color:${otOk?'#059669':'var(--text)'};margin-bottom:10px">${onTrkSl}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / ${totalSl}</span></div>
+              <div style="height:5px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:${otPct}%;background:${otBar};border-radius:3px"></div></div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">In Progress</div>
+              <div style="font-size:28px;font-weight:800;color:var(--text);margin-bottom:10px">${inProgSl}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / ${totalSl}</span></div>
+              <div style="height:5px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:${ipPct}%;background:#6366F1;border-radius:3px"></div></div>
+            </div>
+            <div style="background:var(--surface);border:1px solid ${arOk?'#BBF7D0':atRiskSl>0?'#FECACA':'var(--border)'};border-radius:12px;padding:16px 20px">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">At Risk</div>
+              ${arOk
+                ? `<div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+                     <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:#F0FDF4;border-radius:50%;border:2px solid #BBF7D0;flex-shrink:0"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                     <span style="font-size:14px;font-weight:600;color:#059669">All clear</span>
+                   </div>`
+                : `<div style="font-size:28px;font-weight:800;color:${atRiskSl>0?'#DC2626':'var(--text-muted)'}">
+                     ${atRiskSl}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> goal${atRiskSl!==1?'s':''}</span>
+                   </div>`}
+            </div>
+          </div>`;
+        })()}
         ${subLabel('Team Goals')}
         ${goalCards}
       `}
@@ -6787,18 +6862,37 @@ function renderTeamOutreach(members) {
         </div>
       ` : `
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
-          <div style="${tileStyle(onTrackCount === filteredMembers.length)}">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">On Track (Q${q})</div>
-            <div style="font-size:28px;font-weight:800;color:${onTrackCount === filteredMembers.length ? 'var(--green)' : 'var(--text)'}">${onTrackCount}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / ${filteredMembers.length}</span></div>
-          </div>
-          <div style="${tileStyle(hveCount === filteredMembers.length)}">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">HVE This Month</div>
-            <div style="font-size:28px;font-weight:800;color:${hveCount === filteredMembers.length ? 'var(--green)' : 'var(--text)'}">${hveCount}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / ${filteredMembers.length}</span></div>
-          </div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">Total Touchpoints Q${q}</div>
-            <div style="font-size:28px;font-weight:800;color:var(--text)">${totalThisQ}</div>
-          </div>
+          ${(function(){
+            const allOk = onTrackCount === filteredMembers.length;
+            const otPct = filteredMembers.length > 0 ? Math.min(100, Math.round(onTrackCount / filteredMembers.length * 100)) : 0;
+            const otBar = allOk ? '#059669' : otPct >= 80 ? '#10B981' : otPct >= 50 ? '#F59E0B' : '#EF4444';
+            return `<div style="background:var(--surface);border:1px solid ${allOk?'#BBF7D0':'var(--border)'};border-radius:12px;padding:16px 20px">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">On Track (Q${q})</div>
+              <div style="font-size:28px;font-weight:800;color:${allOk?'#059669':'var(--text)'};margin-bottom:10px">${onTrackCount}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / ${filteredMembers.length}</span></div>
+              <div style="height:5px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:${otPct}%;background:${otBar};border-radius:3px"></div></div>
+            </div>`;
+          })()}
+          ${(function(){
+            const allHve = hveCount === filteredMembers.length;
+            const hvePct = filteredMembers.length > 0 ? Math.min(100, Math.round(hveCount / filteredMembers.length * 100)) : 0;
+            const hveBar = allHve ? '#059669' : hvePct >= 80 ? '#10B981' : hvePct >= 50 ? '#F59E0B' : '#EF4444';
+            return `<div style="background:var(--surface);border:1px solid ${allHve?'#BBF7D0':'var(--border)'};border-radius:12px;padding:16px 20px">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">HVE This Month</div>
+              <div style="font-size:28px;font-weight:800;color:${allHve?'#059669':'var(--text)'};margin-bottom:10px">${hveCount}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / ${filteredMembers.length}</span></div>
+              <div style="height:5px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:${hvePct}%;background:${hveBar};border-radius:3px"></div></div>
+            </div>`;
+          })()}
+          ${(function(){
+            const teamGoal = filteredMembers.length * GOAL;
+            const tpPct = teamGoal > 0 ? Math.min(100, Math.round(totalThisQ / teamGoal * 100)) : 0;
+            const tpOk = totalThisQ >= teamGoal;
+            const tpBar = tpOk ? '#059669' : tpPct >= 70 ? '#10B981' : tpPct >= 40 ? '#F59E0B' : '#EF4444';
+            return `<div style="background:var(--surface);border:1px solid ${tpOk?'#BBF7D0':'var(--border)'};border-radius:12px;padding:16px 20px">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">Total Touchpoints Q${q}</div>
+              <div style="font-size:28px;font-weight:800;color:${tpOk?'#059669':'var(--text)'};margin-bottom:10px">${totalThisQ}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / ${teamGoal}</span></div>
+              <div style="height:5px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:${tpPct}%;background:${tpBar};border-radius:3px"></div></div>
+            </div>`;
+          })()}
         </div>
 
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
