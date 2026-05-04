@@ -4033,7 +4033,7 @@ function renderTeamSkillsView(members) {
   }).join('');
 
   const headerCols = memberData.map(({ m }) => `
-    <th style="text-align:center;padding:6px 8px;font-size:11px;font-weight:600;color:var(--text-muted);min-width:72px">
+    <th style="text-align:center;padding:6px 8px;font-size:11px;font-weight:600;color:var(--text-muted);min-width:72px;position:sticky;top:0;background:var(--surface);z-index:2;box-shadow:0 2px 0 var(--border)">
       <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${escHtml(m.name)}">${escHtml(m.name.split(' ')[0])}</div>
     </th>`).join('');
 
@@ -4065,8 +4065,8 @@ function renderTeamSkillsView(members) {
         <div style="overflow-x:auto">
           <table style="border-collapse:collapse;width:100%;table-layout:auto;min-width:${240 + filteredMembers.length * 72}px">
             <thead>
-              <tr style="border-bottom:2px solid var(--border)">
-                <th style="text-align:left;padding:8px 12px;font-size:12px;font-weight:600;color:var(--text-muted);min-width:240px;position:sticky;left:0;background:var(--surface)">Skill</th>
+              <tr>
+                <th style="text-align:left;padding:8px 12px;font-size:12px;font-weight:600;color:var(--text-muted);min-width:240px;position:sticky;top:0;left:0;z-index:3;background:var(--surface);box-shadow:0 2px 0 var(--border)">Skill</th>
                 ${headerCols}
               </tr>
             </thead>
@@ -4889,44 +4889,39 @@ function renderTeamCoreValues(members) {
       ${avgTile}
     </div>`;
 
-  // ── Table header ──────────────────────────────────────────────────────────────
-  const valueHeaders = CORE_VALUES_DATA.map(cv =>
-    `<th style="text-align:center;padding:8px 14px;font-size:12px;font-weight:600;color:var(--text-muted);min-width:148px;white-space:nowrap">${cv.emoji} ${cv.label.split('.')[0].trim()}</th>`
+  // ── People-as-columns, values-as-rows ────────────────────────────────────────
+  const thBase = 'position:sticky;top:0;z-index:2;background:var(--surface);box-shadow:0 2px 0 var(--border)';
+  const personHeaders = memberData.map(({ m }) =>
+    `<th style="text-align:center;padding:8px 10px;min-width:110px;${thBase}">
+      <button onclick="viewReportValues('${m.id}')" style="background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:8px;display:flex;flex-direction:column;align-items:center;gap:4px;width:100%" onmouseenter="this.style.background='var(--primary-light)'" onmouseleave="this.style.background='transparent'">
+        ${avatarHtml(m, 28, 10)}
+        <span style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;display:block">${escHtml(m.name.split(' ')[0])}</span>
+      </button>
+    </th>`
   ).join('');
 
-  // ── Member rows ───────────────────────────────────────────────────────────────
-  const memberRows = memberData.map(({ m, ratings }) => {
-    const cells = CORE_VALUES_DATA.map(cv => {
+  const valueRows = CORE_VALUES_DATA.map(cv => {
+    const cells = memberData.map(({ ratings }) => {
       const r = ratings[cv.id];
-      if (!r) return `<td style="padding:8px 14px;text-align:center"><span style="color:#CBD5E1;font-size:13px">—</span></td>`;
+      if (!r) return `<td style="padding:10px;text-align:center"><span style="color:#CBD5E1;font-size:13px">—</span></td>`;
       const rc = CV_RATING_CONFIG[r];
-      return `<td style="padding:8px 14px;text-align:center">
+      return `<td style="padding:10px;text-align:center">
         <span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:${rc.bg};color:${rc.color};border:1px solid ${rc.border};white-space:nowrap">${rc.short}</span>
       </td>`;
     }).join('');
-
+    const cvVals = memberData.map(({ ratings }) => ratings[cv.id]).filter(Boolean);
+    const cvAvg  = cvVals.length ? cvVals.reduce((s, v) => s + v, 0) / cvVals.length : null;
+    const cvRc   = cvAvg ? CV_RATING_CONFIG[Math.round(cvAvg)] : null;
+    const avgCell = cvAvg
+      ? `<td style="padding:10px;text-align:center;background:var(--bg)"><span style="font-size:12px;font-weight:700;color:${cvRc?.color || 'var(--text-muted)'}">${cvAvg.toFixed(1)}</span></td>`
+      : `<td style="padding:10px;text-align:center;background:var(--bg)"><span style="color:#CBD5E1;font-size:11px">—</span></td>`;
     return `<tr style="border-bottom:1px solid var(--border)">
-      <td style="padding:10px 14px">
-        <button onclick="viewReportValues('${m.id}')" style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:8px;transition:background .15s;width:100%;text-align:left" onmouseenter="this.style.background='var(--primary-light)'" onmouseleave="this.style.background='transparent'">
-          ${avatarHtml(m, 28, 10)}
-          <div>
-            <div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(m.name)}</div>
-            <div style="font-size:11px;color:var(--text-muted)">${escHtml(shortRole(m.role) || m.role)}</div>
-          </div>
-          <svg style="margin-left:auto;flex-shrink:0;color:var(--text-muted);opacity:.5" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
+      <td style="padding:10px 14px;position:sticky;left:0;z-index:1;background:var(--surface);min-width:160px;white-space:nowrap">
+        <span style="font-size:14px;margin-right:6px">${cv.emoji}</span><span style="font-size:13px;font-weight:600;color:var(--text)">${cv.label.split('.')[0].trim()}</span>
       </td>
       ${cells}
+      ${avgCell}
     </tr>`;
-  }).join('');
-
-  // ── Team avg footer row ───────────────────────────────────────────────────────
-  const avgCells = valueAvgs.map(avg => {
-    if (avg === null) return `<td style="padding:8px 14px;text-align:center"><span style="color:#CBD5E1;font-size:11px">—</span></td>`;
-    const rc = CV_RATING_CONFIG[Math.round(avg)];
-    return `<td style="padding:8px 14px;text-align:center">
-      <span style="font-size:12px;font-weight:700;color:${rc?.color || 'var(--text-muted)'}">${avg.toFixed(1)}</span>
-    </td>`;
   }).join('');
 
   return `
@@ -4944,20 +4939,17 @@ function renderTeamCoreValues(members) {
         </div>
       ` : `
         ${summaryHtml}
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
-          <table style="width:100%;border-collapse:collapse">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow-x:auto">
+          <table style="border-collapse:collapse;min-width:${160 + memberData.length * 110 + 80}px">
             <thead>
-              <tr style="border-bottom:2px solid var(--border)">
-                <th style="text-align:left;padding:8px 14px;font-size:12px;font-weight:600;color:var(--text-muted);min-width:190px">Person</th>
-                ${valueHeaders}
+              <tr>
+                <th style="text-align:left;padding:8px 14px;font-size:12px;font-weight:600;color:var(--text-muted);min-width:160px;position:sticky;top:0;left:0;z-index:3;background:var(--surface);box-shadow:0 2px 0 var(--border)">Value</th>
+                ${personHeaders}
+                <th style="text-align:center;padding:8px 12px;font-size:12px;font-weight:600;color:var(--text-muted);min-width:80px;background:var(--bg);${thBase}">Team avg</th>
               </tr>
             </thead>
             <tbody>
-              ${memberRows}
-              <tr style="background:var(--bg);border-top:2px solid var(--border)">
-                <td style="padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Team avg</td>
-                ${avgCells}
-              </tr>
+              ${valueRows}
             </tbody>
           </table>
         </div>
