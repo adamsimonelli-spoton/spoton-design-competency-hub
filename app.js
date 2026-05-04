@@ -4543,6 +4543,15 @@ function renderOutreachWidget() {
 }
 
 function renderOutreachPage() {
+  // Team outreach overview when in Directs / Dept view
+  const _sp = getSessionProfile();
+  if (_sp?.isManager && !state.managerMode && (state.managerTab || 'team') !== 'me') {
+    const _allProfiles = getProfiles();
+    const _members = (state.managerTab || 'team') === 'dept'
+      ? getSubtreeProfiles(_sp.id, _allProfiles)
+      : _allProfiles.filter(p => p.managerId === _sp.id);
+    return renderTeamOutreach(_members);
+  }
   const od = getOutreachData();
   const { year, q } = getCurrentQuarter();
   const quarterEntries = getEntriesForQuarter(od.entries, year, q);
@@ -6317,7 +6326,162 @@ function saveGrowthTheme(id) {
   closeGrowthThemeModal();
 }
 
+// ── Team Goals view ──────────────────────────────────────────────────────────
+function renderTeamGoals(members) {
+  const { year, q } = getCurrentQuarter();
+  const subLabel = t => `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px">${t}</div>`;
+
+  // Per-member goal contribution data
+  const memberRows = members.map(m => {
+    const d = JSON.parse(localStorage.getItem('dch_data_' + m.id) || '{}');
+    const contributions = d.goalContributions || {};
+    return { m, contributions };
+  });
+
+  const goalCards = DESIGN_TEAM_GOALS.map(g => {
+    const rows = memberRows.map(({ m, contributions }) => {
+      const c = contributions[g.id] || { status: 'not_started' };
+      const sc = GOAL_STATUS_CONFIG[c.status] || GOAL_STATUS_CONFIG['not_started'];
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:10px">
+          ${avatarHtml(m, 24, 9)}
+          <span style="font-size:13px;color:var(--text)">${escHtml(m.name)}</span>
+        </div>
+        <span style="padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;background:${sc.bg};color:${sc.color};border:1px solid ${sc.border}">${sc.label}</span>
+      </div>`;
+    }).join('');
+
+    const statuses = memberRows.map(({ m, contributions }) => (contributions[g.id] || {}).status || 'not_started');
+    const onTrack = statuses.filter(s => s === 'on_track' || s === 'completed').length;
+
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px">
+        <div style="font-size:15px;font-weight:700;color:var(--text);line-height:1.4">${escHtml(g.goal)}</div>
+        <span style="flex-shrink:0;font-size:11px;font-weight:600;color:var(--text-muted);background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:2px 8px">${g.timeFrame}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:14px">${escHtml(g.kpi)}</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${members.length ? Math.round(onTrack/members.length*100) : 0}%;background:var(--green);border-radius:3px"></div>
+        </div>
+        <span style="font-size:11px;font-weight:600;color:var(--text-muted);white-space:nowrap">${onTrack} / ${members.length} on track</span>
+      </div>
+      <div>${rows}</div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div>
+      <div class="review-header" style="margin-bottom:24px"><h1>Goals</h1></div>
+      ${subLabel('Team Goals')}
+      ${goalCards}
+    </div>`;
+}
+
+// ── Team Outreach view ────────────────────────────────────────────────────────
+function renderTeamOutreach(members) {
+  const { year, q } = getCurrentQuarter();
+  const now = new Date();
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const GOAL = 4;
+
+  const memberStats = members.map(m => {
+    const od = JSON.parse(localStorage.getItem('dch_outreach_' + m.id) || '{"entries":[]}');
+    const entries = od.entries || [];
+    const qEntries = getEntriesForQuarter(entries, year, q);
+    const qCount = qEntries.length;
+    const hveThisMonth = entries.filter(e => e.type === 'hve' && new Date(e.date) >= thisMonthStart).length;
+    const lastEntry = entries.length ? entries.slice().sort((a,b) => new Date(b.date)-new Date(a.date))[0] : null;
+    return { m, qCount, hveThisMonth, lastEntry, onTrack: qCount >= GOAL };
+  });
+
+  const onTrackCount  = memberStats.filter(s => s.onTrack).length;
+  const hveCount      = memberStats.filter(s => s.hveThisMonth >= 1).length;
+  const totalThisQ    = memberStats.reduce((sum, s) => sum + s.qCount, 0);
+
+  const tileStyle = (ok) => `background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px${ok ? ';border-color:#BBF7D0' : ''}`;
+
+  const rows = memberStats.map(({ m, qCount, hveThisMonth, lastEntry, onTrack }) => {
+    const pct = Math.min(100, Math.round(qCount / GOAL * 100));
+    const lastStr = lastEntry ? lastEntry.date.slice(0,10) : '—';
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:10px 16px">
+        <div style="display:flex;align-items:center;gap:10px">
+          ${avatarHtml(m, 28, 10)}
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(m.name)}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${escHtml(shortRole(m.role) || m.role)}</div>
+          </div>
+        </div>
+      </td>
+      <td style="padding:10px 16px;min-width:160px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${onTrack ? 'var(--green)' : 'var(--primary)'};border-radius:3px"></div>
+          </div>
+          <span style="font-size:12px;font-weight:700;color:${onTrack ? 'var(--green)' : 'var(--text)'};">${qCount} / ${GOAL}</span>
+        </div>
+      </td>
+      <td style="padding:10px 16px;text-align:center">
+        ${hveThisMonth >= 1
+          ? `<span style="font-size:11px;font-weight:700;color:var(--green);background:#F0FDF4;border:1px solid #BBF7D0;border-radius:20px;padding:2px 8px">✓ Done</span>`
+          : `<span style="font-size:11px;font-weight:700;color:#DC2626;background:#FEF2F2;border:1px solid #FECACA;border-radius:20px;padding:2px 8px">Due</span>`}
+      </td>
+      <td style="padding:10px 16px;font-size:12px;color:var(--text-muted);text-align:right">${lastStr}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+    <div>
+      <div class="review-header" style="margin-bottom:24px">
+        <div>
+          <h1>Merchant Outreach</h1>
+          <p style="color:var(--text-muted);font-size:13px;margin-top:4px">Q${q} ${year} · Goal: ${GOAL} touchpoints/quarter · Monthly HVE check-in</p>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
+        <div style="${tileStyle(onTrackCount === members.length)}">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">On Track (Q${q})</div>
+          <div style="font-size:28px;font-weight:800;color:${onTrackCount === members.length ? 'var(--green)' : 'var(--text)'}">${onTrackCount}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / ${members.length}</span></div>
+        </div>
+        <div style="${tileStyle(hveCount === members.length)}">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">HVE This Month</div>
+          <div style="font-size:28px;font-weight:800;color:${hveCount === members.length ? 'var(--green)' : 'var(--text)'}">${hveCount}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / ${members.length}</span></div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px">Total Touchpoints Q${q}</div>
+          <div style="font-size:28px;font-weight:800;color:var(--text)">${totalThisQ}</div>
+        </div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border)">
+              <th style="text-align:left;padding:10px 16px;font-size:12px;font-weight:600;color:var(--text-muted)">Person</th>
+              <th style="text-align:left;padding:10px 16px;font-size:12px;font-weight:600;color:var(--text-muted)">Q${q} Touchpoints</th>
+              <th style="text-align:center;padding:10px 16px;font-size:12px;font-weight:600;color:var(--text-muted)">HVE This Month</th>
+              <th style="text-align:right;padding:10px 16px;font-size:12px;font-weight:600;color:var(--text-muted)">Last Entry</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
 function renderGoals() {
+  // Team goals overview when in Directs / Dept view
+  const _sp = getSessionProfile();
+  if (_sp?.isManager && !state.managerMode && (state.managerTab || 'team') !== 'me') {
+    const _allProfiles = getProfiles();
+    const _members = (state.managerTab || 'team') === 'dept'
+      ? getSubtreeProfiles(_sp.id, _allProfiles)
+      : _allProfiles.filter(p => p.managerId === _sp.id);
+    return renderTeamGoals(_members);
+  }
+
   const profiles = getProfiles();
   const currentProfile = profiles.find(p => p.id === state.profile);
   const personalGoals = getPersonalGoals();
@@ -7604,7 +7768,17 @@ function render() {
             <span>Skills</span>
           </button>
 
-          ${showTeamOnlyNav ? '' : `
+          ${showTeamOnlyNav ? `
+            <div class="nav-section-label">Tools</div>
+            <button class="nav-item ${['goals','personal-goal','design-goal','growth-theme'].includes(state.view) ? 'active' : ''}" onclick="navigate('goals')">
+              <span class="nav-icon">${icon('target', 18)}</span>
+              <span>Goals</span>
+            </button>
+            <button class="nav-item ${state.view === 'outreach' ? 'active' : ''}" onclick="navigate('outreach')">
+              <span class="nav-icon">${icon('store', 18)}</span>
+              <span>Merchant Outreach</span>
+            </button>
+          ` : `
             <button class="nav-item ${state.view === 'values' || state.view === 'value' ? 'active' : ''}" onclick="navigate('values')">
               <span class="nav-icon">${icon('heart', 18)}</span>
               <span>Core Values</span>
