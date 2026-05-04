@@ -3871,8 +3871,8 @@ function renderTeamSkillsView(members) {
       }).join('');
 
       return `<tr style="border-bottom:1px solid var(--border)">
-        <td style="padding:6px 12px;position:sticky;left:0;background:var(--surface);min-width:240px">
-          <button onclick="navigate('skill','${skill.id}')" style="background:none;border:none;text-align:left;cursor:pointer;font-size:13px;color:var(--text);padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;display:block" title="${escHtml(skill.name)}">${escHtml(skill.name)}</button>
+        <td style="padding:6px 12px;position:sticky;left:0;background:var(--surface);min-width:240px;cursor:pointer" onclick="navigate('skill','${skill.id}')" onmouseenter="this.style.background='var(--primary-light)';this.querySelector('button').style.color='var(--primary)'" onmouseleave="this.style.background='var(--surface)';this.querySelector('button').style.color='var(--text)'">
+          <button style="background:none;border:none;text-align:left;cursor:pointer;font-size:13px;color:var(--text);padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;display:block;pointer-events:none" title="${escHtml(skill.name)}">${escHtml(skill.name)}</button>
         </td>
         ${cells}
       </tr>`;
